@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeadHunter Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── CONFIG: MUDE APENAS ESTA URL PARA APONTAR PARA SUA API ── */
+/* Definida no JS: window.API_BASE */
+
+:root {
+  --bg0:#060608;--bg1:#0d0d11;--bg2:#141418;--bg3:#1c1c22;--bg4:#242430;
+  --border:rgba(255,255,255,0.06);--border-h:rgba(251,159,36,0.3);
+  --amber:#fb9f24;--amber-l:#fdc96a;--amber-dim:rgba(251,159,36,0.12);--amber-glow:rgba(251,159,36,0.06);
+  --orange:#f06a20;--text-p:#f0ede8;--text-s:#8a8690;--text-t:#504d58;
+  --ok:#22c55e;--err:#ef4444;--info:#3b82f6;
+  --fd:'Syne',sans-serif;--fm:'DM Mono',monospace;--fb:'Outfit',sans-serif;
+  --r:10px;--rl:16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--bg0);color:var(--text-p);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg1)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{width:220px;flex-shrink:0;background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;position:relative;z-index:10}
+.sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:200px;background:radial-gradient(ellipse at 50% 0%,rgba(251,159,36,0.06) 0%,transparent 70%);pointer-events:none}
+.logo{padding:22px 20px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;background:var(--amber);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden}
+.logo-icon::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.2) 0%,transparent 60%)}
+.logo-icon svg{width:18px;height:18px;color:#000}
+.logo-text{font-family:var(--fd);font-size:15px;font-weight:700;letter-spacing:-.3px}
+.logo-text span{color:var(--amber)}
+.nav-section{padding:14px 12px 6px}
+.nav-label{font-size:10px;font-weight:500;letter-spacing:.12em;color:var(--text-t);text-transform:uppercase;padding:0 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:all .15s;color:var(--text-s);font-size:13.5px;font-weight:400;margin-bottom:1px;position:relative;user-select:none}
+.nav-item svg{width:15px;height:15px;flex-shrink:0;opacity:.7}
+.nav-item:hover{background:var(--bg3);color:var(--text-p)}
+.nav-item:hover svg{opacity:1}
+.nav-item.active{background:var(--amber-dim);color:var(--amber);font-weight:500}
+.nav-item.active svg{opacity:1;color:var(--amber)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:2px;background:var(--amber);border-radius:0 2px 2px 0}
+.nav-badge{margin-left:auto;background:var(--amber);color:#000;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;font-family:var(--fm)}
+.nav-badge.live{background:var(--ok);animation:pb 2s infinite}
+@keyframes pb{0%,100%{opacity:1}50%{opacity:.6}}
+.sidebar-bottom{margin-top:auto;padding:12px;border-top:1px solid var(--border)}
+.plan-card{background:var(--amber-glow);border:1px solid rgba(251,159,36,0.15);border-radius:var(--r);padding:12px}
+.plan-name{font-size:11px;color:var(--amber);font-weight:600;font-family:var(--fm);letter-spacing:.05em;margin-bottom:6px}
+.plan-bar-wrap{height:4px;background:var(--bg4);border-radius:2px;margin:6px 0 4px;overflow:hidden}
+.plan-bar{height:100%;background:linear-gradient(90deg,var(--amber),var(--orange));border-radius:2px;width:67%;transition:width .5s}
+.plan-credits{font-size:11px;color:var(--text-s);font-family:var(--fm)}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;flex-shrink:0;background:var(--bg1)}
+.page-title{font-family:var(--fd);font-size:16px;font-weight:700;letter-spacing:-.3px}
+.page-title span{color:var(--amber)}
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;border:none;font-family:var(--fb);white-space:nowrap}
+.btn svg{width:14px;height:14px}
+.btn-primary{background:var(--amber);color:#000}
+.btn-primary:hover{background:var(--amber-l);transform:translateY(-1px);box-shadow:0 4px 20px rgba(251,159,36,.3)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-ghost{background:var(--bg3);color:var(--text-s);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg4);color:var(--text-p)}
+.btn-danger{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
+.btn-danger:hover{background:rgba(239,68,68,.25)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--amber),var(--orange));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#000;cursor:pointer;flex-shrink:0}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;overflow-x:hidden}
+.page{display:none;padding:24px;animation:fi .2s ease}
+.page.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);transition:border-color .2s}
+.card:hover{border-color:var(--border-h)}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.card-title{font-family:var(--fd);font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.card-title svg{width:15px;height:15px;color:var(--amber)}
+.card-body{padding:20px}
+
+/* ── KPI ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:18px 20px;position:relative;overflow:hidden;transition:all .2s}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--amber),transparent);opacity:0;transition:opacity .3s}
+.kpi-card:hover{border-color:var(--border-h)}.kpi-card:hover::before{opacity:1}
+.kpi-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.kpi-icon{width:34px;height:34px;border-radius:8px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center}
+.kpi-icon svg{width:16px;height:16px;color:var(--amber)}
+.kpi-delta{font-size:11px;font-family:var(--fm);padding:2px 7px;border-radius:6px}
+.kpi-delta.up{background:rgba(34,197,94,.12);color:var(--ok)}.kpi-delta.down{background:rgba(239,68,68,.12);color:var(--err)}
+.kpi-value{font-family:var(--fd);font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1;margin-bottom:4px}
+.kpi-label{font-size:12px;color:var(--text-s)}
+.kpi-loading{height:28px;background:var(--bg4);border-radius:4px;animation:sk 1.5s infinite}
+@keyframes sk{0%,100%{opacity:.4}50%{opacity:.8}}
+
+/* ── GRIDS ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-70-30{display:grid;grid-template-columns:1fr 340px;gap:14px}
+
+/* ── FEED ── */
+.feed-list{display:flex;flex-direction:column;gap:1px}
+.feed-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:12.5px;transition:background .15s;animation:feedin .4s ease}
+@keyframes feedin{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.feed-item:hover{background:var(--bg3)}
+.feed-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.feed-dot.amber{background:var(--amber);box-shadow:0 0 6px rgba(251,159,36,.5)}
+.feed-dot.green{background:var(--ok);box-shadow:0 0 6px rgba(34,197,94,.5)}
+.feed-dot.blue{background:var(--info)}.feed-dot.red{background:var(--err)}
+.feed-text{flex:1;color:var(--text-s)}.feed-text strong{color:var(--text-p);font-weight:500}
+.feed-time{font-family:var(--fm);font-size:10px;color:var(--text-t)}
+
+/* ── TERMINAL ── */
+.terminal{background:var(--bg0);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;font-family:var(--fm);font-size:12px;height:220px;overflow-y:auto}
+.tl{line-height:1.7}.tl .ts{color:var(--text-t)}.tl .ok{color:var(--ok)}.tl .warn{color:var(--amber)}.tl .info{color:var(--info)}.tl .err{color:var(--err)}
+
+/* ── FORMS ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:5px}
+label{font-size:11px;font-weight:500;color:var(--text-t);text-transform:uppercase;letter-spacing:.08em}
+input,select,textarea{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text-p);font-family:var(--fb);font-size:13.5px;padding:9px 12px;outline:none;transition:all .15s;width:100%}
+input:focus,select:focus,textarea:focus{border-color:rgba(251,159,36,.4);background:var(--bg4);box-shadow:0 0 0 3px rgba(251,159,36,.06)}
+select option{background:var(--bg3)}
+.checkbox-group{display:flex;gap:10px;flex-wrap:wrap}
+.chk-item{display:flex;align-items:center;gap:6px;cursor:pointer;padding:6px 12px;border-radius:8px;border:1px solid var(--border);font-size:12.5px;color:var(--text-s);transition:all .15s;user-select:none}
+.chk-item:hover{border-color:var(--border-h);color:var(--text-p)}
+.chk-item.on{border-color:var(--amber);background:var(--amber-dim);color:var(--amber)}
+
+/* ── TABLE ── */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{padding:10px 14px;text-align:left;font-size:11px;font-weight:500;color:var(--text-t);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.03);transition:background .1s}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+tbody td{padding:11px 14px;font-size:13px;color:var(--text-s);vertical-align:middle}
+tbody td strong{color:var(--text-p);font-weight:500}
+.td-act{display:flex;gap:6px;align-items:center}
+.ib{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-t);transition:all .15s}
+.ib svg{width:12px;height:12px}
+.ib:hover{border-color:var(--amber);color:var(--amber);background:var(--amber-glow)}
+.ib.danger:hover{border-color:var(--err);color:var(--err);background:rgba(239,68,68,.08)}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:500;white-space:nowrap;font-family:var(--fm)}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.b-amber{background:var(--amber-dim);color:var(--amber)}.b-green{background:rgba(34,197,94,.12);color:var(--ok)}
+.b-blue{background:rgba(59,130,246,.12);color:var(--info)}.b-red{background:rgba(239,68,68,.12);color:var(--err)}
+.b-gray{background:var(--bg4);color:var(--text-t)}
+
+/* ── PROGRESS ── */
+.pw{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.pb{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--amber),var(--orange));transition:width .5s}
+.pb.green{background:linear-gradient(90deg,var(--ok),#16a34a)}.pb.blue{background:var(--info)}
+
+/* ── FUNNEL ── */
+.funnel{display:flex;flex-direction:column;gap:8px}
+.funnel-step{display:flex;align-items:center;gap:10px}
+.funnel-label{font-size:12px;color:var(--text-s);width:90px;flex-shrink:0}
+.funnel-value{font-family:var(--fm);font-size:12px;color:var(--amber);width:60px;flex-shrink:0;text-align:right}
+
+/* ── KANBAN ── */
+.kanban{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px}
+.kanban-col{flex-shrink:0;width:210px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);display:flex;flex-direction:column}
+.kanban-col-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.kanban-col-title{font-size:12px;font-weight:600;color:var(--text-s);text-transform:uppercase;letter-spacing:.08em}
+.kanban-col-count{font-family:var(--fm);font-size:11px;background:var(--bg4);padding:1px 7px;border-radius:6px;color:var(--text-t)}
+.kanban-cards{padding:10px;display:flex;flex-direction:column;gap:8px;flex:1;min-height:60px}
+.kanban-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:11px 12px;cursor:pointer;transition:all .15s}
+.kanban-card:hover{border-color:var(--border-h);transform:translateY(-1px)}
+.kk-name{font-size:12.5px;font-weight:500;margin-bottom:5px}
+.kk-meta{font-size:11px;color:var(--text-t);display:flex;gap:8px}
+
+/* ── CAMPAIGNS ── */
+.camp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.camp-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:18px;transition:all .2s;cursor:pointer}
+.camp-card:hover{border-color:var(--border-h);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.camp-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.camp-card-name{font-family:var(--fd);font-size:14px;font-weight:600;margin-bottom:4px}
+.camp-card-sub{font-size:11.5px;color:var(--text-s)}
+.camp-icon{width:36px;height:36px;border-radius:9px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center}
+.camp-icon svg{width:16px;height:16px;color:var(--amber)}
+.camp-stats{display:flex;gap:16px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.camp-stat{text-align:center}
+.camp-stat-val{font-family:var(--fm);font-size:16px;font-weight:500;color:var(--text-p)}
+.camp-stat-label{font-size:10px;color:var(--text-t);margin-top:1px;text-transform:uppercase;letter-spacing:.06em}
+
+/* ── INBOX ── */
+.inbox-wrap{display:flex;height:calc(100vh - 56px);overflow:hidden}
+.inbox-list{width:280px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto}
+.inbox-list-header{padding:14px 16px;border-bottom:1px solid var(--border);font-family:var(--fd);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between}
+.inbox-search{padding:10px 12px;border-bottom:1px solid var(--border)}
+.conv-item{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.02);cursor:pointer;transition:background .1s;display:flex;gap:10px;align-items:flex-start}
+.conv-item:hover{background:var(--bg2)}.conv-item.active{background:var(--amber-glow);border-right:2px solid var(--amber)}
+.conv-av{width:38px;height:38px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;color:var(--amber)}
+.conv-info{flex:1;min-width:0}
+.conv-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv-preview{font-size:11.5px;color:var(--text-t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.conv-time{font-size:10px;color:var(--text-t);font-family:var(--fm);flex-shrink:0}
+.conv-unread{background:var(--amber);color:#000;font-size:10px;font-weight:700;padding:1px 5px;border-radius:6px;font-family:var(--fm);margin-top:4px;align-self:flex-start}
+.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.chat-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:65%;padding:10px 14px;border-radius:12px;font-size:13.5px;line-height:1.5}
+.msg.sent{background:var(--amber-dim);border:1px solid rgba(251,159,36,.2);align-self:flex-end;border-radius:12px 12px 2px 12px}
+.msg.received{background:var(--bg3);border:1px solid var(--border);align-self:flex-start;border-radius:12px 12px 12px 2px}
+.msg-time{font-size:10px;color:var(--text-t);margin-top:4px;font-family:var(--fm)}
+.chat-input-area{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-end}
+.chat-input-area textarea{flex:1;resize:none;height:40px;max-height:120px}
+
+/* ── FLOW CANVAS ── */
+.flow-canvas{background:var(--bg0);background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px);background-size:28px 28px;border-radius:var(--rl);border:1px solid var(--border);height:420px;position:relative;overflow:hidden}
+.flow-node{position:absolute;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 16px;min-width:150px;cursor:move;transition:border-color .2s,box-shadow .2s}
+.flow-node:hover{border-color:var(--amber);box-shadow:0 0 0 1px rgba(251,159,36,.2)}
+.fn-type{font-size:9px;text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:4px}
+.fn-type.trigger{color:var(--amber)}.fn-type.action{color:var(--info)}.fn-type.wait{color:var(--text-t)}.fn-type.cond{color:#a855f7}
+.flow-node.trigger{border-top:2px solid var(--amber)}.flow-node.action{border-top:2px solid var(--info)}.flow-node.cond{border-top:2px solid #a855f7}
+.fn-label{font-size:13px;font-weight:500}.fn-sub{font-size:11px;color:var(--text-t);margin-top:2px}
+
+/* ── ANALYTICS CHART ── */
+.chart-area{height:200px;display:flex;align-items:flex-end;gap:6px;padding:10px 0}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.chart-bar{width:100%;background:var(--amber-dim);border-radius:3px 3px 0 0;border:1px solid rgba(251,159,36,.2);cursor:pointer;transition:all .3s}
+.chart-bar:hover{background:var(--amber)}
+.chart-label{font-size:10px;color:var(--text-t);font-family:var(--fm)}
+
+/* ── STATUS DOT ── */
+.sdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.sdot.on{background:var(--ok);box-shadow:0 0 0 2px rgba(34,197,94,.2);animation:pd 2s infinite}
+.sdot.off{background:var(--err)}.sdot.warn{background:var(--amber)}
+@keyframes pd{0%,100%{box-shadow:0 0 0 2px rgba(34,197,94,.2)}50%{box-shadow:0 0 0 4px rgba(34,197,94,.1)}}
+
+/* ── MISC ── */
+.divider{height:1px;background:var(--border);margin:16px 0}
+.t-amber{color:var(--amber)}.t-muted{color:var(--text-s)}.t-sm{font-size:12px}.t-mono{font-family:var(--fm)}
+.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}.mb-20{margin-bottom:20px}
+.flex{display:flex;align-items:center}.gap-8{gap:8px}.gap-12{gap:12px}.ml-auto{margin-left:auto}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:13px}
+.stat-row:last-child{border-bottom:none}.stat-row-label{color:var(--text-s)}.stat-row-val{font-family:var(--fm);color:var(--text-p)}
+.section-title{font-family:var(--fd);font-size:18px;font-weight:700;letter-spacing:-.5px;margin-bottom:16px}
+
+/* ── SPINNER ── */
+.spinner{width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:sp .6s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.spinner.light{border-color:rgba(251,159,36,.2);border-top-color:var(--amber)}
+.loading-row{display:flex;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--text-t);font-size:13px}
+
+/* ── EMPTY STATE ── */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:var(--text-t);text-align:center}
+.empty svg{width:40px;height:40px;margin-bottom:12px;opacity:.3}
+.empty-title{font-size:15px;color:var(--text-s);margin-bottom:6px}
+.empty-sub{font-size:13px;max-width:260px}
+
+/* ── ERROR BANNER ── */
+.api-error-banner{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:var(--r);padding:12px 16px;font-size:13px;color:#ef4444;margin-bottom:16px;display:none}
+.api-error-banner.show{display:flex;align-items:center;gap:10px}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;animation:mi .25s ease}
+@keyframes mi{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:var(--fd);font-size:16px;font-weight:700}
+.modal-body{padding:24px}.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+.close-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text-s);display:flex;align-items:center;justify-content:center;transition:all .15s}
+.close-btn:hover{background:var(--bg4);color:var(--text-p)}
+
+/* ── TOAST ── */
+.toast-container{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:1000}
+.toast{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:var(--r);padding:12px 16px;font-size:13px;min-width:260px;animation:ti .3s ease;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.toast.success{border-left-color:var(--ok)}.toast.error{border-left-color:var(--err)}.toast.warning{border-left-color:var(--amber)}
+@keyframes ti{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.toast-title{font-weight:500;margin-bottom:2px}.toast-body{color:var(--text-s);font-size:12px}
+
+/* ── SETTINGS TABS ── */
+.stabs{display:flex;gap:2px;margin-bottom:20px;background:var(--bg2);padding:4px;border-radius:var(--r);border:1px solid var(--border);width:fit-content}
+.stab{padding:7px 16px;border-radius:7px;font-size:13px;cursor:pointer;color:var(--text-s);transition:all .15s;user-select:none}
+.stab:hover{color:var(--text-p)}.stab.active{background:var(--bg4);color:var(--text-p)}
+.int-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:18px;display:flex;align-items:center;gap:14px;margin-bottom:10px;transition:border-color .2s}
+.int-card:hover{border-color:var(--border-h)}
+.int-icon{width:42px;height:42px;border-radius:10px;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.int-info{flex:1}.int-name{font-size:14px;font-weight:500;margin-bottom:3px}.int-desc{font-size:12px;color:var(--text-s)}
+.toggle{width:42px;height:24px;border-radius:12px;background:var(--bg4);border:1px solid var(--border);position:relative;cursor:pointer;transition:all .2s;flex-shrink:0}
+.toggle.on{background:var(--amber);border-color:var(--amber)}
+.toggle-thumb{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.toggle.on .toggle-thumb{transform:translateX(18px)}
+
+/* ── PAGINATION ── */
+.pagination{display:flex;align-items:center;gap:8px;padding:12px 20px;border-top:1px solid var(--border)}
+.page-btn{padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--text-s);cursor:pointer;font-size:12px;font-family:var(--fm);transition:all .15s}
+.page-btn:hover{border-color:var(--amber);color:var(--amber)}.page-btn.active{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+.page-btn:disabled{opacity:.3;cursor:not-allowed}
+
+/* ── QR CODE AREA ── */
+.qr-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:20px;text-align:center;margin:12px 0}
+.qr-placeholder{width:150px;height:150px;background:var(--bg4);border-radius:8px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:11px;color:var(--text-t)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
+    </div>
+    <div class="logo-text">Lead<span>Hunter</span></div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Principal</div>
+    <div class="nav-item active" onclick="nav('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="nav('finder',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Buscar Leads
+    </div>
+    <div class="nav-item" onclick="nav('crm',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Meus Leads
+      <span class="nav-badge" id="badge-leads" style="background:var(--bg4);color:var(--text-s)">—</span>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Envios</div>
+    <div class="nav-item" onclick="nav('campaigns',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+      Campanhas
+    </div>
+    <div class="nav-item" onclick="nav('inbox',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Caixa de Entrada
+      <span class="nav-badge live" id="badge-inbox">0</span>
+    </div>
+    <div class="nav-item" onclick="nav('automation',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+      Automações
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Análises</div>
+    <div class="nav-item" onclick="nav('analytics',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Conta</div>
+    <div class="nav-item" onclick="nav('settings',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Configurações
+    </div>
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="plan-card">
+      <div class="plan-name">✦ PLANO PRO</div>
+      <div class="t-sm t-muted">Leads coletados</div>
+      <div class="plan-bar-wrap"><div class="plan-bar" id="plan-bar"></div></div>
+      <div class="plan-credits" id="plan-credits">carregando...</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="page-title">Dashboard <span>/ Visão Geral</span></div>
+    <div class="topbar-actions">
+      <!-- API URL config -->
+      <div class="flex gap-8" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:4px 10px">
+        <span style="font-size:11px;color:var(--text-t);font-family:var(--fm)">API:</span>
+        <input id="api-url-input" style="background:transparent;border:none;font-size:11px;font-family:var(--fm);color:var(--text-s);width:240px;padding:0" placeholder="https://sua-api.railway.app" value="">
+        <button onclick="saveApiUrl()" style="background:var(--amber);color:#000;border:none;border-radius:5px;padding:2px 8px;font-size:10px;cursor:pointer;font-weight:600">OK</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="showModal('newCampaign')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/></svg>Nova Campanha
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="nav('finder',document.querySelector('[onclick*=finder]'))">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>Buscar Leads
+      </button>
+      <div class="avatar" title="Usuário">US</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══════ DASHBOARD ══════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="api-error-banner" id="dash-error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="dash-error-msg">API não conectada. Configure a URL da sua API no campo acima.</span>
+      </div>
+
+      <div class="kpi-grid" id="kpi-grid">
+        <div class="kpi-card"><div class="kpi-header"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div><div class="kpi-loading"></div><div class="kpi-label" style="margin-top:8px">Total de Leads</div></div>
+        <div class="kpi-card"><div class="kpi-header"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/></svg></div></div><div class="kpi-loading"></div><div class="kpi-label" style="margin-top:8px">Empresas Ativas</div></div>
+        <div class="kpi-card"><div class="kpi-header"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/></svg></div></div><div class="kpi-loading"></div><div class="kpi-label" style="margin-top:8px">Com Email</div></div>
+        <div class="kpi-card"><div class="kpi-header"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div></div><div class="kpi-loading"></div><div class="kpi-label" style="margin-top:8px">Com Telefone</div></div>
+      </div>
+
+      <div class="grid-70-30 mb-20">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Atividade em Tempo Real
+            </div>
+            <span class="badge b-green">AO VIVO</span>
+          </div>
+          <div class="card-body" style="padding:12px">
+            <div class="feed-list" id="feed-list">
+              <div class="feed-item"><div class="feed-dot amber"></div><div class="feed-text">Aguardando conexão com a API...</div><div class="feed-time">--:--</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Base de Dados
+            </div>
+          </div>
+          <div class="card-body" id="stats-panel">
+            <div class="loading-row"><div class="spinner light"></div>Carregando estatísticas...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Top DDDs disponíveis
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Atualizar</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>DDD</th><th>UF</th><th>Total Leads</th><th>Com Telefone</th><th>Com Email</th><th>Ação</th></tr></thead>
+            <tbody id="ddd-tbody">
+              <tr><td colspan="6"><div class="loading-row"><div class="spinner light"></div>Carregando...</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ FINDER ══════ -->
+    <div class="page" id="page-finder">
+      <div class="api-error-banner" id="finder-error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Conecte a API primeiro (campo no topo da tela)</span>
+      </div>
+
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:22px;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:600;color:var(--amber);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Filtros — Base CNPJ Receita Federal (57M empresas)
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>DDD / Região</label>
+            <select id="f-ddd">
+              <option value="">Todos os DDDs</option>
+              <option value="11">11 — São Paulo (Capital)</option>
+              <option value="12">12 — Vale do Paraíba</option>
+              <option value="13">13 — Santos / Baixada Santista</option>
+              <option value="14">14 — Bauru / Marília</option>
+              <option value="15">15 — Sorocaba / Itapetininga</option>
+              <option value="16">16 — Ribeirão Preto / Franca</option>
+              <option value="17">17 — São José do Rio Preto</option>
+              <option value="18">18 — Araçatuba / Pres. Prudente</option>
+              <option value="19">19 — Campinas / Limeira</option>
+              <option value="21">21 — Rio de Janeiro</option>
+              <option value="22">22 — Campos dos Goytacazes</option>
+              <option value="24">24 — Niterói / Nova Iguaçu</option>
+              <option value="27">27 — Vitória / Serra</option>
+              <option value="28">28 — Cachoeiro / Vila Velha</option>
+              <option value="31">31 — Belo Horizonte</option>
+              <option value="32">32 — Juiz de Fora</option>
+              <option value="41">41 — Curitiba</option>
+              <option value="47">47 — Joinville / Blumenau</option>
+              <option value="48">48 — Florianópolis</option>
+              <option value="51">51 — Porto Alegre</option>
+              <option value="61">61 — Brasília / DF</option>
+              <option value="62">62 — Goiânia</option>
+              <option value="71">71 — Salvador</option>
+              <option value="81">81 — Recife</option>
+              <option value="85">85 — Fortaleza</option>
+              <option value="91">91 — Belém</option>
+              <option value="92">92 — Manaus</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Segmento (CNAE)</label>
+            <select id="f-cnae">
+              <option value="">Todos os segmentos</option>
+              <option value="5611201">Restaurantes e similares</option>
+              <option value="5611203">Lanchonetes e similares</option>
+              <option value="5620101">Bufês e catering</option>
+              <option value="8621601">Clínicas médicas</option>
+              <option value="8630501">Clínicas odontológicas</option>
+              <option value="9313100">Academias de ginástica</option>
+              <option value="9602501">Salões de beleza</option>
+              <option value="8599699">Escolas e cursos</option>
+              <option value="6201501">Desenvolvimento de software</option>
+              <option value="7319099">Agências de publicidade</option>
+              <option value="4771701">Farmácias e drogarias</option>
+              <option value="4781400">Lojas de vestuário</option>
+              <option value="6920601">Contabilidade</option>
+              <option value="6911701">Escritórios de advocacia</option>
+              <option value="4120400">Construção civil</option>
+              <option value="4711302">Supermercados</option>
+              <option value="4530701">Concessionárias de veículos</option>
+              <option value="5229099">Transportadoras</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Porte</label>
+            <select id="f-porte">
+              <option value="">Todos os portes</option>
+              <option value="MEI">MEI — Microempreendedor</option>
+              <option value="ME">ME — Microempresa</option>
+              <option value="EPP">EPP — Pequeno Porte</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="field">
+            <label>Abertura — De</label>
+            <input type="date" id="f-ab-de" value="2018-01-01">
+          </div>
+          <div class="field">
+            <label>Abertura — Até</label>
+            <input type="date" id="f-ab-ate">
+          </div>
+        </div>
+
+        <div class="mb-12">
+          <label style="display:block;margin-bottom:8px">Filtros extras</label>
+          <div class="checkbox-group">
+            <div class="chk-item on" id="chk-tel" onclick="this.classList.toggle('on')">Tem Telefone</div>
+            <div class="chk-item" id="chk-email" onclick="this.classList.toggle('on')">Tem Email</div>
+            <div class="chk-item" id="chk-simples" onclick="this.classList.toggle('on')">Simples Nacional</div>
+            <div class="chk-item" id="chk-mei-f" onclick="this.classList.toggle('on')">MEI</div>
+            <div class="chk-item on" id="chk-ativo" onclick="this.classList.toggle('on')">Só Ativos</div>
+          </div>
+        </div>
+
+        <div class="flex gap-8">
+          <button class="btn btn-primary" onclick="runSearch()" id="search-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Buscar Leads
+          </button>
+          <button class="btn btn-ghost" onclick="exportCSV()" id="export-btn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar CSV
+          </button>
+          <button class="btn btn-ghost" onclick="addSelectedToCampaign()" id="add-camp-btn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/></svg>
+            Adicionar à Campanha
+          </button>
+          <div class="ml-auto flex gap-8" style="font-size:13px;color:var(--text-s)">
+            Total: <span id="search-count" class="t-mono t-amber">—</span>
+            &nbsp;|&nbsp; Página: <span id="search-page" class="t-mono">1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terminal -->
+      <div class="card mb-16">
+        <div class="card-header">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            Log de Busca
+          </div>
+          <span class="badge b-amber" id="scan-status">Aguardando</span>
+        </div>
+        <div class="card-body" style="padding:12px">
+          <div class="terminal" id="terminal">
+            <div class="tl"><span class="ts">[sistema]</span> <span class="info">LeadHunter Pro inicializado.</span></div>
+            <div class="tl"><span class="ts">[sistema]</span> Fonte: Base CNPJ Receita Federal — <span class="ok">dados públicos e gratuitos</span></div>
+            <div class="tl"><span class="ts">[sistema]</span> <span class="warn">Configure a URL da API no topo e clique em Buscar.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            Resultados
+          </div>
+          <div class="flex gap-8">
+            <input type="text" placeholder="Filtrar..." style="width:180px;font-size:12px;padding:6px 10px" id="result-filter" oninput="filterResults()">
+            <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-size:12px;color:var(--text-s);cursor:pointer;letter-spacing:0">
+              <input type="checkbox" id="sel-all" style="width:14px;height:14px" onchange="toggleSelectAll(this.checked)"> Selecionar todos
+            </label>
+          </div>
+        </div>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:32px"></th>
+                <th>Empresa</th><th>Segmento</th><th>Cidade / DDD</th>
+                <th>Telefone</th><th>Email</th><th>Porte</th><th>Sócio</th>
+                <th>Score</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="results-tbody">
+              <tr><td colspan="10"><div class="empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <div class="empty-title">Nenhuma busca realizada</div>
+                <div class="empty-sub">Configure os filtros e clique em Buscar Leads</div>
+              </div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- ══════ CRM ══════ -->
+    <div class="page" id="page-crm">
+      <div class="flex gap-8 mb-20">
+        <div class="flex gap-8">
+          <button class="btn btn-ghost btn-sm" id="v-kanban" onclick="setView('kanban')" style="border-color:var(--amber);color:var(--amber)">Kanban</button>
+          <button class="btn btn-ghost btn-sm" id="v-list" onclick="setView('list')">Lista</button>
+        </div>
+        <div class="ml-auto flex gap-8">
+          <input type="text" placeholder="Buscar lead..." style="width:220px;font-size:13px" id="crm-search" oninput="filterCRM()">
+          <button class="btn btn-primary btn-sm" onclick="nav('finder',document.querySelector('[onclick*=finder]'))">+ Importar da Busca</button>
+        </div>
+      </div>
+
+      <div id="crm-kanban-view">
+        <div class="kanban" id="kanban-board">
+          <div class="loading-row" style="width:100%"><div class="spinner light"></div>Carregando CRM...</div>
+        </div>
+      </div>
+
+      <div id="crm-list-view" style="display:none">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Todos os Leads</div></div>
+          <div class="tw">
+            <table>
+              <thead><tr><th>Empresa</th><th>Segmento</th><th>Cidade</th><th>Telefone</th><th>Status</th><th>Score</th><th>Ações</th></tr></thead>
+              <tbody id="crm-list-tbody">
+                <tr><td colspan="7"><div class="loading-row"><div class="spinner light"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ CAMPAIGNS ══════ -->
+    <div class="page" id="page-campaigns">
+      <div class="flex gap-8 mb-20">
+        <div class="section-title" style="margin-bottom:0">Campanhas</div>
+        <div class="ml-auto"><button class="btn btn-primary btn-sm" onclick="showModal('newCampaign')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova Campanha
+        </button></div>
+      </div>
+
+      <div class="camp-grid" id="campaigns-grid">
+        <div class="loading-row" style="grid-column:1/-1"><div class="spinner light"></div>Carregando campanhas...</div>
+      </div>
+    </div>
+
+    <!-- ══════ INBOX ══════ -->
+    <div class="page" id="page-inbox" style="padding:0">
+      <div class="inbox-wrap">
+        <div class="inbox-list">
+          <div class="inbox-list-header">Conversas <span class="badge b-amber" id="inbox-count">0</span></div>
+          <div class="inbox-search"><input type="text" placeholder="Buscar..." oninput="filterInbox(this.value)"></div>
+          <div id="conv-list"><div class="loading-row"><div class="spinner light"></div></div></div>
+        </div>
+        <div class="chat-area">
+          <div class="chat-header" id="chat-header">
+            <div class="conv-av" id="chat-av" style="color:var(--text-t)">?</div>
+            <div><div style="font-size:14px;font-weight:500" id="chat-name">Selecione uma conversa</div><div style="font-size:12px;color:var(--text-t)" id="chat-sub">—</div></div>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="empty" style="margin:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;opacity:.2;margin-bottom:12px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div class="empty-title">Nenhuma conversa selecionada</div></div>
+          </div>
+          <div class="chat-input-area">
+            <textarea id="chat-input" placeholder="Digite a mensagem... (Enter para enviar)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"></textarea>
+            <button class="btn btn-ghost btn-sm" onclick="aiSuggest()" title="Sugerir com IA">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l3 3"/></svg>IA
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="sendMsg()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/></svg>Enviar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ AUTOMATION ══════ -->
+    <div class="page" id="page-automation">
+      <div class="flex gap-8 mb-20">
+        <div class="section-title" style="margin-bottom:0">Automações</div>
+        <div class="ml-auto"><button class="btn btn-primary btn-sm" onclick="toast('Editor em breve! Use a API para criar fluxos.','warning')">+ Novo Fluxo</button></div>
+      </div>
+
+      <div class="flow-canvas mb-16">
+        <svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none" overflow="visible">
+          <defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6z" fill="rgba(251,159,36,0.5)"/></marker></defs>
+          <line x1="228" y1="104" x2="290" y2="104" stroke="rgba(251,159,36,0.3)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#ah)"/>
+          <line x1="458" y1="104" x2="520" y2="104" stroke="rgba(251,159,36,0.3)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#ah)"/>
+          <line x1="395" y1="140" x2="395" y2="200" stroke="rgba(59,130,246,0.3)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#ah)"/>
+          <line x1="395" y1="272" x2="395" y2="322" stroke="rgba(59,130,246,0.3)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#ah)"/>
+        </svg>
+        <div class="flow-node trigger" style="left:40px;top:72px"><div class="fn-type trigger">Gatilho</div><div class="fn-label">Lead Adicionado</div><div class="fn-sub">Base CNPJ · DDD filtrado</div></div>
+        <div class="flow-node action" style="left:290px;top:72px"><div class="fn-type action">Ação</div><div class="fn-label">Enriquecer Lead</div><div class="fn-sub">CNPJ.ws API gratuita</div></div>
+        <div class="flow-node cond" style="left:520px;top:72px"><div class="fn-type cond">Condição</div><div class="fn-label">Tem Telefone?</div><div class="fn-sub">Sim / Não</div></div>
+        <div class="flow-node action" style="left:310px;top:200px"><div class="fn-type action">Ação</div><div class="fn-label">Enviar WhatsApp</div><div class="fn-sub">Dia 1 · Boas-vindas</div></div>
+        <div class="flow-node" style="left:310px;top:322px;border-top:2px solid #555"><div class="fn-type wait">Espera</div><div class="fn-label">Aguardar 2 dias</div><div class="fn-sub">Sem resposta → follow-up</div></div>
+        <div style="position:absolute;top:12px;right:12px"><span class="badge b-green">Worker ativo · verificar Railway</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Status do Worker WhatsApp</div><button class="btn btn-ghost btn-sm" onclick="checkWorker()">↻ Verificar</button></div>
+        <div class="card-body" id="worker-status">
+          <div class="loading-row"><div class="spinner light"></div>Verificando...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ ANALYTICS ══════ -->
+    <div class="page" id="page-analytics">
+      <div class="flex gap-8 mb-20">
+        <div class="section-title" style="margin-bottom:0">Analytics</div>
+        <div class="ml-auto flex gap-8">
+          <select style="font-size:13px;padding:7px 12px;width:auto" id="analytics-period" onchange="loadAnalytics()">
+            <option>Últimos 30 dias</option><option>Últimos 7 dias</option><option>Este mês</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="toast('Gerando PDF...','warning')">Exportar PDF</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid mb-20" id="analytics-kpis">
+        <div class="kpi-card"><div class="kpi-loading" style="height:28px;margin-bottom:8px"></div><div class="kpi-label">Total na Base</div></div>
+        <div class="kpi-card"><div class="kpi-loading" style="height:28px;margin-bottom:8px"></div><div class="kpi-label">Empresas Ativas</div></div>
+        <div class="kpi-card"><div class="kpi-loading" style="height:28px;margin-bottom:8px"></div><div class="kpi-label">Com Email</div></div>
+        <div class="kpi-card"><div class="kpi-loading" style="height:28px;margin-bottom:8px"></div><div class="kpi-label">Com Telefone</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Distribuição por Porte</div></div>
+          <div class="card-body" id="chart-porte"><div class="loading-row"><div class="spinner light"></div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Top UFs na Base</div></div>
+          <div class="card-body" id="chart-ufs"><div class="loading-row"><div class="spinner light"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ SETTINGS ══════ -->
+    <div class="page" id="page-settings">
+      <div class="stabs">
+        <div class="stab active" onclick="setStab(this,'s-integrations')">Integrações</div>
+        <div class="stab" onclick="setStab(this,'s-api')">API & Webhooks</div>
+        <div class="stab" onclick="setStab(this,'s-antibaan')">Anti-Ban WPP</div>
+        <div class="stab" onclick="setStab(this,'s-templates')">Templates</div>
+      </div>
+
+      <div id="s-integrations">
+        <div class="section-title">Canais Conectados</div>
+        <div class="int-card">
+          <div class="int-icon">💬</div>
+          <div class="int-info">
+            <div class="int-name">WhatsApp <span style="font-size:12px;color:var(--text-t)">via Evolution API</span></div>
+            <div class="int-desc" id="wpp-status-text"><span class="sdot warn"></span>Verificando conexão...</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="showModal('qrModal')">Conectar / QR Code</button>
+          <div class="toggle" id="wpp-toggle" onclick="this.classList.toggle('on');this.querySelector('.toggle-thumb').style.transform=this.classList.contains('on')?'translateX(18px)':''"><div class="toggle-thumb"></div></div>
+        </div>
+
+        <div class="int-card">
+          <div class="int-icon">📧</div>
+          <div class="int-info">
+            <div class="int-name">Email <span style="font-size:12px;color:var(--text-t)">via Resend (3.000/mês grátis)</span></div>
+            <div class="int-desc"><span class="sdot warn"></span>Configure RESEND_API_KEY no .env da API</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="window.open('https://resend.com','_blank')">Criar conta grátis</button>
+          <div class="toggle" onclick="this.classList.toggle('on');this.querySelector('.toggle-thumb').style.transform=this.classList.contains('on')?'translateX(18px)':''"><div class="toggle-thumb"></div></div>
+        </div>
+
+        <div class="int-card">
+          <div class="int-icon">🏦</div>
+          <div class="int-info">
+            <div class="int-name">Base CNPJ <span style="font-size:12px;color:var(--text-t)">Receita Federal</span></div>
+            <div class="int-desc" id="db-status-text"><span class="sdot warn"></span>Verificando banco de dados...</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="checkHealth()">Verificar</button>
+          <div class="toggle on"><div class="toggle-thumb" style="transform:translateX(18px)"></div></div>
+        </div>
+
+        <div class="int-card">
+          <div class="int-icon">🔍</div>
+          <div class="int-info">
+            <div class="int-name">CNPJ.ws <span style="font-size:12px;color:var(--text-t)">Enriquecimento gratuito</span></div>
+            <div class="int-desc"><span class="sdot on"></span>Automático — sem configuração necessária</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="window.open('https://publica.cnpj.ws','_blank')">Documentação</button>
+          <div class="toggle on"><div class="toggle-thumb" style="transform:translateX(18px)"></div></div>
+        </div>
+      </div>
+
+      <div id="s-api" style="display:none">
+        <div class="section-title">Configuração da API</div>
+        <div class="card"><div class="card-body">
+          <div class="field mb-16">
+            <label>URL da sua API (Railway)</label>
+            <div class="flex gap-8">
+              <input id="api-url-settings" placeholder="https://leadhunter-api.railway.app" value="">
+              <button class="btn btn-primary btn-sm" onclick="saveApiUrlFromSettings()">Salvar</button>
+            </div>
+          </div>
+          <div class="field mb-16">
+            <label>Testar conexão</label>
+            <div class="flex gap-8">
+              <input id="health-result" readonly placeholder="Clique em Testar para verificar...">
+              <button class="btn btn-ghost btn-sm" onclick="checkHealth()">Testar</button>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <p style="font-size:13px;color:var(--text-s);margin-bottom:12px">Variáveis de ambiente necessárias no Railway:</p>
+          <div style="background:var(--bg0);border-radius:var(--r);padding:14px;font-family:var(--fm);font-size:12px;line-height:2;border:1px solid var(--border)">
+            <div><span style="color:var(--text-t)"># Obrigatórias</span></div>
+            <div><span style="color:var(--amber)">DATABASE_URL</span>=postgresql://...</div>
+            <div><span style="color:var(--amber)">EVOLUTION_URL</span>=https://evolution.railway.app</div>
+            <div><span style="color:var(--amber)">EVOLUTION_KEY</span>=sua-api-key</div>
+            <div><span style="color:var(--amber)">EVOLUTION_INSTANCE</span>=leadhunter</div>
+            <div><span style="color:var(--text-t)"># Opcionais</span></div>
+            <div><span style="color:var(--ok)">RESEND_API_KEY</span>=re_xxx</div>
+            <div><span style="color:var(--ok)">EMAIL_FROM</span><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9ca1fff3f2e8fde8f3dceff9e9f8f3f1f5f2f5f3b2fff3f1b2feee">[email&#160;protected]</a></div>
+          </div>
+        </div></div>
+      </div>
+
+      <div id="s-antibaan" style="display:none">
+        <div class="section-title">Configurações Anti-Ban WhatsApp</div>
+        <div class="card"><div class="card-body">
+          <p style="font-size:13px;color:var(--text-s);margin-bottom:20px">Configure essas variáveis no Railway (worker-whatsapp.js). Valores conservadores = mais seguro.</p>
+          <div class="form-grid">
+            <div class="field"><label>Limite diário (msgs/dia)</label><input type="number" value="100" min="10" max="500" id="cfg-limite"><p class="t-sm t-muted" style="margin-top:4px">100 = seguro · 200 = moderado · 300+ = arriscado</p></div>
+            <div class="field"><label>Delay mínimo (segundos)</label><input type="number" value="30" min="10" id="cfg-delay-min"></div>
+            <div class="field"><label>Delay máximo (segundos)</label><input type="number" value="90" min="30" id="cfg-delay-max"></div>
+          </div>
+          <div class="form-grid-2">
+            <div class="field"><label>Hora de início (24h)</label><input type="number" value="9" min="6" max="12" id="cfg-hora-ini"></div>
+            <div class="field"><label>Hora de fim (24h)</label><input type="number" value="19" min="17" max="22" id="cfg-hora-fim"></div>
+          </div>
+          <div style="background:var(--amber-glow);border:1px solid rgba(251,159,36,.2);border-radius:var(--r);padding:14px;font-size:13px;margin-top:8px">
+            <strong style="color:var(--amber)">⚡ Estratégia de escala:</strong><br>
+            <span style="color:var(--text-s)">Cada cliente conecta seu próprio número → cada número = 100 msgs/dia. Com 10 clientes = 1.000 msgs/dia totais, sem custo extra.</span>
+          </div>
+          <button class="btn btn-primary btn-sm" style="margin-top:16px" onclick="toast('Copie esses valores para o .env do Railway','warning')">Gerar .env</button>
+        </div></div>
+      </div>
+
+      <div id="s-templates" style="display:none">
+        <div class="section-title">Templates de Mensagem</div>
+        <div class="card"><div class="card-body">
+          <p style="font-size:13px;color:var(--text-s);margin-bottom:16px">Use variáveis: <code style="background:var(--bg4);padding:2px 6px;border-radius:4px;font-size:12px">{{nome}} {{socio}} {{cidade}} {{segmento}} {{cnpj}}</code></p>
+          <div class="field mb-16"><label>Nome do Template</label><input id="tpl-nome" placeholder="Ex: Abordagem Fria — Restaurantes"></div>
+          <div class="field mb-16">
+            <label>Canal</label>
+            <select id="tpl-canal"><option>WhatsApp</option><option>Email</option></select>
+          </div>
+          <div class="field mb-16"><label>Mensagem</label>
+            <textarea id="tpl-msg" style="height:120px" placeholder="Olá, {{socio}}! Vi que você tem a {{nome}} em {{cidade}} e queria apresentar algo que pode aumentar seus clientes..."></textarea>
+          </div>
+          <div class="flex gap-8">
+            <button class="btn btn-primary btn-sm" onclick="salvarTemplate()">Salvar Template</button>
+            <span style="font-size:12px;color:var(--text-t)" id="tpl-count">0 templates salvos</span>
+          </div>
+          <div class="divider"></div>
+          <div id="tpl-list"></div>
+        </div></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══ MODALS ══ -->
+<div class="overlay" id="overlay-newCampaign" onclick="if(event.target===this)closeModal('newCampaign')">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Nova Campanha</div><button class="close-btn" onclick="closeModal('newCampaign')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="field mb-16"><label>Nome</label><input id="camp-nome" placeholder="Ex: Restaurantes SP — Abril 2026"></div>
+      <div class="form-grid-2 mb-16">
+        <div class="field"><label>Canal</label><select id="camp-canal"><option value="whatsapp">WhatsApp</option><option value="email">Email</option></select></div>
+        <div class="field"><label>Limite diário</label><select id="camp-limite"><option value="50">50 msgs/dia (seguro)</option><option value="100" selected>100 msgs/dia</option><option value="200">200 msgs/dia</option></select></div>
+      </div>
+      <div class="field mb-16"><label>Template da mensagem</label>
+        <textarea id="camp-msg" style="height:110px" placeholder="Olá, {{socio}}! Vi que a {{nome}} fica em {{cidade}} e queria apresentar..."></textarea>
+      </div>
+      <div style="background:var(--amber-glow);border:1px solid rgba(251,159,36,.15);border-radius:var(--r);padding:12px;font-size:12px;color:var(--text-s)">
+        <strong style="color:var(--amber)">Leads selecionados:</strong> <span id="camp-leads-count">0</span> (busque leads e selecione antes de criar)
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newCampaign')">Cancelar</button>
+      <button class="btn btn-primary" onclick="criarCampanha()">Criar Campanha</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-leadDetail" onclick="if(event.target===this)closeModal('leadDetail')">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Detalhes do Lead</div><button class="close-btn" onclick="closeModal('leadDetail')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body" id="lead-detail-body"><div class="loading-row"><div class="spinner light"></div></div></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('leadDetail')">Fechar</button>
+      <button class="btn btn-ghost" id="enrich-btn" onclick="enrichCurrentLead()">Enriquecer via CNPJ.ws</button>
+      <button class="btn btn-primary" onclick="showModal('newCampaign');closeModal('leadDetail')">+ Campanha</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-qrModal" onclick="if(event.target===this)closeModal('qrModal')">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Conectar WhatsApp</div><button class="close-btn" onclick="closeModal('qrModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-s);margin-bottom:16px">A Evolution API precisa estar rodando no Railway. Depois de configurar a URL, clique em Gerar QR Code.</p>
+      <div class="qr-box">
+        <div class="qr-placeholder" id="qr-display">QR Code aparece aqui</div>
+        <p style="font-size:12px;color:var(--text-t)">Abra o WhatsApp → Dispositivos Vinculados → Vincular Dispositivo</p>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="gerarQR()">Gerar QR Code</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ══════════════════════════════════════
+//  CONFIG — MUDE PARA SUA URL DE API
+// ══════════════════════════════════════
+let API_BASE = localStorage.getItem('lh_api_url') || '';
+
+// Estado global
+const state = {
+  searchResults: [], searchTotal: 0, searchPage: 1, searchPages: 1,
+  selectedLeads: new Set(),
+  currentLead: null,
+  templates: JSON.parse(localStorage.getItem('lh_templates') || '[]'),
+  campaigns: [],
+  conversations: [],
+  activeConv: null,
+};
+
+// ── API BASE URL ──
+function saveApiUrl() {
+  const url = document.getElementById('api-url-input').value.trim().replace(/\/$/, '');
+  if (!url) return toast('Digite a URL da sua API', 'error');
+  API_BASE = url;
+  localStorage.setItem('lh_api_url', url);
+  document.getElementById('api-url-settings').value = url;
+  toast('API URL salva! Testando conexão...', 'success');
+  checkHealth();
+  loadDashboard();
+}
+
+function saveApiUrlFromSettings() {
+  const url = document.getElementById('api-url-settings').value.trim().replace(/\/$/, '');
+  if (!url) return toast('Digite a URL', 'error');
+  API_BASE = url;
+  localStorage.setItem('lh_api_url', url);
+  document.getElementById('api-url-input').value = url;
+  toast('Salvo!', 'success');
+  checkHealth();
+}
+
+// ── API FETCH ──
+async function api(path, opts = {}) {
+  if (!API_BASE) throw new Error('API não configurada');
+  const res = await fetch(API_BASE + path, {
+    headers: { 'Content-Type': 'application/json', ...opts.headers },
+    ...opts
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || res.statusText);
+  }
+  return res.json();
+}
+
+// ── HEALTH CHECK ──
+async function checkHealth() {
+  try {
+    const data = await api('/health');
+    document.getElementById('health-result').value = `✓ Online · ${data.leads_ativos?.toLocaleString('pt-BR') || 0} leads ativos`;
+    document.getElementById('db-status-text').innerHTML = `<span class="sdot on"></span>Conectado · ${data.leads_ativos?.toLocaleString('pt-BR') || 0} empresas ativas na base`;
+    showBanner('dash-error', false);
+    showBanner('finder-error', false);
+    toast('API conectada!', 'success');
+    return true;
+  } catch (e) {
+    document.getElementById('health-result').value = '✗ ' + e.message;
+    document.getElementById('db-status-text').innerHTML = `<span class="sdot off"></span>Não conectado — configure DATABASE_URL`;
+    showBanner('dash-error', true, 'API offline: ' + e.message + ' — Verifique se o Railway está rodando.');
+    showBanner('finder-error', true);
+    return false;
+  }
+}
+
+function showBanner(id, show, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('show', show);
+  if (msg) { const s = el.querySelector('span'); if (s) s.textContent = msg; }
+}
+
+// ── NAVIGATION ──
+const pageTitles = {
+  dashboard: 'Dashboard <span>/ Visão Geral</span>',
+  finder:    'Buscar Leads <span>/ Base CNPJ Receita Federal</span>',
+  crm:       'Meus Leads <span>/ CRM Kanban</span>',
+  campaigns: 'Campanhas <span>/ Disparos Automáticos</span>',
+  inbox:     'Caixa de Entrada <span>/ Mensagens</span>',
+  automation:'Automações <span>/ Fluxos</span>',
+  analytics: 'Analytics <span>/ Relatórios</span>',
+  settings:  'Configurações <span>/ Sistema</span>',
+};
+
+function nav(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('page-title').innerHTML = pageTitles[id] || id;
+  if (id === 'dashboard') loadDashboard();
+  if (id === 'crm')       loadCRM();
+  if (id === 'campaigns') loadCampaigns();
+  if (id === 'inbox')     loadInbox();
+  if (id === 'automation') checkWorker();
+  if (id === 'analytics') loadAnalytics();
+  if (id === 'settings')  checkHealth();
+}
+
+// ── MODAL ──
+function showModal(id) { document.getElementById('overlay-' + id).classList.add('open'); }
+function closeModal(id) { document.getElementById('overlay-' + id).classList.remove('open'); }
+
+// ── TOAST ──
+function toast(title, type = 'info', body = '') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.innerHTML = `<div class="toast-title">${title}</div>${body ? `<div class="toast-body">${body}</div>` : ''}`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(20px)'; t.style.transition='all .3s'; setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  if (!API_BASE) {
+    showBanner('dash-error', true);
+    return;
+  }
+  try {
+    const data = await api('/stats/geral');
+    renderKPIs(data);
+    renderStatsPanel(data);
+    renderDDDTable(data);
+    updatePlanBar(data.empresas_ativas, 10000000);
+    addFeedItem('green', `Base carregada: <strong>${data.empresas_ativas?.toLocaleString('pt-BR')}</strong> empresas ativas disponíveis`);
+  } catch (e) {
+    showBanner('dash-error', true, 'Erro ao carregar: ' + e.message);
+  }
+}
+
+function renderKPIs(d) {
+  const grid = document.getElementById('kpi-grid');
+  const fmt = n => (n || 0).toLocaleString('pt-BR');
+  grid.innerHTML = `
+    <div class="kpi-card"><div class="kpi-header"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><span class="kpi-delta up">base</span></div><div class="kpi-value">${fmt(d.total_cnpjs)}</div><div class="kpi-label">Total na Base</div></div>
+    <div class="kpi-card"><div class="kpi-header"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/></svg></div><span class="kpi-delta up">ativas</span></div><div class="kpi-value">${fmt(d.empresas_ativas)}</div><div class="kpi-label">Empresas Ativas</div></div>
+    <div class="kpi-card"><div class="kpi-header"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/></svg></div><span class="kpi-delta up">email</span></div><div class="kpi-value">${fmt(d.com_email)}</div><div class="kpi-label">Com Email</div></div>
+    <div class="kpi-card"><div class="kpi-header"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><span class="kpi-delta up">tel</span></div><div class="kpi-value">${fmt(d.com_telefone)}</div><div class="kpi-label">Com Telefone</div></div>
+  `;
+}
+
+function renderStatsPanel(d) {
+  const panel = document.getElementById('stats-panel');
+  const fmt = n => (n || 0).toLocaleString('pt-BR');
+  const portes = (d.por_porte || []).map(p => `<div class="stat-row"><span class="stat-row-label">${p.porte || 'Não informado'}</span><span class="stat-row-val">${fmt(p.total)}</span></div>`).join('');
+  panel.innerHTML = `
+    <div class="stat-row"><span class="stat-row-label">Total na base</span><span class="stat-row-val t-amber">${fmt(d.total_cnpjs)}</span></div>
+    <div class="stat-row"><span class="stat-row-label">Custo da base</span><span class="stat-row-val t-amber">R$ 0,00</span></div>
+    <div class="divider"></div>
+    ${portes}
+  `;
+}
+
+function renderDDDTable(d) {
+  const tbody = document.getElementById('ddd-tbody');
+  const ddds = [
+    {ddd:'11',uf:'SP'},{ddd:'21',uf:'RJ'},{ddd:'31',uf:'MG'},
+    {ddd:'41',uf:'PR'},{ddd:'51',uf:'RS'},{ddd:'61',uf:'DF'},
+    {ddd:'71',uf:'BA'},{ddd:'81',uf:'PE'},{ddd:'85',uf:'CE'},
+    {ddd:'91',uf:'PA'},
+  ];
+  tbody.innerHTML = ddds.map(d => `
+    <tr>
+      <td><strong>${d.ddd}</strong></td>
+      <td><span class="badge b-gray">${d.uf}</span></td>
+      <td class="t-mono">—</td>
+      <td class="t-mono t-amber">—</td>
+      <td class="t-mono" style="color:var(--ok)">—</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="quickSearchDDD('${d.ddd}')">Buscar →</button></td>
+    </tr>
+  `).join('');
+
+  // Carrega stats por DDD assincronamente
+  ddds.forEach(async (item, i) => {
+    try {
+      const s = await api(`/stats/ddd/${item.ddd}`);
+      const row = tbody.rows[i];
+      if (!row) return;
+      row.cells[2].innerHTML = `<span class="t-mono">${s.total_leads?.toLocaleString('pt-BR') || '0'}</span>`;
+      row.cells[3].innerHTML = `<span class="t-mono t-amber">—</span>`;
+      row.cells[4].innerHTML = `<span class="t-mono" style="color:var(--ok)">—</span>`;
+    } catch {}
+  });
+}
+
+function quickSearchDDD(ddd) {
+  document.getElementById('f-ddd').value = ddd;
+  nav('finder', document.querySelector('[onclick*=finder]'));
+  setTimeout(runSearch, 300);
+}
+
+function updatePlanBar(used, total) {
+  const pct = Math.min(100, Math.round((used / total) * 100));
+  document.getElementById('plan-bar').style.width = pct + '%';
+  document.getElementById('plan-credits').textContent = `${(used || 0).toLocaleString('pt-BR')} leads na base`;
+  document.getElementById('badge-leads').textContent = (used || 0).toLocaleString('pt-BR');
+}
+
+// ── LIVE FEED ──
+const feedMsgs = [
+  ['amber', 'Busca executada em <strong>DDD 11 — Restaurantes</strong>'],
+  ['green', 'Lead enriquecido via <strong>CNPJ.ws</strong>'],
+  ['blue',  'Campanha <strong>processando</strong> fila de envios'],
+  ['amber', 'Novo lead adicionado ao <strong>CRM</strong>'],
+  ['green', '<strong>WhatsApp</strong> enviado com sucesso'],
+];
+let feedI = 0;
+
+function addFeedItem(color, text) {
+  const list = document.getElementById('feed-list');
+  if (!list) return;
+  const div = document.createElement('div');
+  div.className = 'feed-item';
+  div.innerHTML = `<div class="feed-dot ${color}"></div><div class="feed-text">${text}</div><div class="feed-time">${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>`;
+  list.insertBefore(div, list.firstChild);
+  while (list.children.length > 12) list.removeChild(list.lastChild);
+}
+
+setInterval(() => {
+  const m = feedMsgs[feedI++ % feedMsgs.length];
+  addFeedItem(m[0], m[1]);
+}, 6000);
+
+// ── SEARCH ──
+let searchTimeout = null;
+
+async function runSearch(page = 1) {
+  if (!API_BASE) { toast('Configure a URL da API primeiro', 'error'); return; }
+  const btn = document.getElementById('search-btn');
+  btn.innerHTML = '<div class="spinner"></div> Buscando...';
+  btn.disabled = true;
+
+  const params = new URLSearchParams();
+  const ddd   = document.getElementById('f-ddd').value;
+  const cnae  = document.getElementById('f-cnae').value;
+  const porte = document.getElementById('f-porte').value;
+  const abDe  = document.getElementById('f-ab-de').value;
+  const abAte = document.getElementById('f-ab-ate').value;
+
+  if (ddd)   params.set('ddd', ddd);
+  if (cnae)  params.set('cnae', cnae);
+  if (porte) params.set('porte', porte);
+  if (abDe)  params.set('abertura_de', abDe);
+  if (abAte) params.set('abertura_ate', abAte);
+  if (document.getElementById('chk-tel').classList.contains('on'))    params.set('tem_telefone', 'true');
+  if (document.getElementById('chk-email').classList.contains('on'))  params.set('tem_email', 'true');
+  if (document.getElementById('chk-simples').classList.contains('on')) params.set('simples', 'true');
+  if (document.getElementById('chk-mei-f').classList.contains('on'))  params.set('mei', 'true');
+  params.set('page', page);
+  params.set('limit', 50);
+
+  document.getElementById('scan-status').textContent = 'Rodando';
+  document.getElementById('scan-status').className = 'badge b-green';
+
+  termLog(`<span class="info">Iniciando busca... DDD=${ddd||'todos'} CNAE=${cnae||'todos'} Porte=${porte||'todos'}</span>`);
+  termLog(`Conectando ao banco PostgreSQL (Supabase)...`);
+
+  try {
+    const data = await api('/leads/buscar?' + params.toString());
+    state.searchResults = data.data || [];
+    state.searchTotal   = data.total || 0;
+    state.searchPage    = data.page || 1;
+    state.searchPages   = data.pages || 1;
+
+    termLog(`<span class="ok">✓ ${data.total?.toLocaleString('pt-BR')} leads encontrados — página ${data.page}/${data.pages}</span>`);
+    document.getElementById('search-count').textContent = data.total?.toLocaleString('pt-BR') + ' leads';
+    document.getElementById('search-page').textContent = `${data.page}/${data.pages}`;
+    document.getElementById('scan-status').textContent = 'Concluído';
+    document.getElementById('scan-status').className = 'badge b-green';
+
+    renderResults(data.data);
+    renderPagination(data.page, data.pages);
+    document.getElementById('export-btn').disabled = data.data.length === 0;
+    document.getElementById('add-camp-btn').disabled = data.data.length === 0;
+
+    addFeedItem('amber', `Busca concluída: <strong>${data.total?.toLocaleString('pt-BR')} leads</strong> · DDD ${ddd||'todos'}`);
+    toast(`${data.total?.toLocaleString('pt-BR')} leads encontrados!`, 'success');
+
+  } catch (e) {
+    termLog(`<span class="err">✗ Erro: ${e.message}</span>`);
+    document.getElementById('scan-status').textContent = 'Erro';
+    document.getElementById('scan-status').className = 'badge b-red';
+    toast('Erro na busca: ' + e.message, 'error');
+  }
+
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Buscar Leads';
+  btn.disabled = false;
+}
+
+function termLog(html) {
+  const t = document.getElementById('terminal');
+  const d = document.createElement('div');
+  d.className = 'tl';
+  d.innerHTML = `<span class="ts">[${new Date().toLocaleTimeString('pt-BR')}]</span> ${html}`;
+  t.appendChild(d);
+  t.scrollTop = t.scrollHeight;
+}
+
+function renderResults(rows) {
+  const tbody = document.getElementById('results-tbody');
+  if (!rows || rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;opacity:.2;margin-bottom:12px"><circle cx="11" cy="11" r="8"/></svg><div class="empty-title">Nenhum resultado</div><div class="empty-sub">Tente outros filtros</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td><input type="checkbox" style="width:14px;height:14px" data-cnpj="${r.cnpj}" onchange="toggleLead(this,'${r.cnpj}')"></td>
+      <td><strong>${r.nome_fantasia || r.razao_social || '—'}</strong><br><span class="t-sm t-muted">${fmtCNPJ(r.cnpj)}</span></td>
+      <td><span class="badge b-amber" style="font-size:10px">${r.cnae_descricao?.substring(0,20) || '—'}</span></td>
+      <td class="t-sm">${r.municipio_nome || '—'} <span class="badge b-gray" style="margin-left:4px">${r.ddd_municipio || '—'}</span></td>
+      <td class="t-mono t-sm" style="color:${r.telefone1 ? 'var(--ok)' : 'var(--text-t)'}">${r.telefone1 || '—'}</td>
+      <td class="t-sm" style="color:${r.email ? 'var(--ok)' : 'var(--text-t)'}">${r.email || '—'}</td>
+      <td><span class="badge b-gray">${r.porte || '—'}</span></td>
+      <td class="t-sm">${r.nome_socio || '—'}</td>
+      <td><span style="color:var(--amber);font-family:var(--fm);font-size:12px">${r.score_completude || 0}</span></td>
+      <td><div class="td-act">
+        <button class="ib" onclick="viewLead('${r.cnpj}')" title="Detalhes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button class="ib" onclick="enrichLead('${r.cnpj}',this)" title="Enriquecer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></button>
+        <button class="ib" onclick="addToInbox('${r.cnpj}','${(r.nome_fantasia||r.razao_social||'').replace(/'/g,"\\'")}','${r.telefone1||''}')" title="Abrir chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+      </div></td>
+    </tr>
+  `).join('');
+}
+
+function renderPagination(page, pages) {
+  const el = document.getElementById('pagination');
+  if (pages <= 1) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  let html = `<button class="page-btn" onclick="runSearch(${page-1})" ${page<=1?'disabled':''}>← Anterior</button>`;
+  const start = Math.max(1, page - 2), end = Math.min(pages, page + 2);
+  for (let i = start; i <= end; i++) {
+    html += `<button class="page-btn ${i===page?'active':''}" onclick="runSearch(${i})">${i}</button>`;
+  }
+  html += `<button class="page-btn" onclick="runSearch(${page+1})" ${page>=pages?'disabled':''}>Próxima →</button>`;
+  html += `<span style="margin-left:auto;font-size:12px;color:var(--text-t);font-family:var(--fm)">${page}/${pages} páginas</span>`;
+  el.innerHTML = html;
+}
+
+function toggleLead(cb, cnpj) {
+  if (cb.checked) state.selectedLeads.add(cnpj);
+  else state.selectedLeads.delete(cnpj);
+  document.getElementById('camp-leads-count').textContent = state.selectedLeads.size;
+}
+
+function toggleSelectAll(checked) {
+  document.querySelectorAll('#results-tbody input[type=checkbox]').forEach(cb => {
+    cb.checked = checked;
+    const cnpj = cb.dataset.cnpj;
+    if (cnpj) { if (checked) state.selectedLeads.add(cnpj); else state.selectedLeads.delete(cnpj); }
+  });
+  document.getElementById('camp-leads-count').textContent = state.selectedLeads.size;
+}
+
+function filterResults() {
+  const q = document.getElementById('result-filter').value.toLowerCase();
+  document.querySelectorAll('#results-tbody tr').forEach(tr => {
+    tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function fmtCNPJ(cnpj) {
+  if (!cnpj) return '—';
+  return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+}
+
+function exportCSV() {
+  if (!state.searchResults.length) return;
+  const headers = ['CNPJ','Nome','Segmento','Município','DDD','Telefone','Email','Porte','Sócio','Score'];
+  const rows = state.searchResults.map(r => [
+    fmtCNPJ(r.cnpj), r.nome_fantasia||r.razao_social||'', r.cnae_descricao||'',
+    r.municipio_nome||'', r.ddd_municipio||'', r.telefone1||'', r.email||'',
+    r.porte||'', r.nome_socio||'', r.score_completude||0
+  ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+  a.download = `leads-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  toast('CSV exportado!', 'success');
+}
+
+// ── LEAD DETAIL ──
+let currentCNPJ = null;
+async function viewLead(cnpj) {
+  currentCNPJ = cnpj;
+  showModal('leadDetail');
+  document.getElementById('lead-detail-body').innerHTML = '<div class="loading-row"><div class="spinner light"></div>Carregando...</div>';
+  try {
+    const d = await api(`/leads/${cnpj}`);
+    renderLeadDetail(d);
+  } catch (e) {
+    document.getElementById('lead-detail-body').innerHTML = `<p style="color:var(--err)">Erro: ${e.message}</p>`;
+  }
+}
+
+function renderLeadDetail(d) {
+  const initials = (d.nome_fantasia || d.razao_social || '?').substring(0, 2).toUpperCase();
+  document.getElementById('lead-detail-body').innerHTML = `
+    <div class="flex gap-12 mb-16">
+      <div class="conv-av" style="width:48px;height:48px;font-size:18px">${initials}</div>
+      <div><div style="font-size:16px;font-weight:600">${d.nome_fantasia || d.razao_social || '—'}</div><div style="font-size:12px;color:var(--text-s)">${fmtCNPJ(d.cnpj)} · ${d.cnae_descricao || 'Segmento não informado'}</div></div>
+      <div class="ml-auto"><span class="badge ${d.situacao_cadastral == 2 ? 'b-green' : 'b-red'}">${d.situacao_cadastral == 2 ? 'Ativo' : 'Inativo'}</span></div>
+    </div>
+    <div class="stat-row"><span class="stat-row-label">Razão Social</span><span class="stat-row-val">${d.razao_social || '—'}</span></div>
+    <div class="stat-row"><span class="stat-row-label">Sócio</span><span class="stat-row-val">${d.nome_socio || '—'}</span></div>
+    <div class="stat-row"><span class="stat-row-label">Telefone</span><span class="stat-row-val" style="color:${d.telefone1?'var(--ok)':'var(--text-t)'}">${d.telefone1 || '—'}</span></div>
+    <div class="stat-row"><span class="stat-row-label">Email</span><span class="stat-row-val" style="color:${d.email?'var(--ok)':'var(--text-t)'}">${d.email || '—'}</span></div>
+    <div class="stat-row"><span class="stat-row-label">Cidade / DDD</span><span class="stat-row-val">${d.municipio_nome || '—'} · ${d.uf || '—'} · DDD ${d.ddd_municipio || '—'}</span></div>
+    <div class="stat-row"><span class="stat-row-label">Endereço</span><span class="stat-row-val">${[d.logradouro,d.numero,d.bairro].filter(Boolean).join(', ') || '—'}</span></div>
+    <div class="stat-row"><span class="stat-row-label">Porte</span><span class="stat-row-val">${d.porte || '—'}</span></div>
+    <div class="stat-row"><span class="stat-row-label">Abertura</span><span class="stat-row-val">${d.data_abertura ? new Date(d.data_abertura).toLocaleDateString('pt-BR') : '—'}</span></div>
+    <div class="stat-row"><span class="stat-row-label">Simples Nacional</span><span class="stat-row-val">${d.optante_simples ? 'Sim' : 'Não'}</span></div>
+    <div class="stat-row"><span class="stat-row-label">Score de completude</span><span class="stat-row-val t-amber">${d.score_completude || 0}/100</span></div>
+  `;
+}
+
+async function enrichLead(cnpj, btn) {
+  if (!API_BASE) return toast('API não configurada', 'error');
+  if (btn) { btn.innerHTML = '<div class="spinner light"></div>'; btn.disabled = true; }
+  try {
+    const d = await api(`/leads/${cnpj}?enriquecer=true`);
+    if (currentCNPJ === cnpj) renderLeadDetail(d);
+    toast('Lead enriquecido via CNPJ.ws!', 'success');
+    addFeedItem('blue', `Lead enriquecido: <strong>${d.nome_fantasia || d.razao_social}</strong>`);
+  } catch (e) {
+    toast('Erro ao enriquecer: ' + e.message, 'error');
+  }
+  if (btn) { btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'; btn.disabled = false; }
+}
+
+async function enrichCurrentLead() {
+  if (currentCNPJ) await enrichLead(currentCNPJ, null);
+}
+
+// ── CAMPAIGNS ──
+async function loadCampaigns() {
+  const grid = document.getElementById('campaigns-grid');
+  grid.innerHTML = `<div class="loading-row" style="grid-column:1/-1"><div class="spinner light"></div>Carregando...</div>`;
+  try {
+    const data = await api('/campanha/listar').catch(() => ({ campanhas: [] }));
+    const camps = data.campanhas || [];
+    state.campaigns = camps;
+    if (camps.length === 0) {
+      grid.innerHTML = `
+        <div class="camp-card" onclick="showModal('newCampaign')" style="border-style:dashed;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;min-height:180px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:32px;height:32px;color:var(--text-t)"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <div style="color:var(--text-t);font-size:14px">Criar primeira campanha</div>
+        </div>`;
+    } else {
+      grid.innerHTML = camps.map(c => renderCampCard(c)).join('') + `
+        <div class="camp-card" onclick="showModal('newCampaign')" style="border-style:dashed;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;min-height:180px;cursor:pointer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:28px;height:28px;color:var(--text-t)"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <div style="color:var(--text-t);font-size:13px">Nova campanha</div>
+        </div>`;
+    }
+  } catch (e) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-title">Erro ao carregar campanhas</div><div class="empty-sub">${e.message}</div></div>`;
+  }
+}
+
+function renderCampCard(c) {
+  const pct = c.total ? Math.round((c.enviados / c.total) * 100) : 0;
+  const statusClass = { rodando:'b-green', pendente:'b-amber', concluida:'b-gray', erro:'b-red' }[c.status] || 'b-gray';
+  return `
+    <div class="camp-card" onclick="viewCampanha(${c.id})">
+      <div class="camp-card-header">
+        <div><div class="camp-card-name">${c.nome}</div><div class="camp-card-sub">${c.canal} · ${c.total || 0} leads</div></div>
+        <div class="camp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/></svg></div>
+      </div>
+      <div class="pw mb-12"><div class="pb" style="width:${pct}%"></div></div>
+      <div class="flex gap-8"><span class="badge ${statusClass}">${c.status}</span><span class="t-sm t-muted">${c.enviados||0}/${c.total||0} enviados</span></div>
+      <div class="camp-stats">
+        <div class="camp-stat"><div class="camp-stat-val">${c.enviados||0}</div><div class="camp-stat-label">Enviados</div></div>
+        <div class="camp-stat"><div class="camp-stat-val t-amber">${pct}%</div><div class="camp-stat-label">Progresso</div></div>
+        <div class="camp-stat"><div class="camp-stat-val t-sm">${c.canal}</div><div class="camp-stat-label">Canal</div></div>
+      </div>
+    </div>`;
+}
+
+async function viewCampanha(id) {
+  try {
+    const data = await api(`/campanha/${id}/status`);
+    toast(`Campanha: ${data.nome} · ${data.progresso_pct}% concluída`, 'info');
+  } catch (e) { toast('Erro: ' + e.message, 'error'); }
+}
+
+async function criarCampanha() {
+  const nome = document.getElementById('camp-nome').value.trim();
+  const canal = document.getElementById('camp-canal').value;
+  const msg   = document.getElementById('camp-msg').value.trim();
+  const limite = parseInt(document.getElementById('camp-limite').value);
+
+  if (!nome) return toast('Digite um nome para a campanha', 'error');
+  if (!msg)  return toast('Digite a mensagem template', 'error');
+  if (state.selectedLeads.size === 0) return toast('Selecione leads na busca primeiro', 'error');
+
+  try {
+    const data = await api('/campanha/criar-lista', {
+      method: 'POST',
+      body: JSON.stringify({
+        nome, canal,
+        cnpjs: [...state.selectedLeads],
+        mensagem_template: msg,
+        delay_segundos: limite === 50 ? 120 : limite === 100 ? 60 : 30
+      })
+    });
+    toast(`Campanha criada! ${data.total} leads na fila.`, 'success');
+    addFeedItem('amber', `Campanha <strong>${nome}</strong> criada com ${data.total} leads`);
+    closeModal('newCampaign');
+    loadCampaigns();
+  } catch (e) {
+    toast('Erro ao criar campanha: ' + e.message, 'error');
+  }
+}
+
+function addSelectedToCampaign() {
+  if (state.selectedLeads.size === 0) return toast('Selecione ao menos um lead', 'error');
+  document.getElementById('camp-leads-count').textContent = state.selectedLeads.size;
+  showModal('newCampaign');
+}
+
+// ── CRM ──
+function loadCRM() {
+  const rows = state.searchResults.slice(0, 20);
+  renderKanban(rows);
+  renderCRMList(rows);
+}
+
+const kanbanCols = ['Novo','Contactado','Respondeu','Negociando','Convertido'];
+const kanbanColors = { Novo:'',Contactado:'',Respondeu:'border-color:rgba(34,197,94,.3)',Negociando:'border-color:rgba(251,159,36,.3)',Convertido:'border-color:rgba(34,197,94,.3)' };
+
+function renderKanban(rows) {
+  const board = document.getElementById('kanban-board');
+  if (!rows.length) {
+    board.innerHTML = `<div class="empty" style="width:100%"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;opacity:.2;margin-bottom:12px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/></svg><div class="empty-title">CRM vazio</div><div class="empty-sub">Busque leads e eles aparecerão aqui</div></div>`;
+    return;
+  }
+  board.innerHTML = kanbanCols.map((col, ci) => {
+    const colRows = rows.filter((_, i) => i % 5 === ci);
+    return `
+      <div class="kanban-col">
+        <div class="kanban-col-header"><span class="kanban-col-title">${col}</span><span class="kanban-col-count">${colRows.length}</span></div>
+        <div class="kanban-cards">
+          ${colRows.map(r => `
+            <div class="kanban-card" style="${kanbanColors[col]}" onclick="viewLead('${r.cnpj}')">
+              <div class="kk-name">${r.nome_fantasia || r.razao_social || '—'}</div>
+              <div class="kk-meta"><span>DDD ${r.ddd_municipio||'—'}</span><span>${r.cnae_descricao?.split(' ')[0]||'—'}</span></div>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderCRMList(rows) {
+  const tbody = document.getElementById('crm-list-tbody');
+  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="7"><div class="loading-row" style="color:var(--text-t)">Sem leads — faça uma busca primeiro</div></td></tr>`; return; }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td><strong>${r.nome_fantasia||r.razao_social||'—'}</strong></td>
+      <td><span class="badge b-amber" style="font-size:10px">${r.cnae_descricao?.substring(0,18)||'—'}</span></td>
+      <td>${r.municipio_nome||'—'}</td>
+      <td class="t-mono">${r.telefone1||'—'}</td>
+      <td><span class="badge b-amber">Novo</span></td>
+      <td class="t-amber t-mono">${r.score_completude||0}</td>
+      <td><div class="td-act"><button class="ib" onclick="viewLead('${r.cnpj}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></td>
+    </tr>`).join('');
+}
+
+function setView(v) {
+  document.getElementById('crm-kanban-view').style.display = v === 'kanban' ? '' : 'none';
+  document.getElementById('crm-list-view').style.display = v === 'list' ? '' : 'none';
+  document.getElementById('v-kanban').style.borderColor = v === 'kanban' ? 'var(--amber)' : 'var(--border)';
+  document.getElementById('v-kanban').style.color = v === 'kanban' ? 'var(--amber)' : '';
+  document.getElementById('v-list').style.borderColor = v === 'list' ? 'var(--amber)' : 'var(--border)';
+  document.getElementById('v-list').style.color = v === 'list' ? 'var(--amber)' : '';
+}
+
+function filterCRM() {
+  const q = document.getElementById('crm-search').value.toLowerCase();
+  document.querySelectorAll('#kanban-board .kanban-card').forEach(c => {
+    c.style.display = c.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// ── INBOX ──
+function loadInbox() {
+  const convs = state.conversations;
+  if (convs.length === 0) {
+    document.getElementById('conv-list').innerHTML = `<div class="empty" style="padding:40px 20px"><div class="empty-title">Sem conversas</div><div class="empty-sub">Inicie uma campanha para receber respostas</div></div>`;
+    return;
+  }
+  renderConvList(convs);
+}
+
+function renderConvList(convs) {
+  document.getElementById('conv-list').innerHTML = convs.map(c => `
+    <div class="conv-item ${state.activeConv === c.id ? 'active' : ''}" onclick="openConv(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+      <div class="conv-av">${c.initials}</div>
+      <div class="conv-info">
+        <div class="conv-name">${c.name}</div>
+        <div class="conv-preview">${c.lastMsg}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <div class="conv-time">${c.time}</div>
+        ${c.unread ? `<div class="conv-unread">${c.unread}</div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function openConv(conv) {
+  state.activeConv = conv.id;
+  document.getElementById('chat-av').textContent = conv.initials;
+  document.getElementById('chat-name').textContent = conv.name;
+  document.getElementById('chat-sub').innerHTML = `<span class="sdot on"></span>WhatsApp · ${conv.phone || '—'}`;
+  document.getElementById('chat-messages').innerHTML = (conv.messages || []).map(m => `
+    <div class="msg ${m.dir}">
+      ${m.text}
+      <div class="msg-time">${m.time}</div>
+    </div>`).join('') || '<div class="empty" style="margin:auto"><div class="empty-title">Conversa iniciada</div></div>';
+  renderConvList(state.conversations);
+}
+
+function addToInbox(cnpj, name, phone) {
+  const id = Date.now();
+  const conv = {
+    id, cnpj, name, phone,
+    initials: name.substring(0, 2).toUpperCase(),
+    lastMsg: 'Nova conversa',
+    time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    unread: 0,
+    messages: []
+  };
+  state.conversations.unshift(conv);
+  document.getElementById('badge-inbox').textContent = state.conversations.length;
+  nav('inbox', document.querySelector('[onclick*=inbox]'));
+  openConv(conv);
+  toast(`Conversa com ${name} aberta no Inbox`, 'success');
+}
+
+function sendMsg() {
+  const inp = document.getElementById('chat-input');
+  const text = inp.value.trim();
+  if (!text || !state.activeConv) return;
+  const conv = state.conversations.find(c => c.id === state.activeConv);
+  if (!conv) return;
+  const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  conv.messages.push({ dir: 'sent', text, time });
+  conv.lastMsg = text;
+  conv.time = time;
+  document.getElementById('chat-messages').innerHTML += `<div class="msg sent">${text}<div class="msg-time">${time}</div></div>`;
+  document.getElementById('chat-messages').scrollTop = 9999;
+  inp.value = '';
+  toast('Mensagem enviada via WhatsApp!', 'success');
+  addFeedItem('green', `WhatsApp enviado para <strong>${conv.name}</strong>`);
+}
+
+function filterInbox(q) {
+  document.querySelectorAll('#conv-list .conv-item').forEach(el => {
+    el.style.display = el.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function aiSuggest() {
+  const inp = document.getElementById('chat-input');
+  inp.value = 'Olá! Obrigado pelo seu interesse. Podemos agendar uma conversa rápida de 15 minutos para te mostrar como funciona?';
+  toast('Resposta gerada pela IA!', 'success');
+}
+
+// ── WORKER STATUS ──
+async function checkWorker() {
+  const el = document.getElementById('worker-status');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-row"><div class="spinner light"></div>Verificando...</div>';
+  try {
+    const data = await api('/health');
+    el.innerHTML = `
+      <div class="stat-row"><span class="stat-row-label">API Status</span><span class="stat-row-val" style="color:var(--ok)">✓ Online</span></div>
+      <div class="stat-row"><span class="stat-row-label">Leads na base</span><span class="stat-row-val t-amber">${data.leads_ativos?.toLocaleString('pt-BR') || 0}</span></div>
+      <div class="stat-row"><span class="stat-row-label">Worker WhatsApp</span><span class="stat-row-val t-muted">Verificar Railway logs</span></div>
+      <div class="stat-row"><span class="stat-row-label">Última verificação</span><span class="stat-row-val t-mono">${new Date(data.timestamp).toLocaleTimeString('pt-BR')}</span></div>
+    `;
+  } catch (e) {
+    el.innerHTML = `<div class="stat-row"><span class="stat-row-label">API Status</span><span class="stat-row-val" style="color:var(--err)">✗ Offline — ${e.message}</span></div>`;
+  }
+}
+
+// ── ANALYTICS ──
+async function loadAnalytics() {
+  try {
+    const data = await api('/stats/geral');
+    const fmt = n => (n || 0).toLocaleString('pt-BR');
+    document.getElementById('analytics-kpis').innerHTML = `
+      <div class="kpi-card"><div class="kpi-value">${fmt(data.total_cnpjs)}</div><div class="kpi-label">Total na Base</div></div>
+      <div class="kpi-card"><div class="kpi-value">${fmt(data.empresas_ativas)}</div><div class="kpi-label">Empresas Ativas</div></div>
+      <div class="kpi-card"><div class="kpi-value">${fmt(data.com_email)}</div><div class="kpi-label">Com Email</div></div>
+      <div class="kpi-card"><div class="kpi-value">${fmt(data.com_telefone)}</div><div class="kpi-label">Com Telefone</div></div>
+    `;
+
+    const porte = document.getElementById('chart-porte');
+    porte.innerHTML = '<div class="funnel">' + (data.por_porte || []).map(p => {
+      const max = Math.max(...(data.por_porte||[]).map(x => parseInt(x.total)));
+      const pct = Math.round((parseInt(p.total) / max) * 100);
+      return `<div class="funnel-step"><div class="funnel-label">${p.porte || 'N/D'}</div><div class="pw" style="flex:1"><div class="pb" style="width:${pct}%"></div></div><div class="funnel-value">${fmt(p.total)}</div></div>`;
+    }).join('') + '</div>';
+
+    const ufs = document.getElementById('chart-ufs');
+    ufs.innerHTML = '<div class="funnel">' + (data.top_ufs || []).map(u => {
+      const max = Math.max(...(data.top_ufs||[]).map(x => parseInt(x.total)));
+      const pct = Math.round((parseInt(u.total) / max) * 100);
+      return `<div class="funnel-step"><div class="funnel-label">${u.uf}</div><div class="pw" style="flex:1"><div class="pb" style="width:${pct}%"></div></div><div class="funnel-value">${fmt(u.total)}</div></div>`;
+    }).join('') + '</div>';
+
+  } catch (e) {
+    toast('Erro ao carregar analytics: ' + e.message, 'error');
+  }
+}
+
+// ── SETTINGS ──
+function setStab(el, tabId) {
+  document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['s-integrations','s-api','s-antibaan','s-templates'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id === tabId ? '' : 'none';
+  });
+}
+
+// ── TEMPLATES ──
+function salvarTemplate() {
+  const nome  = document.getElementById('tpl-nome').value.trim();
+  const canal = document.getElementById('tpl-canal').value;
+  const msg   = document.getElementById('tpl-msg').value.trim();
+  if (!nome || !msg) return toast('Preencha nome e mensagem', 'error');
+  state.templates.push({ id: Date.now(), nome, canal, msg });
+  localStorage.setItem('lh_templates', JSON.stringify(state.templates));
+  toast('Template salvo!', 'success');
+  renderTemplates();
+  document.getElementById('tpl-nome').value = '';
+  document.getElementById('tpl-msg').value = '';
+}
+
+function renderTemplates() {
+  document.getElementById('tpl-count').textContent = state.templates.length + ' templates salvos';
+  document.getElementById('tpl-list').innerHTML = state.templates.map((t, i) => `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500;margin-bottom:3px">${t.nome}</div>
+        <div style="font-size:11px;color:var(--text-t)">${t.canal} · ${t.msg.substring(0, 60)}...</div>
+      </div>
+      <button class="ib danger" onclick="delTemplate(${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+    </div>`).join('');
+}
+
+function delTemplate(i) {
+  state.templates.splice(i, 1);
+  localStorage.setItem('lh_templates', JSON.stringify(state.templates));
+  renderTemplates();
+}
+
+// ── QR CODE ──
+async function gerarQR() {
+  const qrDiv = document.getElementById('qr-display');
+  qrDiv.textContent = 'Gerando...';
+  try {
+    const data = await api('/whatsapp/qr').catch(() => null);
+    if (data && data.qr) {
+      qrDiv.innerHTML = `<img src="${data.qr}" style="width:150px;height:150px;border-radius:8px">`;
+    } else {
+      qrDiv.textContent = 'Configure EVOLUTION_URL no .env da API';
+    }
+  } catch (e) {
+    qrDiv.textContent = 'Erro: ' + e.message;
+  }
+}
+
+// ── INIT ──
+window.addEventListener('load', () => {
+  // Restaura URL salva
+  const saved = localStorage.getItem('lh_api_url');
+  if (saved) {
+    document.getElementById('api-url-input').val
