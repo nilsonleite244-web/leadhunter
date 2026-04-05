@@ -973,7 +973,9 @@ tbody td strong{color:var(--text-p);font-weight:500}
 // ══════════════════════════════════════
 //  CONFIG — MUDE PARA SUA URL DE API
 // ══════════════════════════════════════
-let API_BASE = localStorage.getItem('lh_api_url') || '';
+// Se aberto pelo próprio servidor, usa a mesma origem como API
+const _autoBase = window.location.origin !== 'null' ? window.location.origin : '';
+let API_BASE = localStorage.getItem('lh_api_url') || _autoBase;
 let API_KEY  = localStorage.getItem('lh_api_key')  || '';
 
 // Estado global

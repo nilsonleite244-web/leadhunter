@@ -20,6 +20,7 @@ pool.on("error", (err) => { console.error("Erro no pool:", err.message); });
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(rateLimit({ windowMs: 60000, max: 300, message: { error: "Muitas requisicoes" } }));
+const path = require("path");
 const query = (sql, params) => pool.query(sql, params);
 
 // ── AUTENTICACAO ──
@@ -211,6 +212,9 @@ app.get("/whatsapp/status", async (req, res) => {
     res.json({ connected: false, state: "error", error: err.message });
   }
 });
+// ── FRONTEND ──
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
+
 async function criarSchema() {
   try {
     await pool.query("CREATE TABLE IF NOT EXISTS campanhas (id BIGSERIAL PRIMARY KEY, nome VARCHAR(200), canal VARCHAR(20), total INT, enviados INT DEFAULT 0, status VARCHAR(20) DEFAULT 'pendente', mensagem_template TEXT, delay_segundos INT DEFAULT 60, created_at TIMESTAMPTZ DEFAULT NOW(), iniciado_at TIMESTAMPTZ, concluido_at TIMESTAMPTZ)");
