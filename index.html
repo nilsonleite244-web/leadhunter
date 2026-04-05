@@ -1202,17 +1202,33 @@ function renderResults(rows, mode) {
 
   if (mode === 'instagram') {
     tbody.innerHTML = rows.map(r => {
-      const igHandle = r.instagram_url ? r.instagram_url.replace(/https?:\/\/(www\.)?instagram\.com\//,'').replace(/\//,'') : null;
-      const wppUrl = r.whatsapp_url || (r.telefone1 ? 'https://wa.me/55' + r.telefone1.replace(/\D/g,'') : null);
+      // instagram_url pode ser handle "@fulano", URL "https://instagram.com/fulano" ou só "fulano"
+      const igRaw = r.instagram_url || '';
+      const igUrl = igRaw.startsWith('http') ? igRaw
+                  : igRaw.startsWith('@')    ? 'https://instagram.com/' + igRaw.slice(1)
+                  : igRaw                    ? 'https://instagram.com/' + igRaw
+                  : null;
+      const igLabel = igRaw.replace(/https?:\/\/(www\.)?instagram\.com\//,'').replace(/\/$|^@/,'') || igRaw;
+
+      // whatsapp_url pode ser número cru, wa.me/..., ou https://api.whatsapp.com/send?phone=...
+      const wppRaw = r.whatsapp_url || r.telefone1 || '';
+      let wppUrl = null;
+      if (wppRaw.startsWith('http')) {
+        wppUrl = wppRaw;
+      } else if (wppRaw) {
+        const n = wppRaw.replace(/\D/g,'');
+        if (n.length >= 8) wppUrl = 'https://wa.me/' + (n.startsWith('55') ? n : '55' + n);
+      }
+
+      const loc = [r.cidade||r.municipio_nome, r.estado||r.uf].filter(Boolean).join(' / ') || '—';
       return `<tr>
-        <td><input type="checkbox" style="width:13px;height:13px" data-cnpj="${r.cnpj||igHandle||''}" onchange="toggleLead(this,'${r.cnpj||igHandle||''}')"></td>
-        <td><b>${r.nome_fantasia||r.razao_social||'—'}</b><small>${r.municipio_nome||r.logradouro||'—'}</small></td>
-        <td><span class="badge b-purple" style="max-width:160px;overflow:hidden;text-overflow:ellipsis">${(r.cnae_descricao||'—').substring(0,22)}</span></td>
-        <td>${r.instagram_url ? `<a href="${r.instagram_url}" target="_blank" style="color:var(--purple);text-decoration:none;font-size:12px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>@${igHandle}</a>` : '—'}</td>
-        <td>${r.telefone1||r.whatsapp_url ? `<div class="flex gap-8"><span style="font-size:12.5px">${r.telefone1||'—'}</span>${wppUrl ? `<a href="${wppUrl}" target="_blank" class="btn btn-green btn-sm" style="padding:3px 8px;font-size:11px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WPP</a>` : ''}</div>` : '—'}</td>
-        <td><span class="badge ${r.status==='ativo'?'b-green':'bg'}">${r.status||'—'}</span></td>
+        <td><input type="checkbox" style="width:13px;height:13px" onchange="toggleLead(this,'${r.id||igLabel}')"></td>
+        <td><b>${r.razao_social||'—'}</b><small>${loc}</small></td>
+        <td><span class="badge b-purple" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;display:inline-block">${(r.cnae_descricao||'—').substring(0,24)}</span></td>
+        <td>${igUrl ? `<a href="${igUrl}" target="_blank" style="color:var(--purple);text-decoration:none;font-size:12px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>@${igLabel}</a>` : '—'}</td>
+        <td><div class="flex gap-8">${wppUrl ? `<a href="${wppUrl}" target="_blank" class="btn btn-green btn-sm" style="padding:3px 10px;font-size:11px;text-decoration:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WPP</a>` : '<span style="color:var(--t3);font-size:12px">—</span>'}</div></td>
         <td><div class="td-act">
-          <a href="${r.instagram_url||'#'}" target="_blank" class="ib ig" title="Abrir Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
+          ${igUrl ? `<a href="${igUrl}" target="_blank" class="ib ig" title="Abrir Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>` : ''}
           ${wppUrl ? `<a href="${wppUrl}" target="_blank" class="ib wpp" title="Abrir WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>` : ''}
         </div></td>
       </tr>`;

@@ -40,22 +40,6 @@ function paginate(req) {
   const offset = (page - 1) * limit;
   return { page, limit, offset };
 }
-app.get("/debug/schema", async (req, res) => {
-  try {
-    const tables = await pool.query(`
-      SELECT table_name FROM information_schema.tables
-      WHERE table_schema='public' ORDER BY table_name`);
-    const result = {};
-    for (const { table_name } of tables.rows) {
-      const cols = await pool.query(
-        `SELECT column_name, data_type FROM information_schema.columns
-         WHERE table_name=$1 ORDER BY ordinal_position`, [table_name]);
-      const cnt  = await pool.query(`SELECT COUNT(*) FROM ${table_name}`).catch(() => ({rows:[{count:'?'}]}));
-      result[table_name] = { count: cnt.rows[0].count, columns: cols.rows.map(r => r.column_name + ':' + r.data_type) };
-    }
-    res.json(result);
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
 
 app.get("/health", async (req, res) => {
   try {
@@ -70,6 +54,8 @@ app.get("/health", async (req, res) => {
 });
 app.use(["/leads", "/stats", "/campanha", "/whatsapp"], authMiddleware);
 
+// leads_extra schema: id, nome, website, descricao, funcionarios, receita,
+//   pais, estado, cidade, segmento, instagram, whatsapp, created_at
 app.get("/leads/instagram", async (req, res) => {
   try {
     const { page, limit, offset } = paginate(req);
@@ -77,30 +63,27 @@ app.get("/leads/instagram", async (req, res) => {
     const segmento = req.query.segmento ? req.query.segmento.trim() : null;
     const cidade   = req.query.cidade   ? req.query.cidade.trim()   : null;
 
-    // descobre colunas reais da tabela para não explodir se faltarem
-    const colsRes = await pool.query(
-      "SELECT column_name FROM information_schema.columns WHERE table_name='leads_extra' ORDER BY ordinal_position"
-    );
-    const cols = new Set(colsRes.rows.map(r => r.column_name));
+    const select = `
+      id,
+      nome        AS razao_social,
+      nome        AS nome_fantasia,
+      segmento    AS cnae_descricao,
+      whatsapp    AS telefone1,
+      whatsapp    AS whatsapp_url,
+      instagram   AS instagram_url,
+      cidade      AS municipio_nome,
+      estado      AS uf,
+      NULL::text  AS ddd_municipio,
+      NULL::text  AS email,
+      NULL::text  AS cnpj,
+      NULL::text  AS logradouro,
+      website,
+      descricao,
+      funcionarios,
+      receita
+    `;
 
-    const select = [
-      "id",
-      "nome          AS razao_social",
-      "nome          AS nome_fantasia",
-      "segmento      AS cnae_descricao",
-      "telefone      AS telefone1",
-      "instagram_url",
-      "whatsapp_url",
-      "endereco      AS logradouro",
-      "status",
-      "cidade        AS municipio_nome",
-      cols.has("ddd")      ? "ddd      AS ddd_municipio" : "NULL::text AS ddd_municipio",
-      cols.has("email")    ? "email"                     : "NULL::text AS email",
-      cols.has("cnpj")     ? "cnpj"                      : "NULL::text AS cnpj",
-      cols.has("uf")       ? "uf"                        : "NULL::text AS uf",
-    ].join(", ");
-
-    const conditions = ["(instagram_url IS NOT NULL AND instagram_url != '')"];
+    const conditions = ["instagram IS NOT NULL", "instagram != ''"];
     const params = [];
     let p = 1;
 
@@ -112,7 +95,7 @@ app.get("/leads/instagram", async (req, res) => {
       conditions.push(`segmento ILIKE $${p++}`);
       params.push('%' + segmento + '%');
     }
-    if (cidade && cols.has("cidade")) {
+    if (cidade) {
       conditions.push(`cidade ILIKE $${p++}`);
       params.push('%' + cidade + '%');
     }
@@ -126,13 +109,7 @@ app.get("/leads/instagram", async (req, res) => {
       [...params, limit, offset]
     );
 
-    res.json({
-      total,
-      page,
-      limit,
-      pages: Math.ceil(total / limit),
-      data: dataRes.rows,
-    });
+    res.json({ total, page, limit, pages: Math.ceil(total / limit), data: dataRes.rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
