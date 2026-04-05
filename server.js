@@ -1,4 +1,4 @@
-"use strict";
+h"use strict";  
 const dns = require("dns");
 dns.setDefaultResultOrder("ipv4first");
 const express = require("express");
@@ -12,12 +12,9 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
   connectionTimeoutMillis: 10000,
-  idleTimeoutMillis: 30000,
-  max: 10,
-  family: 4,
+const total = parseInt(r1.rows[0].count) + parseInt(r2.rows[0].count);  family: 4,
 });
-pool.on("error", (err) => { console.error("Erro no pool:", err.message); });
-app.use(cors());
+const total = parseInt(r1.rows[0].count) + count2;app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(rateLimit({ windowMs: 60000, max: 300, message: { error: "Muitas requisicoes" } }));
 const query = (sql, params) => pool.query(sql, params);
@@ -30,7 +27,7 @@ function paginate(req) {
 app.get("/health", async (req, res) => {
   try {
     const r1 = await query("SELECT COUNT(*) as count FROM leads");
-    const r2 = await query("SELECT COUNT(*) as count FROM leads_extra").catch(() => ({ rows: [{ count: 0 }] }));
+    const r2 = await pool.query("SELECT COUNT(*) as count FROM leads_extra").catch(() => ({ rows: [{ count: '0' }] }));
     const total = parseInt(r1.rows[0].count) + parseInt(r2.rows[0].count);
     res.json({ status: "ok", leads_ativos: total, timestamp: new Date().toISOString() });
   } catch (e) {
