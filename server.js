@@ -117,8 +117,9 @@ app.get("/stats/ddd/:ddd", async (req, res) => {
 app.get("/stats/segmentos", async (req, res) => {
   try {
     const { ddd } = req.query;
-    const where = ddd ? "WHERE l.ddd_municipio = '" + ddd + "' AND l.situacao_cadastral = 2" : "WHERE l.situacao_cadastral = 2";
-    const result = await query("SELECT c.descricao as segmento, COUNT(l.cnpj) as total FROM leads l JOIN cnaes c ON c.codigo = l.cnae_principal " + where + " GROUP BY c.descricao ORDER BY total DESC LIMIT 20");
+    const params = ddd ? [ddd] : [];
+    const where = ddd ? "WHERE l.ddd_municipio = $1 AND l.situacao_cadastral = 2" : "WHERE l.situacao_cadastral = 2";
+    const result = await query("SELECT c.descricao as segmento, COUNT(l.cnpj) as total FROM leads l JOIN cnaes c ON c.codigo = l.cnae_principal " + where + " GROUP BY c.descricao ORDER BY total DESC LIMIT 20", params);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -138,10 +139,11 @@ app.post("/campanha/criar-lista", async (req, res) => {
     if (!nome || !canal || !cnpjs?.length) return res.status(400).json({ error: "Dados incompletos" });
     const result = await query("INSERT INTO campanhas (nome, canal, total, status, mensagem_template, delay_segundos, created_at) VALUES ($1, $2, $3, 'pendente', $4, $5, NOW()) RETURNING id", [nome, canal, cnpjs.length, mensagem_template, delay_segundos]);
     const campanha_id = result.rows[0].id;
-    const rows = cnpjs.map(cnpj => "(" + campanha_id + ", '" + cnpj.replace(/\D/g,"").padStart(14,"0") + "', 'pendente')");
-    for (let i = 0; i < rows.length; i += 500) {
-      await query("INSERT INTO campanha_destinatarios (campanha_id, cnpj, status) VALUES " + rows.slice(i, i+500).join(","));
-    }
+    const cleanCnpjs = cnpjs.map(c => c.replace(/\D/g, "").padStart(14, "0"));
+    await query(
+      "INSERT INTO campanha_destinatarios (campanha_id, cnpj, status) SELECT $1, unnest($2::varchar[]), 'pendente'",
+      [campanha_id, cleanCnpjs]
+    );
     res.json({ campanha_id, total: cnpjs.length, status: "pendente" });
   } catch (err) {
     res.status(500).json({ error: err.message });

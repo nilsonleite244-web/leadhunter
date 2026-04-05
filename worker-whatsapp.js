@@ -140,7 +140,8 @@ async function processarProximoLote() {
   }
 
   const conn = await pool.connect();
-  
+  let dest_id = null;
+
   try {
     // Busca próximo destinatário pendente de alguma campanha ativa
     const res = await conn.query(`
@@ -163,6 +164,7 @@ async function processarProximoLote() {
     if (!res.rows.length) return;
 
     const dest = res.rows[0];
+    dest_id = dest.dest_id;
 
     // Busca dados do lead
     const leadRes = await conn.query(
@@ -221,7 +223,6 @@ async function processarProximoLote() {
     
     // Marca como erro para não travar a fila
     try {
-      const dest_id = conn._lastQuery?.dest_id;
       if (dest_id) {
         await conn.query(
           "UPDATE campanha_destinatarios SET status='erro', erro=$1 WHERE id=$2",
