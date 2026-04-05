@@ -8,6 +8,7 @@
     "worker": "node worker-whatsapp.js"
   },
   "dependencies": {
+    "@sparticuz/chromium": "^143.0.4",
     "axios": "^1.6.0",
     "cors": "^2.8.5",
     "csv-parse": "^6.2.1",
@@ -16,6 +17,8 @@
     "express-rate-limit": "^7.1.5",
     "node-cron": "^3.0.3",
     "pg": "^8.11.3",
+    "puppeteer": "^24.40.0",
+    "puppeteer-core": "^24.40.0",
     "resend": "^2.0.0"
   },
   "engines": {
