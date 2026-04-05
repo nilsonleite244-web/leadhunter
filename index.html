@@ -840,6 +840,14 @@ tbody td strong{color:var(--text-p);font-weight:500}
             </div>
           </div>
           <div class="field mb-16">
+            <label>Chave de Acesso (API_SECRET)</label>
+            <div class="flex gap-8">
+              <input id="api-key-settings" type="password" placeholder="Deixe vazio se não configurou API_SECRET no Railway" value="">
+              <button class="btn btn-primary btn-sm" onclick="saveApiKey()">Salvar</button>
+            </div>
+            <p style="font-size:11px;color:var(--text-t);margin-top:4px">Defina API_SECRET no Railway para proteger sua API. Coloque o mesmo valor aqui.</p>
+          </div>
+          <div class="field mb-16">
             <label>Testar conexão</label>
             <div class="flex gap-8">
               <input id="health-result" readonly placeholder="Clique em Testar para verificar...">
@@ -855,6 +863,7 @@ tbody td strong{color:var(--text-p);font-weight:500}
             <div><span style="color:var(--amber)">EVOLUTION_KEY</span>=sua-api-key</div>
             <div><span style="color:var(--amber)">EVOLUTION_INSTANCE</span>=leadhunter</div>
             <div><span style="color:var(--text-t)"># Opcionais</span></div>
+            <div><span style="color:var(--ok)">API_SECRET</span>=chave-secreta-forte</div>
             <div><span style="color:var(--ok)">RESEND_API_KEY</span>=re_xxx</div>
             <div><span style="color:var(--ok)">EMAIL_FROM</span><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1f227c70716b7e6b705f6c7a6a7b707276717670317c7072317d6d">[email&#160;protected]</a></div>
           </div>
@@ -965,6 +974,7 @@ tbody td strong{color:var(--text-p);font-weight:500}
 //  CONFIG — MUDE PARA SUA URL DE API
 // ══════════════════════════════════════
 let API_BASE = localStorage.getItem('lh_api_url') || '';
+let API_KEY  = localStorage.getItem('lh_api_key')  || '';
 
 // Estado global
 const state = {
@@ -999,11 +1009,21 @@ function saveApiUrlFromSettings() {
   checkHealth();
 }
 
+function saveApiKey() {
+  const key = document.getElementById('api-key-settings').value.trim();
+  API_KEY = key;
+  if (key) localStorage.setItem('lh_api_key', key);
+  else localStorage.removeItem('lh_api_key');
+  toast(key ? 'Chave de acesso salva!' : 'Chave removida', 'success');
+}
+
 // ── API FETCH ──
 async function api(path, opts = {}) {
   if (!API_BASE) throw new Error('API não configurada');
+  const headers = { 'Content-Type': 'application/json' };
+  if (API_KEY) headers['x-api-key'] = API_KEY;
   const res = await fetch(API_BASE + path, {
-    headers: { 'Content-Type': 'application/json', ...opts.headers },
+    headers: { ...headers, ...opts.headers },
     ...opts
   });
   if (!res.ok) {
@@ -1772,6 +1792,13 @@ window.addEventListener('load', () => {
     document.getElementById('api-url-input').value = defaultUrl;
     if (document.getElementById('api-url-settings')) document.getElementById('api-url-settings').value = defaultUrl;
     checkHealth().then(ok => { if (ok) loadDashboard(); });
+  }
+  // Restaura chave de acesso salva
+  const savedKey = localStorage.getItem('lh_api_key');
+  if (savedKey) {
+    API_KEY = savedKey;
+    const keyEl = document.getElementById('api-key-settings');
+    if (keyEl) keyEl.value = savedKey;
   }
   renderTemplates();
   renderScheduled();

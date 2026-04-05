@@ -21,6 +21,18 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(rateLimit({ windowMs: 60000, max: 300, message: { error: "Muitas requisicoes" } }));
 const query = (sql, params) => pool.query(sql, params);
+
+// ── AUTENTICACAO ──
+// Se API_SECRET estiver definido no .env, todas as rotas (exceto /health) exigem
+// o header  x-api-key: <segredo>  ou  Authorization: Bearer <segredo>
+function authMiddleware(req, res, next) {
+  const secret = process.env.API_SECRET;
+  if (!secret) return next(); // sem segredo configurado = auth desativada
+  const key = req.headers["x-api-key"] || (req.headers["authorization"] || "").replace("Bearer ", "");
+  if (key === secret) return next();
+  res.status(401).json({ error: "Nao autorizado — configure x-api-key no cliente" });
+}
+
 function paginate(req) {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(500, Math.max(10, parseInt(req.query.limit) || 50));
@@ -38,6 +50,8 @@ app.get("/health", async (req, res) => {
     res.status(500).json({ status: "erro", error: e.message });
   }
 });
+app.use(["/leads", "/stats", "/campanha", "/whatsapp"], authMiddleware);
+
 app.get("/leads/buscar", async (req, res) => {
   try {
     const { page, limit, offset } = paginate(req);

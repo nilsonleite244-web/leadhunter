@@ -101,26 +101,34 @@ function resetarContadorSeNovoDia() {
 }
 
 
-// ─── ENVIO VIA EVOLUTION API ──────────────────────────────────────────────────
+// ─── ENVIO VIA EVOLUTION API (com retry) ─────────────────────────────────────
 
 async function enviarWhatsApp(numero, mensagem) {
   const url = `${EVOLUTION_URL}/message/sendText/${EVOLUTION_INSTANCE}`;
-  
   const payload = {
     number:  numero,
-    options: { delay: 1500, presence: "composing" }, // simula digitação
+    options: { delay: 1500, presence: "composing" },
     textMessage: { text: mensagem },
   };
 
-  const res = await axios.post(url, payload, {
-    headers: {
-      "Content-Type": "application/json",
-      "apikey": EVOLUTION_KEY,
-    },
-    timeout: 15000,
-  });
-
-  return res.data;
+  const MAX_TENTATIVAS = 3;
+  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
+    try {
+      const res = await axios.post(url, payload, {
+        headers: { "Content-Type": "application/json", "apikey": EVOLUTION_KEY },
+        timeout: 15000,
+      });
+      return res.data;
+    } catch (err) {
+      const status = err.response?.status;
+      // Erros de cliente (4xx exceto 429) não têm retry — são definitivos
+      const definitivo = status && status >= 400 && status < 500 && status !== 429;
+      if (definitivo || tentativa === MAX_TENTATIVAS) throw err;
+      const espera = tentativa * 8000; // 8s, 16s
+      console.warn(`[Worker] Tentativa ${tentativa}/${MAX_TENTATIVAS} falhou (${status || err.code}). Retry em ${espera/1000}s...`);
+      await sleep(espera);
+    }
+  }
 }
 
 
@@ -279,15 +287,27 @@ async function iniciarWorker() {
   }
 
   // Loop contínuo com intervalo inteligente
+  let ultimaVerificacaoInstancia = 0;
   while (true) {
     try {
+      // Reverifica a instância a cada 5 minutos
+      const agora = Date.now();
+      if (agora - ultimaVerificacaoInstancia > 5 * 60 * 1000) {
+        const ok = await verificarInstancia();
+        ultimaVerificacaoInstancia = agora;
+        if (!ok) {
+          console.warn("[Worker] Instância offline — aguardando 60s para retentar...");
+          await sleep(60000);
+          continue;
+        }
+      }
       await processarProximoLote();
     } catch (e) {
       console.error("[Loop] Erro inesperado:", e.message);
       await sleep(15000);
     }
 
-    // Intervalo mínimo entre iterações (garante que não está em loop vazio)
+    // Intervalo mínimo entre iterações
     await sleep(2000);
   }
 }
