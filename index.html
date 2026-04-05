@@ -4,205 +4,301 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LeadHunter</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{font-family:'Inter',sans-serif;background:#0a0a0c;color:#f0f0f2;overflow:hidden}
+body{font-family:'Inter',sans-serif;background:#08080f;color:#eeeef2;overflow:hidden;-webkit-font-smoothing:antialiased}
 :root{
-  --bg:#0a0a0c;--s1:#111114;--s2:#18181c;--s3:#202025;--s4:#2a2a30;
-  --bd:rgba(255,255,255,.06);--bd-h:rgba(230,155,30,.3);
-  --gold:#e89b20;--gold-l:#f5b840;--gold-d:rgba(232,155,32,.11);--gold-g:rgba(232,155,32,.04);
-  --txt:#f0f0f2;--t2:#8a8a94;--t3:#3e3e46;
-  --ok:#22c55e;--err:#ef4444;--blue:#60a5fa;
-  --r:8px;--rl:12px;
+  --bg:#08080f;--s1:#0e0e18;--s2:#15151f;--s3:#1d1d28;--s4:#262633;
+  --bd:rgba(255,255,255,.06);--bd-h:rgba(255,160,50,.28);
+  --amber:#f09030;--amber-l:#f5b455;--amber-d:rgba(240,144,48,.1);--amber-g:rgba(240,144,48,.04);
+  --txt:#eeeef2;--t2:#8888a0;--t3:#3a3a50;
+  --ok:#22c55e;--err:#ef4444;--blue:#60a5fa;--purple:#a855f7;
+  --r:9px;--rl:13px;
 }
-::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--s4);border-radius:2px}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--s4);border-radius:2px}
 
 /* ── LAYOUT ── */
 .app{display:flex;height:100vh}
 
 /* ── SIDEBAR ── */
-.sidebar{width:210px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--bd);display:flex;flex-direction:column}
-.logo{padding:22px 18px 18px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px}
-.logo-mark{width:28px;height:28px;background:var(--gold);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.logo-mark svg{width:14px;height:14px;color:#000}
-.logo-name{font-size:14px;font-weight:700;letter-spacing:-.3px}
-.logo-name em{color:var(--gold);font-style:normal}
-.nav{padding:10px 10px;flex:1}
-.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r);font-size:13px;font-weight:400;color:var(--t2);cursor:pointer;transition:all .15s;user-select:none;margin-bottom:2px;position:relative}
-.nav-item svg{width:14px;height:14px;flex-shrink:0}
+.sidebar{
+  width:215px;flex-shrink:0;
+  background:var(--s1);
+  border-right:1px solid var(--bd);
+  display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+}
+.sidebar::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:180px;
+  background:radial-gradient(ellipse at 30% 0%,rgba(240,144,48,.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.logo{
+  padding:20px 18px 18px;border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;gap:11px;position:relative;
+}
+.logo-mark{
+  width:32px;height:32px;border-radius:9px;
+  background:linear-gradient(135deg,var(--amber),#e06010);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;box-shadow:0 4px 14px rgba(240,144,48,.3);
+  position:relative;overflow:hidden;
+}
+.logo-mark::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 60%)}
+.logo-name{font-size:15px;font-weight:800;letter-spacing:-.4px;line-height:1}
+.logo-name em{color:var(--amber);font-style:normal}
+.logo-tagline{font-size:9.5px;color:var(--t2);letter-spacing:.04em;margin-top:1px}
+
+.nav{padding:10px 8px;flex:1}
+.nav-label{font-size:9.5px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;padding:10px 10px 5px;margin-top:2px}
+.nav-item{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 10px;border-radius:var(--r);
+  font-size:13px;font-weight:400;color:var(--t2);
+  cursor:pointer;transition:all .15s;user-select:none;
+  margin-bottom:2px;position:relative;
+}
+.nav-item svg{width:14px;height:14px;flex-shrink:0;transition:color .15s}
 .nav-item:hover{background:var(--s2);color:var(--txt)}
-.nav-item.active{background:var(--gold-d);color:var(--gold);font-weight:500}
-.nav-item.active::before{content:'';position:absolute;left:0;top:22%;bottom:22%;width:2px;background:var(--gold);border-radius:0 2px 2px 0}
-.nav-badge{margin-left:auto;font-size:10px;font-weight:600;background:var(--gold);color:#000;padding:1px 6px;border-radius:5px;line-height:1.5}
-.nav-badge.dim{background:var(--s4);color:var(--t2)}
-.sidebar-bottom{padding:14px 14px 16px;border-top:1px solid var(--bd);margin-top:auto}
-.api-pill{display:flex;align-items:center;gap:7px;padding:9px 11px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);font-size:11.5px;color:var(--t2);cursor:pointer;transition:all .15s}
-.api-pill:hover{border-color:rgba(255,255,255,.1)}
-.api-dot{width:6px;height:6px;border-radius:50%;background:var(--t3);flex-shrink:0;transition:background .3s}
-.api-dot.on{background:var(--ok);box-shadow:0 0 0 2px rgba(34,197,94,.15)}
-.api-dot.off{background:var(--err)}
+.nav-item.active{
+  background:var(--amber-d);color:var(--amber);font-weight:500;
+}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:25%;bottom:25%;
+  width:2px;background:linear-gradient(180deg,var(--amber),#e06010);
+  border-radius:0 2px 2px 0;
+}
+.nav-item.active svg{color:var(--amber)}
+.nav-badge{
+  margin-left:auto;font-size:10px;font-weight:700;
+  background:var(--amber);color:#000;
+  padding:1px 7px;border-radius:6px;line-height:1.6;
+}
+.nav-badge.dim{background:var(--s4);color:var(--t2);font-weight:500}
+
+.sidebar-footer{padding:12px 12px 14px;border-top:1px solid var(--bd);margin-top:auto}
+.api-chip{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 12px;border-radius:var(--r);
+  background:var(--s2);border:1px solid var(--bd);
+  font-size:12px;color:var(--t2);cursor:pointer;
+  transition:all .15s;
+}
+.api-chip:hover{border-color:rgba(255,255,255,.1);background:var(--s3)}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--t3);transition:all .3s}
+.dot.on{background:var(--ok);box-shadow:0 0 0 2px rgba(34,197,94,.18)}
+.dot.off{background:var(--err)}
+.dot.pulse{animation:pulse-dot 2s infinite}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 0 2px rgba(34,197,94,.18)}50%{box-shadow:0 0 0 4px rgba(34,197,94,.08)}}
 
 /* ── MAIN ── */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.topbar{height:52px;border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 26px;gap:12px;flex-shrink:0;background:var(--s1)}
+.topbar{
+  height:54px;border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;padding:0 26px;gap:12px;
+  flex-shrink:0;background:rgba(14,14,24,.8);backdrop-filter:blur(10px);
+  position:sticky;top:0;z-index:10;
+}
 .page-title{font-size:13px;font-weight:500}
-.page-title span{color:var(--t3);font-weight:400;margin-left:4px}
+.page-title span{color:var(--t3);font-weight:400}
 .topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
 
 /* ── BUTTONS ── */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:12.5px;font-weight:500;cursor:pointer;transition:all .15s;border:none;font-family:'Inter',sans-serif;white-space:nowrap;text-decoration:none}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 15px;border-radius:var(--r);
+  font-size:13px;font-weight:500;
+  cursor:pointer;transition:all .15s;
+  border:none;font-family:'Inter',sans-serif;white-space:nowrap;
+}
 .btn svg{width:13px;height:13px}
-.btn-primary{background:var(--gold);color:#000}
-.btn-primary:hover{background:var(--gold-l);transform:translateY(-1px);box-shadow:0 4px 18px rgba(232,155,32,.28)}
+.btn-primary{
+  background:linear-gradient(135deg,var(--amber),#e06818);
+  color:#000;box-shadow:0 2px 10px rgba(240,144,48,.2);
+}
+.btn-primary:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 4px 18px rgba(240,144,48,.32)}
 .btn-primary:active{transform:translateY(0)}
-.btn-primary:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none;filter:none}
 .btn-ghost{background:transparent;color:var(--t2);border:1px solid var(--bd)}
 .btn-ghost:hover{background:var(--s2);color:var(--txt);border-color:rgba(255,255,255,.1)}
+.btn-green{background:rgba(34,197,94,.12);color:var(--ok);border:1px solid rgba(34,197,94,.2)}
+.btn-green:hover{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.35)}
+.btn-purple{background:rgba(168,85,247,.1);color:var(--purple);border:1px solid rgba(168,85,247,.2)}
+.btn-purple:hover{background:rgba(168,85,247,.18);border-color:rgba(168,85,247,.35)}
 .btn-sm{padding:5px 11px;font-size:12px}
 
 /* ── CONTENT ── */
 .content{flex:1;overflow-y:auto;overflow-x:hidden}
-.page{display:none;padding:28px;animation:fi .18s ease}
+.page{display:none;padding:26px;animation:fi .2s ease}
 .page.active{display:block}
-@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── CARDS ── */
 .card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--rl);transition:border-color .2s}
 .card:hover{border-color:rgba(255,255,255,.09)}
 .card-header{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid var(--bd)}
 .card-title{font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:7px}
-.card-title svg{width:13px;height:13px;color:var(--gold)}
+.card-title svg{width:13px;height:13px;color:var(--amber)}
 .card-body{padding:20px}
 
 /* ── KPIs ── */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
-.kpi{background:var(--s1);border:1px solid var(--bd);border-radius:var(--rl);padding:18px 20px;transition:all .2s;position:relative;overflow:hidden}
-.kpi::after{content:'';position:absolute;inset:0 0 auto 0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity .3s}
-.kpi:hover{border-color:var(--bd-h);transform:translateY(-1px)}.kpi:hover::after{opacity:.5}
-.kpi-lbl{font-size:11px;color:var(--t2);margin-bottom:10px;letter-spacing:.04em}
-.kpi-val{font-size:24px;font-weight:700;letter-spacing:-1px;line-height:1}
-.kpi-skeleton{height:24px;background:var(--s3);border-radius:4px;animation:sk 1.5s infinite}
-@keyframes sk{0%,100%{opacity:.35}50%{opacity:.65}}
+.kpi{
+  background:var(--s1);border:1px solid var(--bd);border-radius:var(--rl);
+  padding:18px 20px;transition:all .2s;
+  position:relative;overflow:hidden;
+}
+.kpi::after{content:'';position:absolute;inset:0 0 auto 0;height:1px;background:linear-gradient(90deg,transparent,var(--amber),transparent);opacity:0;transition:opacity .3s}
+.kpi:hover{border-color:var(--bd-h);transform:translateY(-1px)}.kpi:hover::after{opacity:.6}
+.kpi-lbl{font-size:11px;color:var(--t2);margin-bottom:10px;letter-spacing:.03em}
+.kpi-val{font-size:24px;font-weight:700;letter-spacing:-.8px;line-height:1}
+.kpi-sk{height:24px;background:var(--s3);border-radius:4px;animation:sk 1.5s infinite}
+@keyframes sk{0%,100%{opacity:.3}50%{opacity:.6}}
 
 /* ── GRIDS ── */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.g70{display:grid;grid-template-columns:1fr 300px;gap:12px}
-.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}.mb-20{margin-bottom:20px}
+.g70{display:grid;grid-template-columns:1fr 290px;gap:12px}
+.mb-10{margin-bottom:10px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}.mb-20{margin-bottom:20px}
 
 /* ── FEED ── */
 .feed{display:flex;flex-direction:column}
-.feed-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.025);font-size:12px;animation:slide .3s ease}
-@keyframes slide{from{opacity:0;transform:translateX(-5px)}to{opacity:1;transform:translateX(0)}}
+.feed-item{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.02);font-size:12px;animation:sl .3s ease}
+@keyframes sl{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
 .feed-item:last-child{border-bottom:none}
 .fdot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
-.fd-gold{background:var(--gold)}.fd-green{background:var(--ok)}.fd-blue{background:var(--blue)}
+.fd-amber{background:var(--amber)}.fd-green{background:var(--ok)}.fd-blue{background:var(--blue)}.fd-purple{background:var(--purple)}
 .feed-text{flex:1;color:var(--t2);line-height:1.4}.feed-text b{color:var(--txt);font-weight:500}
-.feed-time{font-size:10px;color:var(--t3);flex-shrink:0}
+.feed-time{font-size:10px;color:var(--t3);flex-shrink:0;font-variant-numeric:tabular-nums}
 
 /* ── STAT ROWS ── */
 .sr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:12.5px}
-.sr:last-child{border-bottom:none}.sr-label{color:var(--t2)}.sr-val{color:var(--txt)}
-.sr-val.gold{color:var(--gold)}
+.sr:last-child{border-bottom:none}.sr-l{color:var(--t2)}.sr-v{color:var(--txt)}
+.sr-v.amber{color:var(--amber)}
 
 /* ── TABLE ── */
 .tw{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
 thead th{padding:9px 14px;text-align:left;font-size:10.5px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--bd);white-space:nowrap}
-tbody tr{border-bottom:1px solid rgba(255,255,255,.025);transition:background .1s}
-tbody tr:hover{background:rgba(255,255,255,.018)}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.02);transition:background .1s}
+tbody tr:hover{background:rgba(255,255,255,.015)}
 tbody tr:last-child{border-bottom:none}
 tbody td{padding:10px 14px;font-size:12.5px;color:var(--t2);vertical-align:middle}
 tbody td b{color:var(--txt);font-weight:500;display:block}
 tbody td small{font-size:11px;color:var(--t3)}
 
 /* ── BADGES ── */
-.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:500;white-space:nowrap}
-.bg{background:var(--s3);color:var(--t2)}.b-gold{background:var(--gold-d);color:var(--gold)}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;font-size:10.5px;font-weight:500;white-space:nowrap}
+.bg{background:var(--s3);color:var(--t2)}.b-amber{background:var(--amber-d);color:var(--amber)}
 .b-green{background:rgba(34,197,94,.1);color:var(--ok)}.b-red{background:rgba(239,68,68,.1);color:var(--err)}
+.b-purple{background:rgba(168,85,247,.1);color:var(--purple)}.b-blue{background:rgba(96,165,250,.1);color:var(--blue)}
 
 /* ── FORMS ── */
 .field{display:flex;flex-direction:column;gap:5px}
 label{font-size:10.5px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.07em}
-input,select,textarea{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);color:var(--txt);font-family:'Inter',sans-serif;font-size:13px;padding:9px 12px;outline:none;transition:all .15s;width:100%}
-input:focus,select:focus,textarea:focus{border-color:rgba(232,155,32,.4);background:var(--s3);box-shadow:0 0 0 3px rgba(232,155,32,.05)}
+input,select,textarea{
+  background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);
+  color:var(--txt);font-family:'Inter',sans-serif;font-size:13px;
+  padding:9px 12px;outline:none;transition:all .15s;width:100%;
+}
+input:focus,select:focus,textarea:focus{border-color:rgba(240,144,48,.4);background:var(--s3);box-shadow:0 0 0 3px rgba(240,144,48,.05)}
 select option{background:var(--s2)}textarea{resize:vertical}
 
-/* ── FILTER CHIPS ── */
+/* ── CHIPS ── */
 .chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{padding:5px 12px;border-radius:6px;border:1px solid var(--bd);font-size:12px;color:var(--t2);cursor:pointer;transition:all .15s;user-select:none}
+.chip{padding:5px 12px;border-radius:7px;border:1px solid var(--bd);font-size:12px;color:var(--t2);cursor:pointer;transition:all .15s;user-select:none}
 .chip:hover{border-color:rgba(255,255,255,.12);color:var(--txt)}
-.chip.on{border-color:var(--gold);background:var(--gold-d);color:var(--gold)}
+.chip.on{border-color:var(--amber);background:var(--amber-d);color:var(--amber)}
 
-/* ── HERO RANDOM ── */
+/* ── MODE TOGGLE ── */
+.mode-toggle{display:flex;gap:0;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:3px;width:fit-content;margin-bottom:16px}
+.mode-btn{padding:7px 16px;border-radius:7px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--t2);transition:all .15s;user-select:none;display:flex;align-items:center;gap:7px;border:none;background:transparent;font-family:'Inter',sans-serif}
+.mode-btn svg{width:13px;height:13px}
+.mode-btn:hover{color:var(--txt)}
+.mode-btn.active{background:var(--s4);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.mode-btn.active.wpp{color:var(--ok)}
+.mode-btn.active.ig{color:var(--purple)}
+
+/* ── HERO ── */
 .hero{
   background:var(--s1);border:1px solid var(--bd);border-radius:16px;
-  padding:30px 32px;margin-bottom:18px;position:relative;overflow:hidden;
-  transition:all .25s;
+  padding:28px 30px;margin-bottom:16px;
+  position:relative;overflow:hidden;transition:all .25s;
 }
-.hero::before{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;background:radial-gradient(circle,rgba(232,155,32,.07) 0%,transparent 70%);pointer-events:none}
-.hero-label{font-size:10.5px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
-.hero-title{font-size:22px;font-weight:700;letter-spacing:-.5px;margin-bottom:6px;line-height:1.2}
-.hero-sub{font-size:13px;color:var(--t2);margin-bottom:20px;line-height:1.5}
-.hero-actions{display:flex;align-items:center;gap:10px}
-.hero-btn{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#000;border:none;border-radius:var(--r);padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
-.hero-btn:hover{background:var(--gold-l);transform:translateY(-1px);box-shadow:0 6px 22px rgba(232,155,32,.3)}
-.hero-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.hero::before{content:'';position:absolute;top:-50px;right:-50px;width:240px;height:240px;background:radial-gradient(circle,rgba(240,144,48,.06) 0%,transparent 70%);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--amber-d);border:1px solid rgba(240,144,48,.18);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;color:var(--amber);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.hero-title{font-size:21px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;line-height:1.2}
+.hero-sub{font-size:13px;color:var(--t2);margin-bottom:20px;line-height:1.55;max-width:480px}
+.hero-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hero-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,var(--amber),#e06818);color:#000;
+  border:none;border-radius:var(--r);padding:10px 20px;
+  font-size:13px;font-weight:700;cursor:pointer;
+  transition:all .2s;font-family:'Inter',sans-serif;
+  box-shadow:0 4px 16px rgba(240,144,48,.25);
+}
+.hero-btn:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 6px 22px rgba(240,144,48,.35)}
+.hero-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;filter:none;box-shadow:none}
 .hero-btn svg{width:14px;height:14px}
+.hero-ig{
+  background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);
+  box-shadow:0 4px 16px rgba(131,58,180,.25);
+}
+.hero-ig:hover{box-shadow:0 6px 22px rgba(131,58,180,.35)}
 
 /* ── CAMPAIGNS ── */
 .camp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .camp-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--rl);padding:20px;transition:all .2s;cursor:pointer}
-.camp-card:hover{border-color:var(--bd-h);transform:translateY(-2px)}
+.camp-card:hover{border-color:var(--bd-h);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
 .camp-new{border-style:dashed;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;min-height:150px}
-.camp-new:hover{border-color:rgba(232,155,32,.3)}
-.camp-new svg{width:24px;height:24px;color:var(--t3)}
-.camp-new-label{font-size:13px;color:var(--t3)}
+.camp-new svg{width:22px;height:22px;color:var(--t3)}.camp-new-lbl{font-size:13px;color:var(--t3)}
 .camp-name{font-size:14px;font-weight:600;margin-bottom:3px}
 .camp-meta{font-size:12px;color:var(--t2);margin-bottom:14px}
 .prog{height:3px;background:var(--s3);border-radius:2px;overflow:hidden;margin-bottom:12px}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),#f5a828);border-radius:2px;transition:width .5s}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--amber),#e06818);border-radius:2px;transition:width .5s}
 .camp-nums{display:flex;gap:18px}
-.cn{font-size:11px;color:var(--t3)}.cn b{display:block;font-size:15px;font-weight:600;color:var(--txt);margin-bottom:1px}
+.cn{font-size:11px;color:var(--t3)}.cn b{display:block;font-size:15px;font-weight:700;color:var(--txt);margin-bottom:1px}
 
 /* ── SETTINGS ── */
-.stabs{display:flex;gap:2px;margin-bottom:20px;background:var(--s2);padding:3px;border-radius:var(--r);border:1px solid var(--bd);width:fit-content}
-.stab{padding:6px 14px;border-radius:6px;font-size:12.5px;cursor:pointer;color:var(--t2);transition:all .15s;user-select:none}
+.stabs{display:flex;gap:1px;margin-bottom:20px;background:var(--s2);padding:3px;border-radius:var(--r);border:1px solid var(--bd);width:fit-content}
+.stab{padding:6px 14px;border-radius:7px;font-size:12.5px;cursor:pointer;color:var(--t2);transition:all .15s;user-select:none}
 .stab:hover{color:var(--txt)}.stab.active{background:var(--s4);color:var(--txt)}
 .int-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--bd)}
 .int-row:last-child{border-bottom:none}
-.int-icon{width:36px;height:36px;border-radius:9px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
-.int-info{flex:1}.int-name{font-size:13px;font-weight:500;margin-bottom:2px}.int-desc{font-size:11.5px;color:var(--t2)}
-.sdot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px}
-.sdot.on{background:var(--ok)}.sdot.off{background:var(--err)}.sdot.warn{background:var(--gold)}
+.int-icon{width:38px;height:38px;border-radius:10px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.int-info{flex:1}.int-name{font-size:13px;font-weight:500;margin-bottom:2px}.int-desc{font-size:12px;color:var(--t2)}
+.sdot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.sdot.on{background:var(--ok)}.sdot.off{background:var(--err)}.sdot.warn{background:var(--amber)}
 
 /* ── MODALS ── */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);z-index:100;display:none;align-items:center;justify-content:center}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);z-index:100;display:none;align-items:center;justify-content:center}
 .overlay.open{display:flex}
-.modal{background:var(--s1);border:1px solid rgba(255,255,255,.09);border-radius:16px;width:480px;max-width:95vw;max-height:88vh;overflow-y:auto;animation:mi .2s ease;box-shadow:0 28px 70px rgba(0,0,0,.7)}
+.modal{background:var(--s1);border:1px solid rgba(255,255,255,.08);border-radius:16px;width:490px;max-width:95vw;max-height:88vh;overflow-y:auto;animation:mi .2s ease;box-shadow:0 28px 80px rgba(0,0,0,.8)}
 @keyframes mi{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .modal-header{padding:20px 24px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
-.modal-title{font-size:15px;font-weight:600}
+.modal-title{font-size:15px;font-weight:700}
 .modal-body{padding:24px}.modal-footer{padding:16px 24px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end}
 .close-btn{width:26px;height:26px;border-radius:6px;border:1px solid var(--bd);background:transparent;cursor:pointer;color:var(--t2);display:flex;align-items:center;justify-content:center;transition:all .15s}
-.close-btn:hover{background:var(--s3);color:var(--txt)}
-.close-btn svg{width:12px;height:12px}
+.close-btn:hover{background:var(--s3);color:var(--txt)}.close-btn svg{width:12px;height:12px}
 
 /* ── TOASTS ── */
-.toast-wrap{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:1000}
-.toast{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:11px 15px;font-size:12.5px;min-width:230px;animation:ti .25s ease;box-shadow:0 8px 28px rgba(0,0,0,.5)}
+.toasts{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:1000}
+.toast{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:11px 15px;font-size:12.5px;min-width:240px;animation:ti .25s ease;box-shadow:0 8px 30px rgba(0,0,0,.6)}
 .toast.success{border-left:2px solid var(--ok)}.toast.error{border-left:2px solid var(--err)}
-.toast.warning{border-left:2px solid var(--gold)}.toast.info{border-left:2px solid var(--blue)}
+.toast.warning{border-left:2px solid var(--amber)}.toast.info{border-left:2px solid var(--blue)}
 @keyframes ti{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
 .toast-title{font-weight:500;color:var(--txt)}.toast-body{font-size:11.5px;color:var(--t2);margin-top:2px}
 
 /* ── MISC ── */
 .divider{height:1px;background:var(--bd);margin:14px 0}
 .flex{display:flex;align-items:center}.gap-8{gap:8px}.gap-12{gap:12px}.ml-auto{margin-left:auto}
-.t-gold{color:var(--gold)}.t-muted{color:var(--t2)}.t-sm{font-size:12px}.t-mono{font-variant-numeric:tabular-nums}
+.t-amber{color:var(--amber)}.t-muted{color:var(--t2)}.t-sm{font-size:12px}
 .spinner{width:13px;height:13px;border-radius:50%;border:2px solid rgba(0,0,0,.15);border-top-color:#000;animation:sp .6s linear infinite;flex-shrink:0}
-.spinner.light{border-color:rgba(232,155,32,.2);border-top-color:var(--gold)}
+.spinner.light{border-color:rgba(240,144,48,.2);border-top-color:var(--amber)}
 @keyframes sp{to{transform:rotate(360deg)}}
 .loading-row{display:flex;align-items:center;justify-content:center;gap:10px;padding:40px;font-size:12.5px;color:var(--t3)}
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center}
@@ -212,13 +308,14 @@ select option{background:var(--s2)}textarea{resize:vertical}
 .err-banner.show{display:flex}
 .pag{display:flex;align-items:center;gap:6px;padding:12px 20px;border-top:1px solid var(--bd)}
 .pag-btn{padding:4px 9px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--t2);cursor:pointer;font-size:11.5px;font-family:'Inter',sans-serif;transition:all .15s}
-.pag-btn:hover{border-color:var(--gold);color:var(--gold)}.pag-btn.active{background:var(--gold-d);border-color:var(--gold);color:var(--gold)}
+.pag-btn:hover{border-color:var(--amber);color:var(--amber)}.pag-btn.active{background:var(--amber-d);border-color:var(--amber);color:var(--amber)}
 .pag-btn:disabled{opacity:.3;cursor:not-allowed}
 .ib{width:26px;height:26px;border-radius:6px;border:1px solid var(--bd);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t3);transition:all .15s}
-.ib svg{width:11px;height:11px}.ib:hover{border-color:var(--bd-h);color:var(--gold);background:var(--gold-g)}
+.ib svg{width:11px;height:11px}
+.ib:hover{border-color:var(--bd-h);color:var(--amber);background:var(--amber-g)}
+.ib.wpp:hover{border-color:rgba(34,197,94,.3);color:var(--ok);background:rgba(34,197,94,.06)}
+.ib.ig:hover{border-color:rgba(168,85,247,.3);color:var(--purple);background:rgba(168,85,247,.06)}
 .td-act{display:flex;gap:5px}
-
-/* ── QR ── */
 .qr-box{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:20px;text-align:center}
 .qr-ph{width:150px;height:150px;background:var(--s3);border-radius:8px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--t3)}
 </style>
@@ -230,36 +327,65 @@ select option{background:var(--s2)}textarea{resize:vertical}
 <aside class="sidebar">
   <div class="logo">
     <div class="logo-mark">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <!-- Fox SVG logo -->
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Ears -->
+        <path d="M7 3L11.5 13H3L7 3Z" fill="rgba(0,0,0,0.55)"/>
+        <path d="M25 3L29 13H20.5L25 3Z" fill="rgba(0,0,0,0.55)"/>
+        <!-- Inner ear -->
+        <path d="M7 6L9.5 12H5L7 6Z" fill="rgba(255,255,255,0.25)"/>
+        <path d="M25 6L27.5 12H22L25 6Z" fill="rgba(255,255,255,0.25)"/>
+        <!-- Head -->
+        <ellipse cx="16" cy="20" rx="11" ry="9.5" fill="rgba(0,0,0,0.5)"/>
+        <!-- Snout -->
+        <ellipse cx="16" cy="23.5" rx="5" ry="3.5" fill="rgba(255,255,255,0.2)"/>
+        <!-- Eyes -->
+        <circle cx="11.5" cy="18" r="2" fill="white"/>
+        <circle cx="20.5" cy="18" r="2" fill="white"/>
+        <circle cx="12" cy="18.3" r="1.1" fill="#1a0800"/>
+        <circle cx="21" cy="18.3" r="1.1" fill="#1a0800"/>
+        <!-- Nose -->
+        <ellipse cx="16" cy="23" rx="1.4" ry="1" fill="rgba(0,0,0,0.6)"/>
+        <!-- Mouth hint -->
+        <path d="M14.5 24.2 Q16 25.5 17.5 24.2" stroke="rgba(0,0,0,0.4)" stroke-width=".8" fill="none" stroke-linecap="round"/>
+      </svg>
     </div>
-    <div class="logo-name">Lead<em>Hunter</em></div>
+    <div>
+      <div class="logo-name">Lead<em>Hunter</em></div>
+      <div class="logo-tagline">Prospecção Inteligente</div>
+    </div>
   </div>
 
   <nav class="nav">
+    <div class="nav-label">Principal</div>
     <div class="nav-item active" onclick="nav('dashboard',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Dashboard
     </div>
     <div class="nav-item" onclick="nav('leads',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      Leads
+      Buscar Leads
       <span class="nav-badge dim" id="badge-leads">—</span>
     </div>
+
+    <div class="nav-label">Envios</div>
     <div class="nav-item" onclick="nav('campaigns',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
       Campanhas
     </div>
+
+    <div class="nav-label">Sistema</div>
     <div class="nav-item" onclick="nav('settings',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       Configurações
     </div>
   </nav>
 
-  <div class="sidebar-bottom">
-    <div class="api-pill" onclick="nav('settings',document.querySelector('[onclick*=settings]'))">
-      <div class="api-dot" id="api-dot"></div>
-      <span id="api-status-text" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Não conectado</span>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;flex-shrink:0;opacity:.4"><path d="M9 18l6-6-6-6"/></svg>
+  <div class="sidebar-footer">
+    <div class="api-chip" onclick="nav('settings',document.querySelector('[onclick*=settings]'))">
+      <div class="dot" id="api-dot"></div>
+      <span id="api-status-text" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">Não conectado</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;opacity:.35"><path d="M9 18l6-6-6-6"/></svg>
     </div>
   </div>
 </aside>
@@ -270,10 +396,12 @@ select option{background:var(--s2)}textarea{resize:vertical}
     <div class="page-title" id="page-title">Dashboard <span>/ Visão Geral</span></div>
     <div class="topbar-right">
       <button class="btn btn-ghost btn-sm" onclick="nav('leads',document.querySelector('[onclick*=leads]'))">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Buscar Leads
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Buscar Leads
       </button>
       <button class="btn btn-primary btn-sm" onclick="showModal('newCampaign')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/></svg>Nova Campanha
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/></svg>
+        Nova Campanha
       </button>
     </div>
   </div>
@@ -288,10 +416,10 @@ select option{background:var(--s2)}textarea{resize:vertical}
       </div>
 
       <div class="kpi-grid" id="kpi-grid">
-        <div class="kpi"><div class="kpi-lbl">Total na base</div><div class="kpi-skeleton"></div></div>
-        <div class="kpi"><div class="kpi-lbl">Empresas ativas</div><div class="kpi-skeleton"></div></div>
-        <div class="kpi"><div class="kpi-lbl">Com e-mail</div><div class="kpi-skeleton"></div></div>
-        <div class="kpi"><div class="kpi-lbl">Com telefone</div><div class="kpi-skeleton"></div></div>
+        <div class="kpi"><div class="kpi-lbl">Total na base</div><div class="kpi-sk"></div></div>
+        <div class="kpi"><div class="kpi-lbl">Empresas ativas</div><div class="kpi-sk"></div></div>
+        <div class="kpi"><div class="kpi-lbl">Com e-mail</div><div class="kpi-sk"></div></div>
+        <div class="kpi"><div class="kpi-lbl">Com telefone</div><div class="kpi-sk"></div></div>
       </div>
 
       <div class="g70">
@@ -299,15 +427,14 @@ select option{background:var(--s2)}textarea{resize:vertical}
           <div class="card-header">
             <div class="card-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              Atividade
+              Atividade em Tempo Real
             </div>
-            <span class="badge b-green" style="font-size:10px">AO VIVO</span>
+            <span class="badge b-green" style="font-size:10px;animation:pulse-dot 2s infinite">● AO VIVO</span>
           </div>
-          <div class="card-body" style="padding:16px 20px">
+          <div class="card-body" style="padding:14px 20px">
             <div class="feed" id="feed-list"></div>
           </div>
         </div>
-
         <div class="card">
           <div class="card-header">
             <div class="card-title">
@@ -332,9 +459,7 @@ select option{background:var(--s2)}textarea{resize:vertical}
         <div class="tw">
           <table>
             <thead><tr><th>DDD</th><th>UF</th><th>Total Leads</th><th>Ação</th></tr></thead>
-            <tbody id="ddd-tbody">
-              <tr><td colspan="4"><div class="loading-row"><div class="spinner light"></div></div></td></tr>
-            </tbody>
+            <tbody id="ddd-tbody"><tr><td colspan="4"><div class="loading-row"><div class="spinner light"></div></div></td></tr></tbody>
           </table>
         </div>
       </div>
@@ -347,130 +472,101 @@ select option{background:var(--s2)}textarea{resize:vertical}
         <span>Configure a URL da API em Configurações.</span>
       </div>
 
-      <!-- Hero público aleatório -->
-      <div class="hero">
-        <div class="hero-label">Descoberta Rápida</div>
-        <div class="hero-title">Público Aleatório</div>
-        <div class="hero-sub">50 empresas com telefone selecionadas aleatoriamente da base.<br>Novo conjunto a cada clique.</div>
-        <div class="hero-actions">
-          <button class="hero-btn" id="btn-aleatorio" onclick="buscarAleatorio()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
-            Gerar Leads Aleatórios
-          </button>
-          <span class="t-sm t-muted" id="leads-count"></span>
-        </div>
+      <!-- Mode toggle -->
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="mode-cnpj" onclick="setMode('cnpj')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          Base CNPJ
+        </button>
+        <button class="mode-btn ig" id="mode-ig" onclick="setMode('instagram')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+          Instagram
+        </button>
       </div>
 
-      <!-- Filtros opcionais -->
-      <div class="card mb-16">
-        <div class="card-header">
-          <div class="card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-            Filtrar por região
+      <!-- CNPJ mode -->
+      <div id="view-cnpj">
+        <div class="hero">
+          <div class="hero-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:10px;height:10px"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+            Descoberta Rápida
           </div>
-          <button class="btn btn-primary btn-sm" onclick="runSearch()" id="search-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            Buscar
-          </button>
+          <div class="hero-title">Público Aleatório</div>
+          <div class="hero-sub">50 empresas com telefone selecionadas aleatoriamente da base da Receita Federal. Novo conjunto a cada clique.</div>
+          <div class="hero-actions">
+            <button class="hero-btn" id="btn-aleatorio" onclick="buscarAleatorio()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+              Gerar Leads Aleatórios
+            </button>
+            <span class="t-sm t-muted" id="leads-count"></span>
+          </div>
         </div>
-        <div class="card-body">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
-            <div class="field">
-              <label>DDD / Região</label>
-              <select id="f-ddd">
-                <option value="">Todos os DDDs</option>
-                <option value="11">11 — São Paulo Capital</option>
-                <option value="12">12 — Vale do Paraíba</option>
-                <option value="13">13 — Santos / Baixada Santista</option>
-                <option value="14">14 — Bauru / Marília</option>
-                <option value="15">15 — Sorocaba</option>
-                <option value="16">16 — Ribeirão Preto</option>
-                <option value="17">17 — São José do Rio Preto</option>
-                <option value="18">18 — Araçatuba / Pres. Prudente</option>
-                <option value="19">19 — Campinas</option>
-                <option value="21">21 — Rio de Janeiro</option>
-                <option value="22">22 — Campos dos Goytacazes</option>
-                <option value="24">24 — Niterói / Nova Iguaçu</option>
-                <option value="27">27 — Vitória</option>
-                <option value="28">28 — Cachoeiro de Itapemirim</option>
-                <option value="31">31 — Belo Horizonte</option>
-                <option value="32">32 — Juiz de Fora</option>
-                <option value="33">33 — Governador Valadares</option>
-                <option value="34">34 — Uberlândia</option>
-                <option value="35">35 — Poços de Caldas</option>
-                <option value="37">37 — Divinópolis</option>
-                <option value="38">38 — Montes Claros</option>
-                <option value="41">41 — Curitiba</option>
-                <option value="42">42 — Ponta Grossa</option>
-                <option value="43">43 — Londrina</option>
-                <option value="44">44 — Maringá</option>
-                <option value="45">45 — Cascavel</option>
-                <option value="46">46 — Francisco Beltrão</option>
-                <option value="47">47 — Joinville / Blumenau</option>
-                <option value="48">48 — Florianópolis</option>
-                <option value="49">49 — Chapecó</option>
-                <option value="51">51 — Porto Alegre</option>
-                <option value="53">53 — Pelotas</option>
-                <option value="54">54 — Caxias do Sul</option>
-                <option value="55">55 — Santa Maria</option>
-                <option value="61">61 — Brasília / DF</option>
-                <option value="62">62 — Goiânia</option>
-                <option value="63">63 — Palmas</option>
-                <option value="64">64 — Rio Verde</option>
-                <option value="65">65 — Cuiabá</option>
-                <option value="66">66 — Rondonópolis</option>
-                <option value="67">67 — Campo Grande</option>
-                <option value="68">68 — Rio Branco</option>
-                <option value="69">69 — Porto Velho</option>
-                <option value="71">71 — Salvador</option>
-                <option value="73">73 — Ilhéus</option>
-                <option value="74">74 — Juazeiro</option>
-                <option value="75">75 — Feira de Santana</option>
-                <option value="77">77 — Vitória da Conquista</option>
-                <option value="79">79 — Aracaju</option>
-                <option value="81">81 — Recife</option>
-                <option value="82">82 — Maceió</option>
-                <option value="83">83 — João Pessoa</option>
-                <option value="84">84 — Natal</option>
-                <option value="85">85 — Fortaleza</option>
-                <option value="86">86 — Teresina</option>
-                <option value="87">87 — Petrolina</option>
-                <option value="88">88 — Juazeiro do Norte</option>
-                <option value="89">89 — Picos</option>
-                <option value="91">91 — Belém</option>
-                <option value="92">92 — Manaus</option>
-                <option value="93">93 — Santarém</option>
-                <option value="94">94 — Marabá</option>
-                <option value="95">95 — Boa Vista</option>
-                <option value="96">96 — Macapá</option>
-                <option value="97">97 — Coari</option>
-                <option value="98">98 — São Luís</option>
-                <option value="99">99 — Imperatriz</option>
-              </select>
+
+        <div class="card mb-16">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              Filtrar por região
             </div>
-            <div class="field">
-              <label>Porte</label>
-              <select id="f-porte">
-                <option value="">Todos os portes</option>
-                <option value="MEI">MEI — Microempreendedor</option>
-                <option value="ME">ME — Microempresa</option>
-                <option value="EPP">EPP — Pequeno Porte</option>
-              </select>
-            </div>
+            <button class="btn btn-primary btn-sm" id="search-btn" onclick="runSearch()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              Buscar
+            </button>
           </div>
-          <div>
-            <label style="display:block;margin-bottom:8px;font-size:10.5px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.07em">Filtros extras</label>
-            <div class="chips">
-              <div class="chip on" id="chk-tel" onclick="this.classList.toggle('on')">Com Telefone</div>
-              <div class="chip" id="chk-email" onclick="this.classList.toggle('on')">Com E-mail</div>
-              <div class="chip" id="chk-simples" onclick="this.classList.toggle('on')">Simples Nacional</div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+              <div class="field">
+                <label>DDD / Região</label>
+                <select id="f-ddd">
+                  <option value="">Todos os DDDs</option>
+                  <option value="11">11 — São Paulo Capital</option><option value="12">12 — Vale do Paraíba</option><option value="13">13 — Santos / Baixada Santista</option><option value="14">14 — Bauru / Marília</option><option value="15">15 — Sorocaba</option><option value="16">16 — Ribeirão Preto</option><option value="17">17 — São José do Rio Preto</option><option value="18">18 — Araçatuba / Pres. Prudente</option><option value="19">19 — Campinas</option><option value="21">21 — Rio de Janeiro</option><option value="22">22 — Campos dos Goytacazes</option><option value="24">24 — Niterói / Nova Iguaçu</option><option value="27">27 — Vitória</option><option value="28">28 — Cachoeiro de Itapemirim</option><option value="31">31 — Belo Horizonte</option><option value="32">32 — Juiz de Fora</option><option value="33">33 — Governador Valadares</option><option value="34">34 — Uberlândia</option><option value="35">35 — Poços de Caldas</option><option value="37">37 — Divinópolis</option><option value="38">38 — Montes Claros</option><option value="41">41 — Curitiba</option><option value="42">42 — Ponta Grossa</option><option value="43">43 — Londrina</option><option value="44">44 — Maringá</option><option value="45">45 — Cascavel</option><option value="47">47 — Joinville / Blumenau</option><option value="48">48 — Florianópolis</option><option value="51">51 — Porto Alegre</option><option value="53">53 — Pelotas</option><option value="54">54 — Caxias do Sul</option><option value="61">61 — Brasília / DF</option><option value="62">62 — Goiânia</option><option value="65">65 — Cuiabá</option><option value="67">67 — Campo Grande</option><option value="71">71 — Salvador</option><option value="79">79 — Aracaju</option><option value="81">81 — Recife</option><option value="82">82 — Maceió</option><option value="83">83 — João Pessoa</option><option value="84">84 — Natal</option><option value="85">85 — Fortaleza</option><option value="86">86 — Teresina</option><option value="91">91 — Belém</option><option value="92">92 — Manaus</option><option value="95">95 — Boa Vista</option><option value="98">98 — São Luís</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Porte</label>
+                <select id="f-porte">
+                  <option value="">Todos os portes</option>
+                  <option value="MEI">MEI — Microempreendedor</option>
+                  <option value="ME">ME — Microempresa</option>
+                  <option value="EPP">EPP — Pequeno Porte</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label style="display:block;margin-bottom:8px">Filtros extras</label>
+              <div class="chips">
+                <div class="chip on" id="chk-tel" onclick="this.classList.toggle('on')">Com Telefone</div>
+                <div class="chip" id="chk-email" onclick="this.classList.toggle('on')">Com E-mail</div>
+                <div class="chip" id="chk-simples" onclick="this.classList.toggle('on')">Simples Nacional</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Results -->
-      <div class="card">
+      <!-- Instagram mode -->
+      <div id="view-instagram" style="display:none">
+        <div class="hero" style="background:linear-gradient(135deg,rgba(131,58,180,.08),rgba(253,29,29,.05),var(--s1));border-color:rgba(168,85,247,.15)">
+          <div class="hero-badge" style="background:rgba(168,85,247,.1);border-color:rgba(168,85,247,.2);color:var(--purple)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:10px;height:10px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
+            Redes Sociais
+          </div>
+          <div class="hero-title">Leads com Instagram</div>
+          <div class="hero-sub">Encontre negócios com presença no Instagram. Acesse o perfil direto da tabela e personalize sua abordagem.</div>
+          <div class="hero-actions">
+            <div class="field" style="flex:1;max-width:300px;margin-bottom:0">
+              <input id="ig-busca" placeholder="Buscar por nome do negócio..." style="height:38px" onkeydown="if(event.key==='Enter')buscarInstagram()">
+            </div>
+            <button class="hero-btn hero-ig" id="btn-ig" onclick="buscarInstagram()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+              Buscar no Instagram
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results (shared) -->
+      <div class="card" id="results-card">
         <div class="card-header">
           <div class="card-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
@@ -480,11 +576,11 @@ select option{background:var(--s2)}textarea{resize:vertical}
           <div class="flex gap-8">
             <button class="btn btn-ghost btn-sm" id="btn-export" onclick="exportCSV()" disabled>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Exportar CSV
+              CSV
             </button>
             <button class="btn btn-ghost btn-sm" id="btn-add-camp" onclick="addSelectedToCampaign()" disabled>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/></svg>
-              <span id="add-camp-label">Adicionar à Campanha</span>
+              <span id="add-camp-label">+ Campanha</span>
             </button>
           </div>
         </div>
@@ -494,14 +590,14 @@ select option{background:var(--s2)}textarea{resize:vertical}
               <tr>
                 <th style="width:32px"><input type="checkbox" id="sel-all" style="width:13px;height:13px" onchange="toggleAll(this.checked)"></th>
                 <th>Empresa</th><th>Segmento</th><th>Cidade / DDD</th>
-                <th>Telefone</th><th>E-mail</th><th>Porte</th><th>Score</th><th></th>
+                <th>Telefone</th><th>E-mail</th><th>Porte</th><th>Score</th><th>Ações</th>
               </tr>
             </thead>
             <tbody id="results-tbody">
               <tr><td colspan="9"><div class="empty">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                 <div class="empty-title">Nenhuma busca realizada</div>
-                <div class="empty-sub">Clique em "Gerar Leads Aleatórios" ou aplique filtros acima</div>
+                <div class="empty-sub">Clique em "Gerar Leads Aleatórios" ou aplique filtros</div>
               </div></td></tr>
             </tbody>
           </table>
@@ -514,8 +610,8 @@ select option{background:var(--s2)}textarea{resize:vertical}
     <div class="page" id="page-campaigns">
       <div class="flex gap-8 mb-20">
         <div>
-          <div style="font-size:18px;font-weight:700;letter-spacing:-.4px;margin-bottom:3px">Campanhas</div>
-          <div style="font-size:13px;color:var(--t2)">Gerencie seus disparos de WhatsApp e Email</div>
+          <div style="font-size:18px;font-weight:800;letter-spacing:-.5px;margin-bottom:3px">Campanhas</div>
+          <div style="font-size:13px;color:var(--t2)">Gerencie seus disparos automáticos</div>
         </div>
         <div class="ml-auto">
           <button class="btn btn-primary btn-sm" onclick="showModal('newCampaign')">
@@ -532,17 +628,15 @@ select option{background:var(--s2)}textarea{resize:vertical}
     <!-- ══════ SETTINGS ══════ -->
     <div class="page" id="page-settings">
       <div style="margin-bottom:24px">
-        <div style="font-size:18px;font-weight:700;letter-spacing:-.4px;margin-bottom:3px">Configurações</div>
-        <div style="font-size:13px;color:var(--t2)">Configure a conexão com sua API e integrações</div>
+        <div style="font-size:18px;font-weight:800;letter-spacing:-.5px;margin-bottom:3px">Configurações</div>
+        <div style="font-size:13px;color:var(--t2)">Conecte sua API e gerencie integrações</div>
       </div>
-
       <div class="stabs">
         <div class="stab active" onclick="setStab(this,'s-api')">API & Conexão</div>
         <div class="stab" onclick="setStab(this,'s-wpp')">WhatsApp</div>
         <div class="stab" onclick="setStab(this,'s-templates')">Templates</div>
       </div>
 
-      <!-- API -->
       <div id="s-api">
         <div class="card">
           <div class="card-body">
@@ -561,7 +655,7 @@ select option{background:var(--s2)}textarea{resize:vertical}
               </div>
             </div>
             <div class="field">
-              <label>Status da Conexão</label>
+              <label>Testar conexão</label>
               <div class="flex gap-8">
                 <input id="health-result" readonly placeholder="Clique em Testar...">
                 <button class="btn btn-ghost btn-sm" onclick="checkHealth()">Testar</button>
@@ -571,7 +665,6 @@ select option{background:var(--s2)}textarea{resize:vertical}
         </div>
       </div>
 
-      <!-- WhatsApp -->
       <div id="s-wpp" style="display:none">
         <div class="card">
           <div class="card-body">
@@ -587,7 +680,7 @@ select option{background:var(--s2)}textarea{resize:vertical}
               <div class="int-icon">🏦</div>
               <div class="int-info">
                 <div class="int-name">Base CNPJ Receita Federal</div>
-                <div class="int-desc" id="db-status-text"><span class="sdot warn"></span>Verificando banco de dados...</div>
+                <div class="int-desc" id="db-status-text"><span class="sdot warn"></span>Verificando...</div>
               </div>
               <button class="btn btn-ghost btn-sm" onclick="checkHealth()">Verificar</button>
             </div>
@@ -595,22 +688,15 @@ select option{background:var(--s2)}textarea{resize:vertical}
         </div>
       </div>
 
-      <!-- Templates -->
       <div id="s-templates" style="display:none">
         <div class="card">
           <div class="card-body">
-            <p style="font-size:12.5px;color:var(--t2);margin-bottom:16px">Variáveis disponíveis: <code style="background:var(--s3);padding:2px 6px;border-radius:4px;font-size:11.5px">{{nome}} {{socio}} {{cidade}} {{segmento}} {{cnpj}}</code></p>
-            <div class="field mb-12"><label>Nome do template</label><input id="tpl-nome" placeholder="Ex: Abordagem — Restaurantes SP"></div>
-            <div class="field mb-12">
-              <label>Canal</label>
-              <select id="tpl-canal"><option>WhatsApp</option><option>Email</option></select>
-            </div>
-            <div class="field mb-16">
-              <label>Mensagem</label>
-              <textarea id="tpl-msg" style="height:110px" placeholder="Olá, {{socio}}! Vi que a {{nome}} fica em {{cidade}}..."></textarea>
-            </div>
+            <p style="font-size:12.5px;color:var(--t2);margin-bottom:16px">Variáveis: <code style="background:var(--s3);padding:2px 6px;border-radius:4px;font-size:11.5px">{{nome}} {{socio}} {{cidade}} {{segmento}} {{cnpj}}</code></p>
+            <div class="field mb-12"><label>Nome do template</label><input id="tpl-nome" placeholder="Ex: Abordagem Fria — Restaurantes SP"></div>
+            <div class="field mb-12"><label>Canal</label><select id="tpl-canal"><option>WhatsApp</option><option>Email</option></select></div>
+            <div class="field mb-16"><label>Mensagem</label><textarea id="tpl-msg" style="height:110px" placeholder="Olá, {{socio}}! Vi que a {{nome}} fica em {{cidade}}..."></textarea></div>
             <div class="flex gap-8">
-              <button class="btn btn-primary btn-sm" onclick="salvarTemplate()">Salvar Template</button>
+              <button class="btn btn-primary btn-sm" onclick="salvarTemplate()">Salvar</button>
               <span class="t-sm t-muted" id="tpl-count">0 templates</span>
             </div>
             <div class="divider"></div>
@@ -620,9 +706,9 @@ select option{background:var(--s2)}textarea{resize:vertical}
       </div>
     </div>
 
-  </div><!-- /content -->
-</div><!-- /main -->
-</div><!-- /app -->
+  </div>
+</div>
+</div>
 
 <!-- ══ MODALS ══ -->
 <div class="overlay" id="overlay-newCampaign" onclick="if(event.target===this)closeModal('newCampaign')">
@@ -632,18 +718,18 @@ select option{background:var(--s2)}textarea{resize:vertical}
       <button class="close-btn" onclick="closeModal('newCampaign')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
-      <div class="field mb-12"><label>Nome</label><input id="cn-nome" placeholder="Ex: Restaurantes SP — Maio 2026"></div>
+      <div class="field mb-12"><label>Nome da campanha</label><input id="cn-nome" placeholder="Ex: Restaurantes SP — Maio 2026"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
         <div class="field"><label>Canal</label><select id="cn-canal"><option value="whatsapp">WhatsApp</option><option value="email">Email</option></select></div>
         <div class="field"><label>Limite diário</label><select id="cn-limite"><option value="50">50/dia — conservador</option><option value="100" selected>100/dia — padrão</option><option value="200">200/dia — agressivo</option></select></div>
       </div>
       <div class="field mb-16">
-        <label>Mensagem template</label>
-        <textarea id="cn-msg" style="height:100px" placeholder="Olá, {{socio}}! Vi que a {{nome}} fica em {{cidade}} e gostaria de apresentar..."></textarea>
+        <label>Template da mensagem</label>
+        <textarea id="cn-msg" style="height:100px" placeholder="Olá, {{socio}}! Vi que a {{nome}} fica em {{cidade}}..."></textarea>
       </div>
-      <div style="background:var(--gold-g);border:1px solid rgba(232,155,32,.15);border-radius:var(--r);padding:12px;font-size:12px;color:var(--t2)">
-        <span style="color:var(--gold);font-weight:500">Leads selecionados:</span> <span id="cn-count">0</span>
-        <span style="color:var(--t3)"> — selecione leads na aba Leads antes de criar</span>
+      <div style="background:var(--amber-g);border:1px solid rgba(240,144,48,.15);border-radius:var(--r);padding:12px;font-size:12px;color:var(--t2)">
+        <span style="color:var(--amber);font-weight:600">Leads selecionados:</span> <span id="cn-count">0</span>
+        <span style="color:var(--t3)"> — selecione leads na aba Leads</span>
       </div>
     </div>
     <div class="modal-footer">
@@ -677,20 +763,21 @@ select option{background:var(--s2)}textarea{resize:vertical}
       <p style="font-size:12.5px;color:var(--t2);margin-bottom:16px">Configure EVOLUTION_URL e EVOLUTION_KEY no Railway. Depois clique em Gerar QR.</p>
       <div class="qr-box">
         <div class="qr-ph" id="qr-display">QR Code aparece aqui</div>
-        <p style="font-size:11.5px;color:var(--t3)">WhatsApp → Dispositivos Vinculados → Vincular Dispositivo</p>
+        <p style="font-size:11.5px;color:var(--t3);margin-top:8px">WhatsApp → Dispositivos Vinculados → Vincular Dispositivo</p>
       </div>
-      <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="gerarQR()">Gerar QR Code</button>
+      <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center" onclick="gerarQR()">Gerar QR Code</button>
     </div>
   </div>
 </div>
 
-<div class="toast-wrap" id="toast-wrap"></div>
+<div class="toasts" id="toast-wrap"></div>
 
 <script>
 // ══ CONFIG ══
 const _RAILWAY = 'https://leadhunter-production-bb4c.up.railway.app';
 let API_BASE = localStorage.getItem('lh_api_url') || _RAILWAY;
 let API_KEY  = localStorage.getItem('lh_api_key')  || '';
+let searchMode = 'cnpj';
 
 const state = {
   results: [], total: 0, page: 1, pages: 1,
@@ -703,7 +790,7 @@ async function api(path, opts = {}) {
   if (!API_BASE) throw new Error('API não configurada');
   const headers = { 'Content-Type': 'application/json' };
   if (API_KEY) headers['x-api-key'] = API_KEY;
-  const res = await fetch(API_BASE + path, { headers: { ...headers, ...opts.headers }, ...opts });
+  const res = await fetch(API_BASE + path, { headers: { ...headers, ...(opts.headers||{}) }, ...opts });
   if (!res.ok) {
     const e = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(e.error || res.statusText);
@@ -718,16 +805,16 @@ async function checkHealth() {
   const hr  = document.getElementById('health-result');
   try {
     const d = await api('/health');
-    dot.className = 'api-dot on';
-    txt.textContent = (d.leads_ativos || 0).toLocaleString('pt-BR') + ' leads';
-    if (hr) hr.value = '✓ Online · ' + (d.leads_ativos || 0).toLocaleString('pt-BR') + ' leads ativos';
-    const dbEl = document.getElementById('db-status-text');
-    if (dbEl) dbEl.innerHTML = `<span class="sdot on"></span>Conectado · ${(d.leads_ativos||0).toLocaleString('pt-BR')} registros`;
+    dot.className = 'dot on pulse';
+    txt.textContent = (d.leads_ativos||0).toLocaleString('pt-BR') + ' leads';
+    if (hr) hr.value = '✓ Online · ' + (d.leads_ativos||0).toLocaleString('pt-BR') + ' leads ativos';
+    const db = document.getElementById('db-status-text');
+    if (db) db.innerHTML = `<span class="sdot on"></span>Conectado · ${(d.leads_ativos||0).toLocaleString('pt-BR')} registros`;
     showErr('dash-err', false);
     showErr('leads-err', false);
     return true;
   } catch (e) {
-    dot.className = 'api-dot off';
+    dot.className = 'dot off';
     txt.textContent = 'Offline';
     if (hr) hr.value = '✗ ' + e.message;
     showErr('dash-err', true, 'API offline: ' + e.message);
@@ -745,10 +832,10 @@ function showErr(id, show, msg) {
 
 // ══ NAV ══
 const titles = {
-  dashboard: 'Dashboard <span>/ Visão Geral</span>',
-  leads:     'Leads <span>/ Base CNPJ</span>',
-  campaigns: 'Campanhas <span>/ Disparos</span>',
-  settings:  'Configurações <span>/ Sistema</span>',
+  dashboard:'Dashboard <span>/ Visão Geral</span>',
+  leads:'Buscar Leads <span>/ Base CNPJ · Instagram</span>',
+  campaigns:'Campanhas <span>/ Disparos</span>',
+  settings:'Configurações <span>/ Sistema</span>',
 };
 function nav(id, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -758,7 +845,7 @@ function nav(id, el) {
   document.getElementById('page-title').innerHTML = titles[id] || id;
   if (id === 'dashboard') loadDashboard();
   if (id === 'campaigns') loadCampaigns();
-  if (id === 'settings') { checkHealth(); loadSettings(); }
+  if (id === 'settings')  { checkHealth(); loadSettings(); }
 }
 
 // ══ MODAL ══
@@ -783,9 +870,9 @@ async function loadDashboard() {
     renderKPIs(d);
     renderStats(d);
     renderDDDs();
-    const badge = document.getElementById('badge-leads');
-    if (badge) badge.textContent = (d.empresas_ativas || 0).toLocaleString('pt-BR');
-    addFeed('green', `Base carregada: <b>${(d.empresas_ativas||0).toLocaleString('pt-BR')}</b> empresas ativas`);
+    document.getElementById('badge-leads').textContent = (d.empresas_ativas||0).toLocaleString('pt-BR');
+    document.getElementById('badge-leads').className = 'nav-badge';
+    addFeed('green', `Base: <b>${(d.empresas_ativas||0).toLocaleString('pt-BR')}</b> empresas ativas disponíveis`);
     showErr('dash-err', false);
   } catch (e) {
     showErr('dash-err', true, 'Erro: ' + e.message);
@@ -793,23 +880,21 @@ async function loadDashboard() {
 }
 
 function renderKPIs(d) {
-  const fmt = n => (n || 0).toLocaleString('pt-BR');
+  const f = n => (n||0).toLocaleString('pt-BR');
   document.getElementById('kpi-grid').innerHTML = `
-    <div class="kpi"><div class="kpi-lbl">Total na base</div><div class="kpi-val">${fmt(d.total_cnpjs)}</div></div>
-    <div class="kpi"><div class="kpi-lbl">Empresas ativas</div><div class="kpi-val">${fmt(d.empresas_ativas)}</div></div>
-    <div class="kpi"><div class="kpi-lbl">Com e-mail</div><div class="kpi-val">${fmt(d.com_email)}</div></div>
-    <div class="kpi"><div class="kpi-lbl">Com telefone</div><div class="kpi-val">${fmt(d.com_telefone)}</div></div>
+    <div class="kpi"><div class="kpi-lbl">Total na base</div><div class="kpi-val">${f(d.total_cnpjs)}</div></div>
+    <div class="kpi"><div class="kpi-lbl">Empresas ativas</div><div class="kpi-val">${f(d.empresas_ativas)}</div></div>
+    <div class="kpi"><div class="kpi-lbl">Com e-mail</div><div class="kpi-val">${f(d.com_email)}</div></div>
+    <div class="kpi"><div class="kpi-lbl">Com telefone</div><div class="kpi-val">${f(d.com_telefone)}</div></div>
   `;
 }
 
 function renderStats(d) {
-  const fmt = n => (n||0).toLocaleString('pt-BR');
-  const portes = (d.por_porte||[]).map(p =>
-    `<div class="sr"><span class="sr-label">${p.porte||'N/D'}</span><span class="sr-val">${fmt(p.total)}</span></div>`
-  ).join('');
+  const f = n => (n||0).toLocaleString('pt-BR');
+  const portes = (d.por_porte||[]).map(p => `<div class="sr"><span class="sr-l">${p.porte||'N/D'}</span><span class="sr-v">${f(p.total)}</span></div>`).join('');
   document.getElementById('stats-panel').innerHTML = `
-    <div class="sr"><span class="sr-label">Total registros</span><span class="sr-val gold">${fmt(d.total_cnpjs)}</span></div>
-    <div class="sr"><span class="sr-label">Custo da base</span><span class="sr-val gold">R$ 0,00</span></div>
+    <div class="sr"><span class="sr-l">Total registros</span><span class="sr-v amber">${f(d.total_cnpjs)}</span></div>
+    <div class="sr"><span class="sr-l">Custo da base</span><span class="sr-v amber">R$ 0,00</span></div>
     <div style="height:1px;background:var(--bd);margin:10px 0"></div>
     ${portes}
   `;
@@ -817,18 +902,12 @@ function renderStats(d) {
 
 function renderDDDs() {
   const tbody = document.getElementById('ddd-tbody');
-  const ddds = [{ddd:'11',uf:'SP'},{ddd:'21',uf:'RJ'},{ddd:'31',uf:'MG'},{ddd:'41',uf:'PR'},{ddd:'51',uf:'RS'},{ddd:'61',uf:'DF'},{ddd:'71',uf:'BA'},{ddd:'81',uf:'PE'},{ddd:'85',uf:'CE'},{ddd:'91',uf:'PA'}];
-  tbody.innerHTML = ddds.map(d => `
-    <tr>
-      <td><b>${d.ddd}</b></td>
-      <td><span class="badge bg">${d.uf}</span></td>
-      <td id="ddd-count-${d.ddd}" class="t-muted t-mono">—</td>
-      <td><button class="btn btn-ghost btn-sm" onclick="quickDDD('${d.ddd}')">Buscar →</button></td>
-    </tr>`).join('');
-  ddds.forEach(async item => {
+  const ddds = [{d:'11',u:'SP'},{d:'21',u:'RJ'},{d:'31',u:'MG'},{d:'41',u:'PR'},{d:'51',u:'RS'},{d:'61',u:'DF'},{d:'71',u:'BA'},{d:'81',u:'PE'},{d:'85',u:'CE'},{d:'91',u:'PA'}];
+  tbody.innerHTML = ddds.map(x => `<tr><td><b>${x.d}</b></td><td><span class="badge bg">${x.u}</span></td><td id="dc-${x.d}" style="color:var(--t3)">—</td><td><button class="btn btn-ghost btn-sm" onclick="quickDDD('${x.d}')">Buscar →</button></td></tr>`).join('');
+  ddds.forEach(async x => {
     try {
-      const s = await api(`/stats/ddd/${item.ddd}`);
-      const el = document.getElementById('ddd-count-' + item.ddd);
+      const s = await api(`/stats/ddd/${x.d}`);
+      const el = document.getElementById('dc-' + x.d);
       if (el) el.innerHTML = `<span style="color:var(--txt)">${(s.total_leads||0).toLocaleString('pt-BR')}</span>`;
     } catch {}
   });
@@ -836,16 +915,17 @@ function renderDDDs() {
 
 function quickDDD(ddd) {
   document.getElementById('f-ddd').value = ddd;
+  setMode('cnpj');
   nav('leads', document.querySelector('[onclick*=leads]'));
   setTimeout(runSearch, 200);
 }
 
 // ══ FEED ══
-const feedSim = [
-  ['gold','Busca executada em <b>DDD 11 — São Paulo</b>'],
+const feedMsgs = [
+  ['amber','Busca executada em <b>DDD 11 — São Paulo</b>'],
   ['green','Lead enriquecido via <b>CNPJ.ws</b>'],
   ['blue','Campanha <b>processando</b> fila de envios'],
-  ['gold','Novo lead adicionado ao <b>CRM</b>'],
+  ['purple','Lead localizado no <b>Instagram</b>'],
   ['green','<b>WhatsApp</b> enviado com sucesso'],
 ];
 let fi = 0;
@@ -858,9 +938,35 @@ function addFeed(color, text) {
   list.insertBefore(d, list.firstChild);
   while (list.children.length > 10) list.removeChild(list.lastChild);
 }
-setInterval(() => { const m = feedSim[fi++ % feedSim.length]; addFeed(m[0], m[1]); }, 7000);
+setInterval(() => {
+  if (document.getElementById('page-dashboard').classList.contains('active')) {
+    const m = feedMsgs[fi++ % feedMsgs.length];
+    addFeed(m[0], m[1]);
+  }
+}, 7000);
 
-// ══ LEADS — ALEATÓRIO ══
+// ══ MODE TOGGLE ══
+function setMode(mode) {
+  searchMode = mode;
+  document.getElementById('view-cnpj').style.display     = mode === 'cnpj'      ? '' : 'none';
+  document.getElementById('view-instagram').style.display = mode === 'instagram' ? '' : 'none';
+  document.getElementById('mode-cnpj').classList.toggle('active', mode === 'cnpj');
+  document.getElementById('mode-ig').classList.toggle('active',   mode === 'instagram');
+  // Update table headers based on mode
+  if (mode === 'instagram') updateHeadersIG();
+  else updateHeadersCNPJ();
+}
+
+function updateHeadersIG() {
+  document.querySelector('#results-tbody').closest('table').querySelector('thead tr').innerHTML =
+    '<th style="width:32px"><input type="checkbox" id="sel-all2" style="width:13px;height:13px" onchange="toggleAll(this.checked)"></th><th>Negócio</th><th>Segmento</th><th>Instagram</th><th>Telefone / WhatsApp</th><th>Status</th><th></th>';
+}
+function updateHeadersCNPJ() {
+  document.querySelector('#results-tbody').closest('table').querySelector('thead tr').innerHTML =
+    '<th style="width:32px"><input type="checkbox" id="sel-all" style="width:13px;height:13px" onchange="toggleAll(this.checked)"></th><th>Empresa</th><th>Segmento</th><th>Cidade / DDD</th><th>Telefone</th><th>E-mail</th><th>Porte</th><th>Score</th><th>Ações</th>';
+}
+
+// ══ LEADS CNPJ ══
 async function buscarAleatorio() {
   const btn = document.getElementById('btn-aleatorio');
   btn.disabled = true;
@@ -868,84 +974,136 @@ async function buscarAleatorio() {
   try {
     const d = await api('/leads/aleatorio?limit=50');
     state.results = d.data || [];
-    state.total   = d.total || 0;
-    state.page    = 1;
-    state.pages   = 1;
-    renderResults(state.results);
+    renderResults(state.results, 'cnpj');
     document.getElementById('result-count').textContent = state.results.length + ' leads';
     document.getElementById('result-count').style.display = '';
-    document.getElementById('leads-count').textContent = state.results.length + ' leads gerados';
+    document.getElementById('leads-count').textContent = state.results.length + ' leads gerados aleatoriamente';
     document.getElementById('btn-export').disabled = false;
-    addFeed('gold', `Público aleatório: <b>${state.results.length} leads</b> gerados`);
-    toast(state.results.length + ' leads aleatórios carregados!', 'success');
-  } catch (e) {
-    toast('Erro: ' + e.message, 'error');
-  }
+    addFeed('amber', `Público aleatório: <b>${state.results.length} leads</b> gerados`);
+    toast(state.results.length + ' leads aleatórios prontos!', 'success');
+  } catch (e) { toast('Erro: ' + e.message, 'error'); }
   btn.disabled = false;
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> Gerar Leads Aleatórios';
 }
 
-// ══ LEADS — BUSCA FILTRADA ══
 async function runSearch(page = 1) {
   const btn = document.getElementById('search-btn');
-  btn.innerHTML = '<div class="spinner"></div> Buscando...';
+  btn.innerHTML = '<div class="spinner"></div>';
   btn.disabled = true;
-  const params = new URLSearchParams();
+  const p = new URLSearchParams();
   const ddd   = document.getElementById('f-ddd').value;
   const porte = document.getElementById('f-porte').value;
-  if (ddd)   params.set('ddd', ddd);
-  if (porte) params.set('porte', porte);
-  if (document.getElementById('chk-tel').classList.contains('on'))    params.set('tem_telefone','true');
-  if (document.getElementById('chk-email').classList.contains('on'))  params.set('tem_email','true');
-  if (document.getElementById('chk-simples').classList.contains('on')) params.set('simples','true');
-  params.set('page', page);
-  params.set('limit', 50);
+  if (ddd)   p.set('ddd', ddd);
+  if (porte) p.set('porte', porte);
+  if (document.getElementById('chk-tel').classList.contains('on'))    p.set('tem_telefone','true');
+  if (document.getElementById('chk-email').classList.contains('on'))  p.set('tem_email','true');
+  if (document.getElementById('chk-simples').classList.contains('on')) p.set('simples','true');
+  p.set('page', page); p.set('limit', 50);
   try {
-    const d = await api('/leads/buscar?' + params);
+    const d = await api('/leads/buscar?' + p);
     state.results = d.data || [];
     state.total   = d.total || 0;
-    state.page    = d.page || 1;
+    state.page    = d.page  || 1;
     state.pages   = d.pages || 1;
-    renderResults(state.results);
+    renderResults(state.results, 'cnpj');
     renderPag(d.page, d.pages);
     document.getElementById('result-count').textContent = (d.total||0).toLocaleString('pt-BR') + ' resultados';
     document.getElementById('result-count').style.display = '';
     document.getElementById('btn-export').disabled = !state.results.length;
-    document.getElementById('btn-add-camp').disabled = !state.selected.size;
     toast((d.total||0).toLocaleString('pt-BR') + ' leads encontrados!', 'success');
-    addFeed('gold', `Busca: <b>${(d.total||0).toLocaleString('pt-BR')} leads</b> encontrados`);
-  } catch (e) {
-    toast('Erro na busca: ' + e.message, 'error');
-  }
+  } catch (e) { toast('Erro: ' + e.message, 'error'); }
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Buscar';
   btn.disabled = false;
 }
 
-function renderResults(rows) {
+// ══ LEADS INSTAGRAM ══
+async function buscarInstagram() {
+  const btn = document.getElementById('btn-ig');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="border-color:rgba(255,255,255,.3);border-top-color:#fff"></div> Buscando...';
+  const busca = (document.getElementById('ig-busca').value || '').trim();
+  try {
+    const d = await api('/leads/instagram?limit=50' + (busca ? '&busca=' + encodeURIComponent(busca) : ''));
+    state.results = d.data || [];
+    renderResults(state.results, 'instagram');
+    document.getElementById('result-count').textContent = state.results.length + ' leads com Instagram';
+    document.getElementById('result-count').style.display = '';
+    document.getElementById('btn-export').disabled = false;
+    addFeed('purple', `Instagram: <b>${state.results.length} leads</b> encontrados`);
+    toast(state.results.length + ' leads com Instagram!', 'success');
+  } catch (e) { toast('Erro: ' + e.message, 'error'); }
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg> Buscar no Instagram';
+}
+
+// ══ RENDER RESULTS ══
+function renderResults(rows, mode) {
   const tbody = document.getElementById('results-tbody');
   if (!rows || !rows.length) {
-    tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/></svg><div class="empty-title">Nenhum resultado</div><div class="empty-sub">Ajuste os filtros ou clique em Público Aleatório</div></div></td></tr>`;
+    const cols = mode === 'instagram' ? 7 : 9;
+    tbody.innerHTML = `<tr><td colspan="${cols}"><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/></svg><div class="empty-title">Nenhum resultado</div><div class="empty-sub">Ajuste os filtros ou tente outra busca</div></div></td></tr>`;
     return;
   }
-  tbody.innerHTML = rows.map(r => `
-    <tr>
-      <td><input type="checkbox" style="width:13px;height:13px" data-cnpj="${r.cnpj||''}" onchange="toggleLead(this,'${r.cnpj||''}')"></td>
-      <td><b>${r.nome_fantasia||r.razao_social||'—'}</b><small>${fmtCNPJ(r.cnpj)}</small></td>
-      <td><span class="badge b-gold" style="max-width:160px;overflow:hidden;text-overflow:ellipsis">${(r.cnae_descricao||'—').substring(0,22)}</span></td>
-      <td>${r.municipio_nome||'—'} <span class="badge bg">${r.ddd_municipio||'—'}</span></td>
-      <td style="color:${r.telefone1?'var(--ok)':'var(--t3)'};font-variant-numeric:tabular-nums">${r.telefone1||'—'}</td>
-      <td style="color:${r.email?'var(--ok)':'var(--t3)'}">${r.email||'—'}</td>
-      <td><span class="badge bg">${r.porte||'—'}</span></td>
-      <td style="color:var(--gold);font-variant-numeric:tabular-nums">${r.score_completude||0}</td>
-      <td><div class="td-act">
-        <button class="ib" onclick="viewLead('${r.cnpj}')" title="Detalhes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-      </div></td>
-    </tr>`).join('');
+
+  if (mode === 'instagram') {
+    tbody.innerHTML = rows.map(r => {
+      const igHandle = r.instagram_url ? r.instagram_url.replace(/https?:\/\/(www\.)?instagram\.com\//,'').replace(/\//,'') : null;
+      const wppUrl = r.whatsapp_url || (r.telefone1 ? 'https://wa.me/55' + r.telefone1.replace(/\D/g,'') : null);
+      return `<tr>
+        <td><input type="checkbox" style="width:13px;height:13px" data-cnpj="${r.cnpj||igHandle||''}" onchange="toggleLead(this,'${r.cnpj||igHandle||''}')"></td>
+        <td><b>${r.nome_fantasia||r.razao_social||'—'}</b><small>${r.municipio_nome||r.logradouro||'—'}</small></td>
+        <td><span class="badge b-purple" style="max-width:160px;overflow:hidden;text-overflow:ellipsis">${(r.cnae_descricao||'—').substring(0,22)}</span></td>
+        <td>${r.instagram_url ? `<a href="${r.instagram_url}" target="_blank" style="color:var(--purple);text-decoration:none;font-size:12px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>@${igHandle}</a>` : '—'}</td>
+        <td>${r.telefone1||r.whatsapp_url ? `<div class="flex gap-8"><span style="font-size:12.5px">${r.telefone1||'—'}</span>${wppUrl ? `<a href="${wppUrl}" target="_blank" class="btn btn-green btn-sm" style="padding:3px 8px;font-size:11px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WPP</a>` : ''}</div>` : '—'}</td>
+        <td><span class="badge ${r.status==='ativo'?'b-green':'bg'}">${r.status||'—'}</span></td>
+        <td><div class="td-act">
+          <a href="${r.instagram_url||'#'}" target="_blank" class="ib ig" title="Abrir Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
+          ${wppUrl ? `<a href="${wppUrl}" target="_blank" class="ib wpp" title="Abrir WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>` : ''}
+        </div></td>
+      </tr>`;
+    }).join('');
+  } else {
+    tbody.innerHTML = rows.map(r => {
+      const wppUrl = formatWpp(r.telefone1, r.ddd_municipio);
+      return `<tr>
+        <td><input type="checkbox" style="width:13px;height:13px" data-cnpj="${r.cnpj||''}" onchange="toggleLead(this,'${r.cnpj||''}')"></td>
+        <td><b>${r.nome_fantasia||r.razao_social||'—'}</b><small>${fmtCNPJ(r.cnpj)}</small></td>
+        <td><span class="badge b-amber" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;display:inline-block">${(r.cnae_descricao||'—').substring(0,22)}</span></td>
+        <td>${r.municipio_nome||'—'} <span class="badge bg">${r.ddd_municipio||'—'}</span></td>
+        <td>
+          <div class="flex gap-8" style="align-items:center">
+            <span style="font-size:12px;color:${r.telefone1?'var(--txt)':'var(--t3)'}">${r.telefone1||'—'}</span>
+            ${wppUrl ? `<a href="${wppUrl}" target="_blank" class="btn btn-green btn-sm" style="padding:3px 8px;font-size:11px;text-decoration:none;flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WPP</a>` : ''}
+          </div>
+        </td>
+        <td style="color:${r.email?'var(--ok)':'var(--t3)'};font-size:12px">${r.email||'—'}</td>
+        <td><span class="badge bg">${r.porte||'—'}</span></td>
+        <td style="color:var(--amber);font-variant-numeric:tabular-nums">${r.score_completude||0}</td>
+        <td><div class="td-act">
+          <button class="ib" onclick="viewLead('${r.cnpj}')" title="Ver detalhes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          ${wppUrl ? `<a href="${wppUrl}" target="_blank" class="ib wpp" title="Enviar WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>` : ''}
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
 }
+
+function formatWpp(tel, ddd) {
+  if (!tel) return null;
+  let num = tel.replace(/\D/g, '');
+  if (!num) return null;
+  if (num.length <= 9 && ddd) num = ddd.replace(/\D/g,'') + num;
+  if (!num.startsWith('55')) num = '55' + num;
+  const m = num.match(/^55(\d{2})(\d+)$/);
+  if (m && m[2].length === 8) num = '55' + m[1] + '9' + m[2];
+  return 'https://wa.me/' + num;
+}
+
+function fmtCNPJ(c) { return c ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : '—'; }
 
 function renderPag(page, pages) {
   const el = document.getElementById('pag');
-  if (!pages || pages <= 1) { el.style.display = 'none'; return; }
+  if (!pages || pages <= 1) { el.style.display='none'; return; }
   el.style.display = 'flex';
   let h = `<button class="pag-btn" onclick="runSearch(${page-1})" ${page<=1?'disabled':''}>← Anterior</button>`;
   const s = Math.max(1,page-2), e = Math.min(pages,page+2);
@@ -955,55 +1113,54 @@ function renderPag(page, pages) {
   el.innerHTML = h;
 }
 
-function toggleLead(cb, cnpj) {
-  if (cb.checked) state.selected.add(cnpj); else state.selected.delete(cnpj);
+function toggleLead(cb, id) {
+  if (cb.checked) state.selected.add(id); else state.selected.delete(id);
   document.getElementById('cn-count').textContent = state.selected.size;
   document.getElementById('btn-add-camp').disabled = !state.selected.size;
-  if (state.selected.size) document.getElementById('add-camp-label').textContent = `Adicionar (${state.selected.size})`;
-  else document.getElementById('add-camp-label').textContent = 'Adicionar à Campanha';
+  if (state.selected.size) document.getElementById('add-camp-label').textContent = `+ Campanha (${state.selected.size})`;
+  else document.getElementById('add-camp-label').textContent = '+ Campanha';
 }
 function toggleAll(v) {
   document.querySelectorAll('#results-tbody input[type=checkbox]').forEach(cb => {
     cb.checked = v;
-    const cnpj = cb.dataset.cnpj;
-    if (cnpj) { if (v) state.selected.add(cnpj); else state.selected.delete(cnpj); }
+    const id = cb.dataset.cnpj;
+    if (id) { if (v) state.selected.add(id); else state.selected.delete(id); }
   });
   document.getElementById('cn-count').textContent = state.selected.size;
   document.getElementById('btn-add-camp').disabled = !state.selected.size;
 }
 function addSelectedToCampaign() {
-  if (!state.selected.size) return toast('Selecione ao menos um lead','error');
+  if (!state.selected.size) return toast('Selecione ao menos um lead', 'error');
   document.getElementById('cn-count').textContent = state.selected.size;
   showModal('newCampaign');
 }
 function exportCSV() {
   if (!state.results.length) return;
-  const h = ['CNPJ','Nome','Segmento','Cidade','DDD','Telefone','Email','Porte','Sócio','Score'];
-  const rows = state.results.map(r => [fmtCNPJ(r.cnpj),r.nome_fantasia||r.razao_social||'',r.cnae_descricao||'',r.municipio_nome||'',r.ddd_municipio||'',r.telefone1||'',r.email||'',r.porte||'',r.nome_socio||'',r.score_completude||0].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+  const h = ['CNPJ','Nome','Segmento','Cidade','DDD','Telefone','Email','Porte','Score','Instagram'];
+  const rows = state.results.map(r => [fmtCNPJ(r.cnpj),r.nome_fantasia||r.razao_social||'',r.cnae_descricao||'',r.municipio_nome||'',r.ddd_municipio||'',r.telefone1||'',r.email||'',r.porte||'',r.score_completude||0,r.instagram_url||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
   const csv = [h.join(','),...rows].join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
   a.download = `leads-${new Date().toISOString().split('T')[0]}.csv`;
   a.click();
-  toast('CSV exportado!','success');
+  toast('CSV exportado!', 'success');
 }
-function fmtCNPJ(c) { return c ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5') : '—'; }
 
 // ══ LEAD DETAIL ══
-let curCNPJ = null;
 async function viewLead(cnpj) {
-  curCNPJ = cnpj;
   showModal('leadDetail');
   document.getElementById('lead-detail-body').innerHTML = '<div class="loading-row"><div class="spinner light"></div></div>';
   try {
     const d = await api(`/leads/${cnpj}`);
+    const wpp = formatWpp(d.telefone1, d.ddd_municipio);
     document.getElementById('lead-detail-body').innerHTML = `
-      <div class="flex gap-12 mb-16">
-        <div style="width:44px;height:44px;border-radius:50%;background:var(--gold-d);border:1px solid var(--bd-h);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--gold);flex-shrink:0">${(d.nome_fantasia||d.razao_social||'?').substring(0,2).toUpperCase()}</div>
-        <div><div style="font-size:15px;font-weight:600">${d.nome_fantasia||d.razao_social||'—'}</div><div style="font-size:12px;color:var(--t2)">${fmtCNPJ(d.cnpj)}</div></div>
-        <div class="ml-auto"><span class="badge ${d.situacao_cadastral==2?'b-green':'b-red'}">${d.situacao_cadastral==2?'Ativo':'Inativo'}</span></div>
+      <div class="flex gap-12 mb-16" style="align-items:center">
+        <div style="width:46px;height:46px;border-radius:50%;background:var(--amber-d);border:1px solid var(--bd-h);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--amber);flex-shrink:0">${(d.nome_fantasia||d.razao_social||'?').substring(0,2).toUpperCase()}</div>
+        <div style="flex:1"><div style="font-size:15px;font-weight:700">${d.nome_fantasia||d.razao_social||'—'}</div><div style="font-size:12px;color:var(--t2)">${fmtCNPJ(d.cnpj)} · ${d.cnae_descricao||'—'}</div></div>
+        <span class="badge ${d.situacao_cadastral==2?'b-green':'b-red'}">${d.situacao_cadastral==2?'Ativo':'Inativo'}</span>
       </div>
-      ${[['Razão Social',d.razao_social],['Sócio',d.nome_socio],['Segmento',d.cnae_descricao],['Telefone',d.telefone1],['E-mail',d.email],['Cidade',d.municipio_nome+(d.uf?' / '+d.uf:'')],['Endereço',[d.logradouro,d.numero,d.bairro].filter(Boolean).join(', ')],['Porte',d.porte],['Abertura',d.data_abertura?new Date(d.data_abertura).toLocaleDateString('pt-BR'):null],['Score',d.score_completude]].map(([l,v])=>`<div class="sr"><span class="sr-label">${l}</span><span class="sr-val">${v||'—'}</span></div>`).join('')}
+      ${[['Sócio',d.nome_socio],['Telefone',d.telefone1],['E-mail',d.email],['Cidade',d.municipio_nome+(d.uf?' / '+d.uf:'')],['Endereço',[d.logradouro,d.numero,d.bairro].filter(Boolean).join(', ')],['Porte',d.porte],['Abertura',d.data_abertura?new Date(d.data_abertura).toLocaleDateString('pt-BR'):null],['Score',d.score_completude]].map(([l,v])=>`<div class="sr"><span class="sr-l">${l}</span><span class="sr-v">${v||'—'}</span></div>`).join('')}
+      ${wpp ? `<div style="margin-top:14px"><a href="${wpp}" target="_blank" class="btn btn-green" style="text-decoration:none;width:100%;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Enviar mensagem no WhatsApp</a></div>` : ''}
     `;
   } catch (e) {
     document.getElementById('lead-detail-body').innerHTML = `<p style="color:var(--err);font-size:13px">Erro: ${e.message}</p>`;
@@ -1015,20 +1172,20 @@ async function loadCampaigns() {
   const g = document.getElementById('camp-grid');
   g.innerHTML = '<div class="loading-row" style="grid-column:1/-1"><div class="spinner light"></div></div>';
   try {
-    const d = await api('/campanha/listar').catch(() => ({ campanhas: [] }));
+    const d = await api('/campanha/listar').catch(()=>({campanhas:[]}));
     const camps = d.campanhas || [];
     if (!camps.length) {
-      g.innerHTML = `<div class="camp-card camp-new" onclick="showModal('newCampaign')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span class="camp-new-label">Criar primeira campanha</span></div>`;
+      g.innerHTML = `<div class="camp-card camp-new" onclick="showModal('newCampaign')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span class="camp-new-lbl">Criar primeira campanha</span></div>`;
     } else {
       g.innerHTML = camps.map(c => {
         const pct = c.total ? Math.round((c.enviados||0)/c.total*100) : 0;
-        const sc = {rodando:'b-green',pendente:'b-gold',concluida:'bg',erro:'b-red'}[c.status]||'bg';
-        return `<div class="camp-card" onclick="">
+        const sc = {rodando:'b-green',pendente:'b-amber',concluida:'bg',erro:'b-red'}[c.status]||'bg';
+        return `<div class="camp-card">
           <div class="flex gap-8 mb-12"><div style="flex:1"><div class="camp-name">${c.nome}</div><div class="camp-meta">${c.canal} · ${c.total||0} leads</div></div><span class="badge ${sc}">${c.status}</span></div>
           <div class="prog mb-12"><div class="prog-fill" style="width:${pct}%"></div></div>
-          <div class="camp-nums"><div class="cn"><b>${c.enviados||0}</b>Enviados</div><div class="cn"><b class="t-gold">${pct}%</b>Progresso</div><div class="cn"><b>${c.total||0}</b>Total</div></div>
+          <div class="camp-nums"><div class="cn"><b>${c.enviados||0}</b>Enviados</div><div class="cn"><b style="color:var(--amber)">${pct}%</b>Progresso</div><div class="cn"><b>${c.total||0}</b>Total</div></div>
         </div>`;
-      }).join('') + `<div class="camp-card camp-new" onclick="showModal('newCampaign')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span class="camp-new-label">Nova campanha</span></div>`;
+      }).join('') + `<div class="camp-card camp-new" onclick="showModal('newCampaign')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span class="camp-new-lbl">Nova campanha</span></div>`;
     }
   } catch (e) {
     g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-title">Erro ao carregar</div><div class="empty-sub">${e.message}</div></div>`;
@@ -1040,18 +1197,16 @@ async function criarCampanha() {
   const canal = document.getElementById('cn-canal').value;
   const msg   = document.getElementById('cn-msg').value.trim();
   const limite = parseInt(document.getElementById('cn-limite').value);
-  if (!nome) return toast('Digite um nome','error');
-  if (!msg)  return toast('Digite a mensagem template','error');
-  if (!state.selected.size) return toast('Selecione leads na aba Leads primeiro','error');
+  if (!nome) return toast('Digite um nome', 'error');
+  if (!msg)  return toast('Digite a mensagem template', 'error');
+  if (!state.selected.size) return toast('Selecione leads na aba Leads primeiro', 'error');
   try {
-    const d = await api('/campanha/criar-lista', { method:'POST', body: JSON.stringify({ nome, canal, cnpjs:[...state.selected], mensagem_template:msg, delay_segundos: limite===50?120:limite===100?60:30 }) });
-    toast(`Campanha criada! ${d.total} leads na fila.`,'success');
-    addFeed('gold', `Campanha <b>${nome}</b> criada com ${d.total} leads`);
+    const d = await api('/campanha/criar-lista', { method:'POST', body: JSON.stringify({ nome, canal, cnpjs:[...state.selected], mensagem_template:msg, delay_segundos:limite===50?120:limite===100?60:30 }) });
+    toast(`Campanha criada! ${d.total} leads na fila.`, 'success');
+    addFeed('amber', `Campanha <b>${nome}</b> criada com ${d.total} leads`);
     closeModal('newCampaign');
     loadCampaigns();
-  } catch (e) {
-    toast('Erro: ' + e.message,'error');
-  }
+  } catch (e) { toast('Erro: ' + e.message, 'error'); }
 }
 
 // ══ SETTINGS ══
@@ -1064,41 +1219,37 @@ function loadSettings() {
 }
 function saveApiUrl() {
   const url = document.getElementById('api-url-inp').value.trim().replace(/\/$/,'');
-  if (!url) return toast('Digite a URL','error');
+  if (!url) return toast('Digite a URL', 'error');
   API_BASE = url;
   localStorage.setItem('lh_api_url', url);
-  toast('URL salva!','success');
+  toast('URL salva!', 'success');
   checkHealth().then(ok => { if(ok) loadDashboard(); });
 }
 function saveApiKey() {
   const key = document.getElementById('api-key-inp').value.trim();
   API_KEY = key;
   if (key) localStorage.setItem('lh_api_key', key); else localStorage.removeItem('lh_api_key');
-  toast(key?'Chave salva!':'Chave removida','success');
+  toast(key ? 'Chave salva!' : 'Chave removida', 'success');
 }
 async function checkWPP() {
   const el = document.getElementById('wpp-status-text');
   if (!el) return;
   try {
     const d = await api('/whatsapp/status');
-    el.innerHTML = d.connected ? '<span class="sdot on"></span>Conectado' : '<span class="sdot off"></span>Desconectado — escaneie o QR Code';
-  } catch {
-    el.innerHTML = '<span class="sdot off"></span>Não configurado';
-  }
+    el.innerHTML = d.connected ? '<span class="sdot on"></span>Conectado e pronto' : '<span class="sdot off"></span>Desconectado — escaneie o QR Code';
+  } catch { el.innerHTML = '<span class="sdot off"></span>Não configurado'; }
 }
-
-// ══ SETTINGS TABS ══
 function setStab(el, id) {
   document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   ['s-api','s-wpp','s-templates'].forEach(t => {
     const e = document.getElementById(t);
-    if (e) e.style.display = t === id ? '' : 'none';
+    if (e) e.style.display = t===id ? '' : 'none';
   });
   if (id === 's-wpp') checkWPP();
 }
 
-// ══ QR CODE ══
+// ══ QR ══
 async function gerarQR() {
   const el = document.getElementById('qr-display');
   el.textContent = 'Gerando...';
@@ -1114,10 +1265,10 @@ function salvarTemplate() {
   const nome = document.getElementById('tpl-nome').value.trim();
   const canal = document.getElementById('tpl-canal').value;
   const msg  = document.getElementById('tpl-msg').value.trim();
-  if (!nome || !msg) return toast('Preencha nome e mensagem','error');
-  state.templates.push({ id: Date.now(), nome, canal, msg });
+  if (!nome || !msg) return toast('Preencha nome e mensagem', 'error');
+  state.templates.push({ id:Date.now(), nome, canal, msg });
   localStorage.setItem('lh_templates', JSON.stringify(state.templates));
-  toast('Template salvo!','success');
+  toast('Template salvo!', 'success');
   renderTemplates();
   document.getElementById('tpl-nome').value = '';
   document.getElementById('tpl-msg').value = '';
@@ -1127,7 +1278,7 @@ function renderTemplates() {
   document.getElementById('tpl-list').innerHTML = state.templates.map((t,i) => `
     <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start">
       <div style="flex:1"><div style="font-size:13px;font-weight:500;margin-bottom:2px">${t.nome}</div><div style="font-size:11.5px;color:var(--t2)">${t.canal} · ${t.msg.substring(0,60)}...</div></div>
-      <button class="ib" onclick="delTemplate(${i})" style="flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+      <button class="ib" onclick="delTemplate(${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
     </div>`).join('');
 }
 function delTemplate(i) {
@@ -1140,11 +1291,10 @@ function delTemplate(i) {
 window.addEventListener('load', () => {
   const savedUrl = localStorage.getItem('lh_api_url');
   const savedKey = localStorage.getItem('lh_api_key');
-  if (savedUrl) API_BASE = savedUrl;
+  if (savedUrl) { API_BASE = savedUrl; } else { localStorage.setItem('lh_api_url', _RAILWAY); }
   if (savedKey) API_KEY = savedKey;
   renderTemplates();
   checkHealth().then(ok => { if (ok) loadDashboard(); });
-  setInterval(() => { if (document.getElementById('page-dashboard').classList.contains('active')) addFeed('blue', feedSim[fi++ % feedSim.length][1]); }, 8000);
 });
 </script>
 </body>

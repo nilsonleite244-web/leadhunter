@@ -53,6 +53,22 @@ app.get("/health", async (req, res) => {
 });
 app.use(["/leads", "/stats", "/campanha", "/whatsapp"], authMiddleware);
 
+app.get("/leads/instagram", async (req, res) => {
+  try {
+    const limit = Math.min(200, parseInt(req.query.limit) || 50);
+    const busca = req.query.busca ? req.query.busca.trim() : null;
+    const params = [];
+    let sql = "SELECT nome as razao_social, nome as nome_fantasia, segmento as cnae_descricao, telefone as telefone1, whatsapp_url, instagram_url, endereco as logradouro, status, cidade as municipio_nome FROM leads_extra WHERE instagram_url IS NOT NULL AND instagram_url != ''";
+    if (busca) { params.push('%' + busca + '%'); sql += " AND nome ILIKE $" + params.length; }
+    sql += " ORDER BY id DESC LIMIT $" + (params.length + 1);
+    params.push(limit);
+    const result = await pool.query(sql, params);
+    res.json({ total: result.rows.length, data: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get("/leads/aleatorio", async (req, res) => {
   try {
     const limit = Math.min(100, parseInt(req.query.limit) || 50);
