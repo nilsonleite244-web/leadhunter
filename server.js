@@ -12,14 +12,11 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
   connectionTimeoutMillis: 10000,
-const total = parseInt(r1.rows[0].count) + parseInt(r2.rows[0].count);  family: 4,
-});
-const total = parseInt(r1.rows[0].count) + count2;app.use(cors());
-app.use(express.json({ limit: "10mb" }));
-app.use(rateLimit({ windowMs: 60000, max: 300, message: { error: "Muitas requisicoes" } }));
-const query = (sql, params) => pool.query(sql, params);
-function paginate(req) {
-  const page = Math.max(1, parseInt(req.query.page) || 1);
+const r2 = await pool.query("SELECT COUNT(*) as count FROM leads_extra").catch(() => ({ rows: [{ count: '0' }] }));
+
+const count2 = parseInt(r2.rows[0].count) || 0;
+
+const total = parseInt(r1.rows[0].count) + count2;
   const limit = Math.min(500, Math.max(10, parseInt(req.query.limit) || 50));
   const offset = (page - 1) * limit;
   return { page, limit, offset };
