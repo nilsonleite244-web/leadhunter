@@ -222,6 +222,116 @@ select option{background:var(--s2)}textarea{resize:vertical}
 .mode-btn.active.wpp{color:var(--ok)}
 .mode-btn.active.ig{color:var(--purple)}
 
+/* ── INSTAGRAM MEGA CARD ── */
+@keyframes ig-bg-shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes ig-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes ig-glow-pulse{0%,100%{box-shadow:0 0 22px rgba(168,85,247,.55),0 0 55px rgba(253,29,29,.22),0 6px 36px rgba(131,58,180,.5)}50%{box-shadow:0 0 45px rgba(168,85,247,.9),0 0 90px rgba(253,29,29,.4),0 8px 60px rgba(252,176,69,.35)}}
+@keyframes ig-shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+@keyframes ig-border-rot{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+@keyframes ig-spark{0%,100%{opacity:0;transform:scale(0) translate(0,0)}40%{opacity:1;transform:scale(1) translate(var(--dx),var(--dy))}80%{opacity:.4;transform:scale(.5) translate(calc(var(--dx)*1.4),calc(var(--dy)*1.4))}}
+@keyframes ig-card-glow{0%,100%{box-shadow:0 0 0 1px rgba(168,85,247,.15),0 20px 60px rgba(131,58,180,.12)}50%{box-shadow:0 0 0 1px rgba(253,29,29,.25),0 20px 70px rgba(168,85,247,.22)}}
+@keyframes ig-text-shine{0%,100%{background-position:0%}100%{background-position:200%}}
+
+.ig-hero{
+  position:relative;border-radius:18px;padding:32px 34px;margin-bottom:16px;
+  background:linear-gradient(145deg,rgba(131,58,180,.12) 0%,rgba(253,29,29,.06) 50%,rgba(252,176,69,.06) 100%),var(--s1);
+  animation:ig-card-glow 4s ease-in-out infinite;
+  overflow:hidden;
+}
+.ig-hero-ring{
+  position:absolute;inset:-3px;border-radius:21px;z-index:0;overflow:hidden;pointer-events:none;
+}
+.ig-hero-ring::before{
+  content:'';position:absolute;
+  width:200%;height:200%;top:-50%;left:-50%;
+  background:conic-gradient(from 0deg,transparent 0deg,#833ab4 60deg,#fd1d1d 120deg,#fcb045 180deg,transparent 240deg,transparent 360deg);
+  animation:ig-border-rot 4s linear infinite;
+}
+.ig-hero-ring::after{
+  content:'';position:absolute;inset:3px;border-radius:18px;background:linear-gradient(145deg,rgba(131,58,180,.12),rgba(253,29,29,.06),var(--s1));
+}
+.ig-hero > *{position:relative;z-index:1}
+.ig-orb{position:absolute;border-radius:50%;filter:blur(55px);pointer-events:none;z-index:0}
+.ig-orb-1{width:260px;height:260px;top:-80px;right:-60px;background:radial-gradient(circle,rgba(131,58,180,.25),transparent 70%);animation:ig-float 5s ease-in-out infinite}
+.ig-orb-2{width:200px;height:200px;bottom:-60px;left:-40px;background:radial-gradient(circle,rgba(253,29,29,.15),transparent 70%);animation:ig-float 6s ease-in-out infinite reverse}
+.ig-orb-3{width:150px;height:150px;top:10px;left:40%;background:radial-gradient(circle,rgba(252,176,69,.12),transparent 70%);animation:ig-float 7s ease-in-out infinite .5s}
+
+.ig-title{
+  font-size:24px;font-weight:900;letter-spacing:-.7px;line-height:1.15;margin-bottom:8px;
+  background:linear-gradient(90deg,#fff 0%,#e0aaff 35%,#ff6b6b 65%,#fcb045 90%,#fff 100%);
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:ig-text-shine 4s linear infinite;
+}
+.ig-sub{font-size:13px;color:var(--t2);line-height:1.6;max-width:480px;margin-bottom:22px}
+.ig-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  background:linear-gradient(90deg,rgba(131,58,180,.2),rgba(253,29,29,.1));
+  border:1px solid rgba(168,85,247,.25);
+  border-radius:7px;padding:4px 12px;font-size:11px;font-weight:700;
+  color:#e0aaff;text-transform:uppercase;letter-spacing:.07em;
+  margin-bottom:14px;
+}
+.ig-badge-dot{width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#833ab4,#fd1d1d);animation:pulse-dot 1.5s infinite}
+
+/* ── MEGA INSTAGRAM BUTTON ── */
+.ig-mega-wrap{position:relative;display:inline-block}
+.ig-mega-wrap::before{
+  content:'';position:absolute;inset:-3px;border-radius:15px;
+  background:conic-gradient(from 0deg,#833ab4,#fd1d1d,#fcb045,#fd1d1d,#833ab4);
+  animation:ig-border-rot 3s linear infinite;z-index:0;
+}
+.ig-mega-wrap::after{
+  content:'';position:absolute;inset:-3px;border-radius:15px;
+  background:conic-gradient(from 0deg,#833ab4,#fd1d1d,#fcb045,#fd1d1d,#833ab4);
+  animation:ig-border-rot 3s linear infinite;
+  filter:blur(10px);opacity:.7;z-index:-1;
+}
+.ig-mega-btn{
+  position:relative;z-index:1;
+  display:inline-flex;align-items:center;gap:10px;
+  padding:13px 26px;border:none;border-radius:12px;
+  font-size:14px;font-weight:800;color:#fff;cursor:pointer;
+  font-family:'Inter',sans-serif;letter-spacing:-.2px;
+  background:linear-gradient(135deg,#833ab4,#c1366b,#fd1d1d,#ff6b35,#fcb045);
+  background-size:300% 300%;
+  animation:ig-bg-shift 3s ease infinite,ig-float 3.5s ease-in-out infinite,ig-glow-pulse 2.5s ease-in-out infinite;
+  overflow:hidden;
+}
+.ig-mega-btn::before{
+  content:'';position:absolute;inset:0;border-radius:12px;
+  background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);
+  background-size:200% 100%;
+  animation:ig-shimmer 2s linear infinite;pointer-events:none;
+}
+.ig-mega-btn svg{width:16px;height:16px;filter:drop-shadow(0 0 4px rgba(255,255,255,.6))}
+.ig-mega-btn:disabled{opacity:.4;cursor:not-allowed;animation:none;filter:none}
+.ig-mega-btn:active{transform:scale(.97)}
+
+/* Sparkle particles */
+.ig-sparks{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:2}
+.spark{
+  position:absolute;width:5px;height:5px;border-radius:50%;
+  background:radial-gradient(circle,#fff,rgba(252,176,69,.8));
+  animation:ig-spark 2.5s ease-in-out infinite;
+}
+.spark:nth-child(1){top:20%;left:10%;--dx:-18px;--dy:-20px;animation-delay:0s}
+.spark:nth-child(2){top:70%;left:15%;--dx:-14px;--dy:16px;animation-delay:.5s}
+.spark:nth-child(3){top:15%;right:12%;--dx:16px;--dy:-18px;animation-delay:.9s}
+.spark:nth-child(4){bottom:18%;right:10%;--dx:14px;--dy:14px;animation-delay:1.4s}
+.spark:nth-child(5){top:50%;left:5%;--dx:-20px;--dy:0px;animation-delay:.3s;width:4px;height:4px}
+.spark:nth-child(6){top:50%;right:5%;--dx:20px;--dy:0px;animation-delay:1.8s;width:3px;height:3px}
+.spark:nth-child(7){top:10%;left:45%;--dx:0;--dy:-22px;animation-delay:2s;width:4px;height:4px}
+
+/* Instagram chip no filtro CNPJ */
+.chip-ig{
+  background:linear-gradient(135deg,rgba(131,58,180,.15),rgba(253,29,29,.1));
+  border-color:rgba(168,85,247,.3);color:#e0aaff;
+  position:relative;overflow:hidden;
+}
+.chip-ig::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.2) 50%,transparent 70%);background-size:200% 100%;animation:ig-shimmer 3s linear infinite}
+.chip-ig:hover{border-color:rgba(168,85,247,.5);background:linear-gradient(135deg,rgba(131,58,180,.25),rgba(253,29,29,.15))}
+
 /* ── HERO ── */
 .hero{
   background:var(--s1);border:1px solid var(--bd);border-radius:16px;
@@ -538,6 +648,10 @@ select option{background:var(--s2)}textarea{resize:vertical}
                 <div class="chip on" id="chk-tel" onclick="this.classList.toggle('on')">Com Telefone</div>
                 <div class="chip" id="chk-email" onclick="this.classList.toggle('on')">Com E-mail</div>
                 <div class="chip" id="chk-simples" onclick="this.classList.toggle('on')">Simples Nacional</div>
+                <div class="chip chip-ig" id="chk-ig" onclick="setMode('instagram')" title="Ver leads com Instagram">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;display:inline-block;vertical-align:middle;margin-right:3px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg>
+                  Com Instagram ✦
+                </div>
               </div>
             </div>
           </div>
@@ -546,21 +660,32 @@ select option{background:var(--s2)}textarea{resize:vertical}
 
       <!-- Instagram mode -->
       <div id="view-instagram" style="display:none">
-        <div class="hero" style="background:linear-gradient(135deg,rgba(131,58,180,.08),rgba(253,29,29,.05),var(--s1));border-color:rgba(168,85,247,.15)">
-          <div class="hero-badge" style="background:rgba(168,85,247,.1);border-color:rgba(168,85,247,.2);color:var(--purple)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:10px;height:10px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
-            Redes Sociais
+        <div class="ig-hero">
+          <div class="ig-hero-ring"></div>
+          <div class="ig-orb ig-orb-1"></div>
+          <div class="ig-orb ig-orb-2"></div>
+          <div class="ig-orb ig-orb-3"></div>
+          <div class="ig-badge">
+            <div class="ig-badge-dot"></div>
+            Instagram Leads
           </div>
-          <div class="hero-title">Leads com Instagram</div>
-          <div class="hero-sub">Encontre negócios com presença no Instagram. Acesse o perfil direto da tabela e personalize sua abordagem.</div>
-          <div class="hero-actions">
-            <div class="field" style="flex:1;max-width:300px;margin-bottom:0">
-              <input id="ig-busca" placeholder="Buscar por nome do negócio..." style="height:38px" onkeydown="if(event.key==='Enter')buscarInstagram()">
+          <div class="ig-title">Encontre Leads<br>com Instagram</div>
+          <div class="ig-sub">Negócios com presença no Instagram prontos para prospecção. Acesse o perfil diretamente, veja o nicho e dispare no WhatsApp — tudo em uma tela.</div>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <div class="field" style="flex:1;max-width:320px;margin-bottom:0">
+              <input id="ig-busca" placeholder="Filtrar por nome do negócio..." style="height:42px;background:rgba(255,255,255,.04);border-color:rgba(168,85,247,.2)" onkeydown="if(event.key==='Enter')buscarInstagram()">
             </div>
-            <button class="hero-btn hero-ig" id="btn-ig" onclick="buscarInstagram()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
-              Buscar no Instagram
-            </button>
+            <div class="ig-mega-wrap">
+              <div class="ig-sparks">
+                <div class="spark"></div><div class="spark"></div><div class="spark"></div>
+                <div class="spark"></div><div class="spark"></div><div class="spark"></div>
+                <div class="spark"></div>
+              </div>
+              <button class="ig-mega-btn" id="btn-ig" onclick="buscarInstagram()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg>
+                Buscar Leads com Instagram
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1033,7 +1158,7 @@ async function buscarInstagram() {
     toast(state.results.length + ' leads com Instagram!', 'success');
   } catch (e) { toast('Erro: ' + e.message, 'error'); }
   btn.disabled = false;
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg> Buscar no Instagram';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg> Buscar Leads com Instagram';
 }
 
 // ══ RENDER RESULTS ══
