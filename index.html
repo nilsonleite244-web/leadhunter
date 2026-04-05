@@ -681,7 +681,7 @@ select option{background:var(--s2)}textarea{resize:vertical}
               <input id="ig-segmento" placeholder="Ex: beleza, alimentação..." style="height:40px;background:rgba(255,255,255,.04);border-color:rgba(168,85,247,.2)" onkeydown="if(event.key==='Enter')buscarInstagram(1)">
             </div>
           </div>
-          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <div class="ig-mega-wrap">
               <div class="ig-sparks">
                 <div class="spark"></div><div class="spark"></div><div class="spark"></div>
@@ -693,6 +693,20 @@ select option{background:var(--s2)}textarea{resize:vertical}
                 Buscar Leads com Instagram
               </button>
             </div>
+
+            <!-- Toggle "apenas ativos" -->
+            <button id="btn-apenas-ativos" onclick="toggleApenasAtivos()" style="
+              display:inline-flex;align-items:center;gap:8px;
+              padding:10px 16px;border-radius:10px;cursor:pointer;
+              font-size:12.5px;font-weight:600;font-family:'Inter',sans-serif;
+              background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);color:rgba(34,197,94,.7);
+              transition:all .2s;position:relative;overflow:hidden;
+            ">
+              <span id="apenas-ativos-icon" style="font-size:14px">○</span>
+              <span>Apenas Ativos</span>
+              <span style="font-size:10px;opacity:.7;background:rgba(34,197,94,.15);padding:2px 6px;border-radius:4px">receita + site</span>
+            </button>
+
             <span id="ig-total-hint" style="font-size:12px;color:rgba(224,170,255,.6)"></span>
           </div>
         </div>
@@ -1150,6 +1164,27 @@ async function runSearch(page = 1) {
 }
 
 // ══ LEADS INSTAGRAM ══
+let igApenasAtivos = false;
+
+function toggleApenasAtivos() {
+  igApenasAtivos = !igApenasAtivos;
+  const btn  = document.getElementById('btn-apenas-ativos');
+  const icon = document.getElementById('apenas-ativos-icon');
+  if (igApenasAtivos) {
+    btn.style.background     = 'rgba(34,197,94,.18)';
+    btn.style.border         = '1px solid rgba(34,197,94,.5)';
+    btn.style.color          = 'var(--ok)';
+    btn.style.boxShadow      = '0 0 14px rgba(34,197,94,.2)';
+    icon.textContent         = '●';
+  } else {
+    btn.style.background     = 'rgba(34,197,94,.07)';
+    btn.style.border         = '1px solid rgba(34,197,94,.2)';
+    btn.style.color          = 'rgba(34,197,94,.7)';
+    btn.style.boxShadow      = 'none';
+    icon.textContent         = '○';
+  }
+}
+
 async function buscarInstagram(page = 1) {
   const btn = document.getElementById('btn-ig');
   btn.disabled = true;
@@ -1157,8 +1192,9 @@ async function buscarInstagram(page = 1) {
   const busca    = (document.getElementById('ig-busca')?.value    || '').trim();
   const segmento = (document.getElementById('ig-segmento')?.value || '').trim();
   const p = new URLSearchParams({ limit: 100, page });
-  if (busca)    p.set('busca', busca);
-  if (segmento) p.set('segmento', segmento);
+  if (busca)          p.set('busca', busca);
+  if (segmento)       p.set('segmento', segmento);
+  if (igApenasAtivos) p.set('apenas_ativos', 'true');
   try {
     const d = await api('/leads/instagram?' + p);
     state.results = d.data || [];
@@ -1169,11 +1205,12 @@ async function buscarInstagram(page = 1) {
     renderPagIG(d.page, d.pages);
     const hint = document.getElementById('ig-total-hint');
     if (hint) hint.textContent = d.total > 0 ? `${d.total.toLocaleString('pt-BR')} leads encontrados` : '';
-    document.getElementById('result-count').textContent = d.total.toLocaleString('pt-BR') + ' leads com Instagram';
+    document.getElementById('result-count').textContent = d.total.toLocaleString('pt-BR') + (igApenasAtivos ? ' leads ativos com Instagram' : ' leads com Instagram');
     document.getElementById('result-count').style.display = '';
     document.getElementById('btn-export').disabled = false;
-    addFeed('purple', `Instagram: <b>${d.total} leads</b> na base`);
-    toast(d.total.toLocaleString('pt-BR') + ' leads com Instagram encontrados!', 'success');
+    const feedLabel = igApenasAtivos ? `Instagram ativos: <b>${d.total} leads</b>` : `Instagram: <b>${d.total} leads</b>`;
+    addFeed('purple', feedLabel);
+    toast(d.total.toLocaleString('pt-BR') + (igApenasAtivos ? ' leads ativos encontrados!' : ' leads com Instagram encontrados!'), 'success');
   } catch (e) { toast('Erro: ' + e.message, 'error'); }
   btn.disabled = false;
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg> Buscar Leads com Instagram';

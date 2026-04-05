@@ -94,10 +94,22 @@ app.get("/leads/instagram", async (req, res) => {
       NULL::text    AS cnpj
     `;
 
+    const apenasAtivos = req.query.apenas_ativos === 'true';
+
     // Só retorna leads onde conseguimos extrair um handle de Instagram
     const conditions = [
       `(instagram ~* 'instagram\\.com/[A-Za-z0-9._]{2,}' OR instagram ~* '@[A-Za-z0-9._]{2,}')`
     ];
+
+    // "Apenas ativos": empresa com receita informada + funcionários + site real (não apenas Instagram)
+    if (apenasAtivos) {
+      conditions.push("receita IS NOT NULL AND receita != ''");
+      conditions.push("funcionarios IS NOT NULL AND funcionarios != ''");
+      conditions.push("website IS NOT NULL AND website != ''");
+      conditions.push("website NOT ILIKE '%instagram.com%'");
+      conditions.push("website NOT ILIKE '%wa.me%'");
+    }
+
     const params = [];
     let p = 1;
 
