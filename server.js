@@ -1,4 +1,4 @@
-h"use strict";  
+"use strict";  
 const dns = require("dns");
 dns.setDefaultResultOrder("ipv4first");
 const express = require("express");
