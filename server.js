@@ -1,4 +1,4 @@
-"use strict";  
+"use strict";
 const dns = require("dns");
 dns.setDefaultResultOrder("ipv4first");
 const express = require("express");
@@ -12,20 +12,27 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
   connectionTimeoutMillis: 10000,
-const r2 = await pool.query("SELECT COUNT(*) as count FROM leads_extra").catch(() => ({ rows: [{ count: '0' }] }));
-
-const count2 = parseInt(r2.rows[0].count) || 0;
-
-const total = parseInt(r1.rows[0].count) + count2;
+  idleTimeoutMillis: 30000,
+  max: 10,
+  family: 4,
+});
+pool.on("error", (err) => { console.error("Erro no pool:", err.message); });
+app.use(cors());
+app.use(express.json({ limit: "10mb" }));
+app.use(rateLimit({ windowMs: 60000, max: 300, message: { error: "Muitas requisicoes" } }));
+const query = (sql, params) => pool.query(sql, params);
+function paginate(req) {
+  const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(500, Math.max(10, parseInt(req.query.limit) || 50));
   const offset = (page - 1) * limit;
   return { page, limit, offset };
 }
 app.get("/health", async (req, res) => {
   try {
-    const r1 = await query("SELECT COUNT(*) as count FROM leads");
+    const r1 = await pool.query("SELECT COUNT(*) as count FROM leads");
     const r2 = await pool.query("SELECT COUNT(*) as count FROM leads_extra").catch(() => ({ rows: [{ count: '0' }] }));
-    const total = parseInt(r1.rows[0].count) + parseInt(r2.rows[0].count);
+    const count2 = parseInt(r2.rows[0].count) || 0;
+    const total = parseInt(r1.rows[0].count) + count2;
     res.json({ status: "ok", leads_ativos: total, timestamp: new Date().toISOString() });
   } catch (e) {
     res.status(500).json({ status: "erro", error: e.message });
@@ -57,7 +64,7 @@ app.get("/leads/buscar", async (req, res) => {
     const dataRes = await query("SELECT " + cols + " FROM leads " + where + " ORDER BY score_completude DESC LIMIT $" + p++ + " OFFSET $" + p++, [...params, limit, offset]);
     let extraRows = [];
     try {
-      const extraRes = await query("SELECT nome as razao_social, nome as nome_fantasia, segmento as cnae_descricao, telefone as telefone1, whatsapp_url, instagram_url, endereco as logradouro, status FROM leads_extra LIMIT $1", [limit]);
+      const extraRes = await pool.query("SELECT nome as razao_social, nome as nome_fantasia, segmento as cnae_descricao, telefone as telefone1, whatsapp_url, instagram_url, endereco as logradouro, status FROM leads_extra LIMIT $1", [limit]);
       extraRows = extraRes.rows;
     } catch(e) {}
     const allLeads = [...dataRes.rows, ...extraRows];
@@ -71,7 +78,7 @@ app.get("/leads/:cnpj", async (req, res) => {
     const cnpj = req.params.cnpj.replace(/\D/g, "").padStart(14, "0");
     let local = await query("SELECT * FROM leads WHERE cnpj = $1", [cnpj]);
     if (!local.rows.length) {
-      try { local = await query("SELECT * FROM leads_extra WHERE cnpj = $1", [cnpj]); } catch(e) {}
+      try { local = await pool.query("SELECT * FROM leads_extra WHERE cnpj = $1", [cnpj]); } catch(e) {}
     }
     if (!local.rows.length) return res.status(404).json({ error: "CNPJ nao encontrado" });
     res.json(local.rows[0]);
