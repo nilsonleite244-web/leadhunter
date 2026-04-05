@@ -42,7 +42,7 @@ function paginate(req) {
 }
 
 
-app.get("/seed/instagram-leads", async (req, res) => {
+app.get("/seed/instagram-leads-DISABLED", async (req, res) => {
   const LEADS = [
     {s:"barbearia",n:"Studio Prado Barber",h:"studiopradobarber_",w:"wa.me/message/E7BSQCGSZZVQK1"},
     {s:"clinicaestetica",n:"Dra. Elvira Morgado",h:"dra.elviramorgado",w:"www.skintime.es"},
