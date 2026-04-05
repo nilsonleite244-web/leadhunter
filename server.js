@@ -55,7 +55,7 @@ app.get("/health", async (req, res) => {
 app.use(["/leads", "/stats", "/campanha", "/whatsapp"], authMiddleware);
 
 // leads_extra schema: id, nome, website, descricao, funcionarios, receita,
-//   pais, estado, cidade, segmento, instagram, whatsapp, created_at
+//   pais, estado, cidade, segmento, instagram (descrição que menciona IG), whatsapp, created_at
 app.get("/leads/instagram", async (req, res) => {
   try {
     const { page, limit, offset } = paginate(req);
@@ -63,27 +63,41 @@ app.get("/leads/instagram", async (req, res) => {
     const segmento = req.query.segmento ? req.query.segmento.trim() : null;
     const cidade   = req.query.cidade   ? req.query.cidade.trim()   : null;
 
-    const select = `
-      id,
-      nome        AS razao_social,
-      nome        AS nome_fantasia,
-      segmento    AS cnae_descricao,
-      whatsapp    AS telefone1,
-      whatsapp    AS whatsapp_url,
-      instagram   AS instagram_url,
-      cidade      AS municipio_nome,
-      estado      AS uf,
-      NULL::text  AS ddd_municipio,
-      NULL::text  AS email,
-      NULL::text  AS cnpj,
-      NULL::text  AS logradouro,
-      website,
-      descricao,
-      funcionarios,
-      receita
+    // Extrai o handle do Instagram da coluna de descrição
+    // Ex: "...instagram.com/minha_loja..." → "https://instagram.com/minha_loja"
+    const igExtract = `
+      CASE
+        WHEN instagram ~* 'instagram\\.com/([A-Za-z0-9._]{2,40})'
+        THEN 'https://instagram.com/' ||
+             (regexp_match(instagram, '(?i)instagram\\.com/([A-Za-z0-9._]{2,40})'))[1]
+        WHEN instagram ~* '@([A-Za-z0-9._]{2,40})'
+        THEN 'https://instagram.com/' ||
+             (regexp_match(instagram, '@([A-Za-z0-9._]{2,40})'))[1]
+        ELSE NULL
+      END
     `;
 
-    const conditions = ["instagram IS NOT NULL", "instagram != ''"];
+    const select = `
+      id,
+      nome          AS razao_social,
+      nome          AS nome_fantasia,
+      segmento      AS cnae_descricao,
+      whatsapp      AS whatsapp_url,
+      (${igExtract}) AS instagram_url,
+      cidade        AS municipio_nome,
+      estado        AS uf,
+      website,
+      funcionarios,
+      receita,
+      NULL::text    AS ddd_municipio,
+      NULL::text    AS email,
+      NULL::text    AS cnpj
+    `;
+
+    // Só retorna leads onde conseguimos extrair um handle de Instagram
+    const conditions = [
+      `(instagram ~* 'instagram\\.com/[A-Za-z0-9._]{2,}' OR instagram ~* '@[A-Za-z0-9._]{2,}')`
+    ];
     const params = [];
     let p = 1;
 
