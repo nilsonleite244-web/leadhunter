@@ -417,6 +417,118 @@ app.get("/whatsapp/status", async (req, res) => {
     res.json({ connected: false, state: "error", error: err.message });
   }
 });
+// ── ASSINATURAS / KIRVANO ──────────────────────────────────────────────────
+
+function gerarToken() {
+  return require("crypto").randomBytes(32).toString("hex");
+}
+
+// Verifica se o token de assinante é válido — usado como middleware nas rotas pagas
+function authAssinante(req, res, next) {
+  const token = req.headers["x-assinante-token"] || req.query.token;
+  if (!token) return res.status(401).json({ error: "Token de assinante não informado" });
+  pool.query("SELECT * FROM assinantes WHERE token=$1 AND status='ativo'", [token])
+    .then(r => {
+      if (!r.rows.length) return res.status(401).json({ error: "Assinatura inativa ou token inválido" });
+      req.assinante = r.rows[0];
+      next();
+    })
+    .catch(() => res.status(500).json({ error: "Erro ao verificar assinatura" }));
+}
+
+// Webhook da Kirvano — chamado automaticamente após pagamento aprovado/cancelado
+app.post("/webhook/kirvano", express.raw({ type: "*/*" }), async (req, res) => {
+  try {
+    const body = typeof req.body === "string" ? req.body : req.body.toString("utf-8");
+    const payload = JSON.parse(body);
+
+    // Kirvano envia evento em payload.event ou payload.type
+    const evento = payload.event || payload.type || "";
+    const dados  = payload.data || payload;
+
+    // Extrai dados do cliente (Kirvano pode variar o formato)
+    const email = dados.customer?.email || dados.email || dados.buyer?.email;
+    const nome  = dados.customer?.name  || dados.name  || dados.buyer?.name || "";
+    const txId  = dados.transaction?.id || dados.id    || dados.order_id    || "";
+    const status = evento.includes("approved") || evento.includes("paid") || evento.includes("complete")
+      ? "ativo"
+      : evento.includes("cancel") || evento.includes("refund") || evento.includes("chargeback")
+      ? "cancelado"
+      : null;
+
+    if (!email || !status) return res.json({ ok: true, msg: "evento ignorado" });
+
+    // Verifica se já existe
+    const existing = await pool.query("SELECT * FROM assinantes WHERE email=$1", [email]);
+
+    if (existing.rows.length) {
+      await pool.query(
+        "UPDATE assinantes SET status=$1, kirvano_transaction_id=$2, updated_at=NOW() WHERE email=$3",
+        [status, txId, email]
+      );
+      console.log(`[Kirvano] ${email} → ${status}`);
+    } else if (status === "ativo") {
+      const token = gerarToken();
+      await pool.query(
+        "INSERT INTO assinantes(email,nome,status,token,kirvano_transaction_id,plano,ativado_em) VALUES($1,$2,'ativo',$3,$4,'mensal',NOW())",
+        [email, nome, token, txId]
+      );
+      console.log(`[Kirvano] novo assinante: ${email}`);
+
+      // Envia email com o token (se RESEND_API_KEY configurado)
+      const resendKey = process.env.RESEND_API_KEY;
+      const emailFrom = process.env.EMAIL_FROM || "noreply@leadhunter.app";
+      if (resendKey) {
+        await axios.post("https://api.resend.com/emails", {
+          from: emailFrom,
+          to:   email,
+          subject: "🦊 Seu acesso ao LeadHunter Pro está pronto!",
+          html: `
+            <div style="font-family:Inter,sans-serif;max-width:480px;margin:0 auto;background:#08080f;color:#eeeef2;padding:32px;border-radius:16px">
+              <h2 style="color:#f09030;margin-bottom:8px">Bem-vindo ao LeadHunter Pro! 🦊</h2>
+              <p style="color:#8888a0;margin-bottom:24px">Olá${nome ? " " + nome.split(" ")[0] : ""}! Seu pagamento foi confirmado.</p>
+              <p style="margin-bottom:8px">Seu token de acesso:</p>
+              <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.3);border-radius:10px;padding:16px;font-family:monospace;font-size:14px;letter-spacing:1px;word-break:break-all;color:#f5b455">
+                ${token}
+              </div>
+              <p style="color:#8888a0;font-size:13px;margin-top:16px">Cole esse token em <b style="color:#eeeef2">Configurações → Token de Acesso</b> dentro do LeadHunter.</p>
+              <a href="https://leadhunter-vert.vercel.app" style="display:inline-block;margin-top:20px;background:linear-gradient(135deg,#f09030,#e06818);color:#000;font-weight:700;padding:12px 24px;border-radius:9px;text-decoration:none">
+                Acessar LeadHunter →
+              </a>
+            </div>
+          `,
+        }, { headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" } }).catch(e => console.error("[Resend]", e.message));
+      }
+    }
+
+    res.json({ ok: true });
+  } catch(e) {
+    console.error("[Kirvano webhook] erro:", e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Login por email — retorna token se assinatura ativa
+app.post("/auth/login", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email obrigatório" });
+    const r = await pool.query("SELECT nome, token, status, ativado_em FROM assinantes WHERE email=$1", [email.toLowerCase().trim()]);
+    if (!r.rows.length) return res.status(404).json({ error: "Email não encontrado. Assine o plano para ter acesso." });
+    if (r.rows[0].status !== "ativo") return res.status(403).json({ error: "Assinatura inativa. Verifique seu pagamento." });
+    res.json({ token: r.rows[0].token, nome: r.rows[0].nome, ativado_em: r.rows[0].ativado_em });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Verifica token — frontend chama isso ao carregar
+app.get("/auth/verificar", async (req, res) => {
+  const token = req.headers["x-assinante-token"] || req.query.token;
+  if (!token) return res.status(401).json({ ok: false });
+  const r = await pool.query("SELECT nome, email, status, ativado_em FROM assinantes WHERE token=$1", [token]).catch(() => ({ rows: [] }));
+  if (!r.rows.length || r.rows[0].status !== "ativo") return res.status(401).json({ ok: false });
+  res.json({ ok: true, nome: r.rows[0].nome, email: r.rows[0].email });
+});
+
 // ── FRONTEND ──
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
@@ -425,6 +537,8 @@ async function criarSchema() {
     await pool.query("CREATE TABLE IF NOT EXISTS campanhas (id BIGSERIAL PRIMARY KEY, nome VARCHAR(200), canal VARCHAR(20), total INT, enviados INT DEFAULT 0, status VARCHAR(20) DEFAULT 'pendente', mensagem_template TEXT, delay_segundos INT DEFAULT 60, created_at TIMESTAMPTZ DEFAULT NOW(), iniciado_at TIMESTAMPTZ, concluido_at TIMESTAMPTZ)");
     await pool.query("CREATE TABLE IF NOT EXISTS campanha_destinatarios (id BIGSERIAL PRIMARY KEY, campanha_id BIGINT REFERENCES campanhas(id), cnpj VARCHAR(14), status VARCHAR(20) DEFAULT 'pendente', enviado_at TIMESTAMPTZ, erro TEXT)");
     await pool.query("CREATE INDEX IF NOT EXISTS idx_dest_campanha ON campanha_destinatarios(campanha_id, status)");
+    await pool.query("CREATE TABLE IF NOT EXISTS assinantes (id BIGSERIAL PRIMARY KEY, email VARCHAR(255) UNIQUE, nome VARCHAR(255), status VARCHAR(20) DEFAULT 'ativo', token VARCHAR(100) UNIQUE, kirvano_transaction_id VARCHAR(200), plano VARCHAR(50) DEFAULT 'mensal', ativado_em TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW())");
+    await pool.query("CREATE INDEX IF NOT EXISTS idx_assinantes_token ON assinantes(token)");
     console.log("Schema verificado");
   } catch (e) {
     console.error("Erro schema:", e.message);

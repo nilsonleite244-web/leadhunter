@@ -431,7 +431,81 @@ select option{background:var(--s2)}textarea{resize:vertical}
 </style>
 </head>
 <body>
-<div class="app">
+<!-- ══ TELA DE LOGIN ══ -->
+<div id="login-screen" style="display:none;position:fixed;inset:0;background:#08080f;z-index:9999;align-items:center;justify-content:center;flex-direction:column">
+  <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none">
+    <div style="position:absolute;width:500px;height:500px;top:-100px;left:-100px;background:radial-gradient(circle,rgba(240,144,48,.07),transparent 70%);border-radius:50%"></div>
+    <div style="position:absolute;width:400px;height:400px;bottom:-80px;right:-80px;background:radial-gradient(circle,rgba(168,85,247,.06),transparent 70%);border-radius:50%"></div>
+  </div>
+  <div style="width:100%;max-width:400px;padding:24px;position:relative;z-index:1">
+    <!-- Logo -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:36px;justify-content:center">
+      <div style="width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#f09030,#e06010);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(240,144,48,.35)">
+        <svg viewBox="0 0 32 32" fill="none" style="width:28px;height:28px">
+          <path d="M7 3L11.5 13H3L7 3Z" fill="rgba(0,0,0,0.55)"/>
+          <path d="M25 3L29 13H20.5L25 3Z" fill="rgba(0,0,0,0.55)"/>
+          <path d="M7 6L9.5 12H5L7 6Z" fill="rgba(255,255,255,0.25)"/>
+          <path d="M25 6L27.5 12H22L25 6Z" fill="rgba(255,255,255,0.25)"/>
+          <ellipse cx="16" cy="20" rx="11" ry="9.5" fill="rgba(0,0,0,0.5)"/>
+          <ellipse cx="16" cy="23.5" rx="5" ry="3.5" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="11.5" cy="18" r="2" fill="white"/><circle cx="20.5" cy="18" r="2" fill="white"/>
+          <circle cx="12" cy="18.3" r="1.1" fill="#1a0800"/><circle cx="21" cy="18.3" r="1.1" fill="#1a0800"/>
+          <ellipse cx="16" cy="23" rx="1.4" ry="1" fill="rgba(0,0,0,0.6)"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size:18px;font-weight:800;letter-spacing:-.4px">Lead<span style="color:#f09030">Hunter</span></div>
+        <div style="font-size:10px;color:#3a3a50;letter-spacing:.06em">PROSPECÇÃO INTELIGENTE</div>
+      </div>
+    </div>
+
+    <!-- Card login -->
+    <div style="background:#0e0e18;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:28px">
+      <h2 style="font-size:17px;font-weight:700;margin-bottom:4px">Acessar plataforma</h2>
+      <p style="font-size:12.5px;color:#8888a0;margin-bottom:22px">Digite seu e-mail ou cole seu token de acesso</p>
+
+      <!-- Tabs -->
+      <div style="display:flex;background:#15151f;border-radius:8px;padding:3px;margin-bottom:18px;border:1px solid rgba(255,255,255,.05)">
+        <button id="tab-email" onclick="switchLoginTab('email')" style="flex:1;padding:7px;border:none;background:#1d1d28;border-radius:6px;color:#eeeef2;font-size:12.5px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif">E-mail</button>
+        <button id="tab-token" onclick="switchLoginTab('token')" style="flex:1;padding:7px;border:none;background:transparent;border-radius:6px;color:#8888a0;font-size:12.5px;cursor:pointer;font-family:Inter,sans-serif">Token</button>
+      </div>
+
+      <!-- Email -->
+      <div id="form-email">
+        <input id="login-email" type="email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')loginComEmail()"
+          style="width:100%;background:#15151f;border:1px solid rgba(255,255,255,.08);border-radius:9px;color:#eeeef2;font-family:Inter,sans-serif;font-size:13px;padding:11px 14px;outline:none;margin-bottom:12px;box-sizing:border-box">
+        <button id="btn-login" onclick="loginComEmail()"
+          style="width:100%;padding:11px;background:linear-gradient(135deg,#f09030,#e06818);border:none;border-radius:9px;color:#000;font-size:13px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">
+          Entrar
+        </button>
+      </div>
+
+      <!-- Token -->
+      <div id="form-token" style="display:none">
+        <input id="login-token" type="text" placeholder="Cole seu token aqui..." onkeydown="if(event.key==='Enter')loginComToken()"
+          style="width:100%;background:#15151f;border:1px solid rgba(255,255,255,.08);border-radius:9px;color:#f5b455;font-family:monospace;font-size:12px;padding:11px 14px;outline:none;margin-bottom:12px;box-sizing:border-box;letter-spacing:.5px">
+        <button onclick="loginComToken()"
+          style="width:100%;padding:11px;background:linear-gradient(135deg,#f09030,#e06818);border:none;border-radius:9px;color:#000;font-size:13px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">
+          Verificar Token
+        </button>
+      </div>
+
+      <p id="login-err" style="color:#ef4444;font-size:12px;margin-top:10px;min-height:16px"></p>
+    </div>
+
+    <!-- CTA assinar -->
+    <div style="text-align:center;margin-top:20px">
+      <p style="font-size:12px;color:#3a3a50;margin-bottom:10px">Ainda não é assinante?</p>
+      <a id="btn-assinar" href="#" target="_blank"
+        style="display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:rgba(240,144,48,.1);border:1px solid rgba(240,144,48,.25);border-radius:9px;color:#f09030;font-size:13px;font-weight:600;text-decoration:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Assinar LeadHunter Pro
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app" style="display:none">
 
 <!-- ══ SIDEBAR ══ -->
 <aside class="sidebar">
@@ -1502,14 +1576,110 @@ function delTemplate(i) {
   renderTemplates();
 }
 
-// ══ INIT ══
+// ══ KIRVANO CHECKOUT URL ══
+const KIRVANO_URL = localStorage.getItem('lh_kirvano_url') || '';
 window.addEventListener('load', () => {
+  if (KIRVANO_URL) document.getElementById('btn-assinar').href = KIRVANO_URL;
+}, { once: false });
+
+function switchLoginTab(tab) {
+  document.getElementById('form-email').style.display = tab === 'email' ? '' : 'none';
+  document.getElementById('form-token').style.display = tab === 'token' ? '' : 'none';
+  document.getElementById('tab-email').style.background = tab === 'email' ? '#1d1d28' : 'transparent';
+  document.getElementById('tab-email').style.color      = tab === 'email' ? '#eeeef2' : '#8888a0';
+  document.getElementById('tab-token').style.background = tab === 'token' ? '#1d1d28' : 'transparent';
+  document.getElementById('tab-token').style.color      = tab === 'token' ? '#eeeef2' : '#8888a0';
+}
+
+// ══ AUTH / ASSINATURA ══
+let ASSINANTE_TOKEN = localStorage.getItem('lh_token') || '';
+let ASSINANTE_NOME  = localStorage.getItem('lh_nome')  || '';
+
+function apiAuth(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (ASSINANTE_TOKEN) headers['x-assinante-token'] = ASSINANTE_TOKEN;
+  return fetch(_RAILWAY + path, { headers, ...opts }).then(r => r.json());
+}
+
+function mostrarTelaLogin() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+function mostrarApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+}
+
+async function loginComEmail() {
+  const email = document.getElementById('login-email').value.trim();
+  const btn   = document.getElementById('btn-login');
+  const err   = document.getElementById('login-err');
+  if (!email || !email.includes('@')) { err.textContent = 'Digite um e-mail válido.'; return; }
+  err.textContent = '';
+  btn.disabled = true; btn.textContent = 'Verificando...';
+  try {
+    const d = await apiAuth('/auth/login', { method:'POST', body: JSON.stringify({ email }) });
+    if (d.error) { err.textContent = d.error; return; }
+    ASSINANTE_TOKEN = d.token;
+    ASSINANTE_NOME  = d.nome || email;
+    localStorage.setItem('lh_token', d.token);
+    localStorage.setItem('lh_nome',  ASSINANTE_NOME);
+    mostrarApp();
+    checkHealth().then(ok => { if (ok) loadDashboard(); });
+    toast('Bem-vindo, ' + ASSINANTE_NOME.split(' ')[0] + '!', 'success');
+  } catch(e) { err.textContent = 'Erro de conexão. Tente novamente.'; }
+  finally { btn.disabled = false; btn.textContent = 'Entrar'; }
+}
+
+async function loginComToken() {
+  const token = document.getElementById('login-token').value.trim();
+  const err   = document.getElementById('login-err');
+  if (!token) { err.textContent = 'Cole seu token de acesso.'; return; }
+  err.textContent = '';
+  try {
+    const d = await apiAuth('/auth/verificar', { headers: { 'x-assinante-token': token } });
+    if (!d.ok) { err.textContent = 'Token inválido ou assinatura inativa.'; return; }
+    ASSINANTE_TOKEN = token;
+    ASSINANTE_NOME  = d.nome || d.email;
+    localStorage.setItem('lh_token', token);
+    localStorage.setItem('lh_nome',  ASSINANTE_NOME);
+    mostrarApp();
+    checkHealth().then(ok => { if (ok) loadDashboard(); });
+    toast('Bem-vindo, ' + ASSINANTE_NOME.split(' ')[0] + '!', 'success');
+  } catch(e) { err.textContent = 'Erro de conexão.'; }
+}
+
+function logout() {
+  localStorage.removeItem('lh_token');
+  localStorage.removeItem('lh_nome');
+  ASSINANTE_TOKEN = '';
+  mostrarTelaLogin();
+}
+
+// ══ INIT ══
+window.addEventListener('load', async () => {
   const savedUrl = localStorage.getItem('lh_api_url');
   const savedKey = localStorage.getItem('lh_api_key');
   if (savedUrl) { API_BASE = savedUrl; } else { localStorage.setItem('lh_api_url', _RAILWAY); }
   if (savedKey) API_KEY = savedKey;
   renderTemplates();
-  checkHealth().then(ok => { if (ok) loadDashboard(); });
+
+  // Verifica token salvo
+  if (ASSINANTE_TOKEN) {
+    const d = await apiAuth('/auth/verificar').catch(() => ({ ok: false }));
+    if (d.ok) {
+      ASSINANTE_NOME = d.nome || d.email || ASSINANTE_NOME;
+      localStorage.setItem('lh_nome', ASSINANTE_NOME);
+      mostrarApp();
+      checkHealth().then(ok => { if (ok) loadDashboard(); });
+      return;
+    } else {
+      localStorage.removeItem('lh_token');
+      ASSINANTE_TOKEN = '';
+    }
+  }
+  mostrarTelaLogin();
 });
 </script>
 </body>
