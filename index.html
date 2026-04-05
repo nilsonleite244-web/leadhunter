@@ -995,7 +995,7 @@ async function runSearch(page = 1) {
   const porte = document.getElementById('f-porte').value;
   if (ddd)   p.set('ddd', ddd);
   if (porte) p.set('porte', porte);
-  if (document.getElementById('chk-tel').classList.contains('on'))    p.set('tem_telefone','true');
+  p.set('tem_telefone','true');
   if (document.getElementById('chk-email').classList.contains('on'))  p.set('tem_email','true');
   if (document.getElementById('chk-simples').classList.contains('on')) p.set('simples','true');
   p.set('page', page); p.set('limit', 50);
@@ -1091,11 +1091,18 @@ function renderResults(rows, mode) {
 function formatWpp(tel, ddd) {
   if (!tel) return null;
   let num = tel.replace(/\D/g, '');
-  if (!num) return null;
+  if (!num || num.length < 8) return null;
+  // Remove DDI 55 se já vier duplicado ou errado
+  if (num.startsWith('550') || num.startsWith('550')) num = num.slice(2);
+  // Se vier só com 8 ou 9 dígitos (sem DDD), adiciona DDD
   if (num.length <= 9 && ddd) num = ddd.replace(/\D/g,'') + num;
+  // Se vier com DDD mas sem DDI (10 ou 11 dígitos), adiciona 55
   if (!num.startsWith('55')) num = '55' + num;
-  const m = num.match(/^55(\d{2})(\d+)$/);
-  if (m && m[2].length === 8) num = '55' + m[1] + '9' + m[2];
+  // Normaliza: se a parte após DDD tiver 8 dígitos (celular antigo), adiciona o 9
+  const m = num.match(/^55(\d{2})(\d{4,})$/);
+  if (m && m[2].length === 8 && !m[2].startsWith('9')) num = '55' + m[1] + '9' + m[2];
+  // Valida tamanho final (deve ter 12 ou 13 dígitos)
+  if (num.length < 12 || num.length > 13) return null;
   return 'https://wa.me/' + num;
 }
 
