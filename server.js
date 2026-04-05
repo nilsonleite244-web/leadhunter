@@ -55,15 +55,67 @@ app.use(["/leads", "/stats", "/campanha", "/whatsapp"], authMiddleware);
 
 app.get("/leads/instagram", async (req, res) => {
   try {
-    const limit = Math.min(200, parseInt(req.query.limit) || 50);
-    const busca = req.query.busca ? req.query.busca.trim() : null;
+    const { page, limit, offset } = paginate(req);
+    const busca    = req.query.busca    ? req.query.busca.trim()    : null;
+    const segmento = req.query.segmento ? req.query.segmento.trim() : null;
+    const cidade   = req.query.cidade   ? req.query.cidade.trim()   : null;
+
+    // descobre colunas reais da tabela para não explodir se faltarem
+    const colsRes = await pool.query(
+      "SELECT column_name FROM information_schema.columns WHERE table_name='leads_extra' ORDER BY ordinal_position"
+    );
+    const cols = new Set(colsRes.rows.map(r => r.column_name));
+
+    const select = [
+      "id",
+      "nome          AS razao_social",
+      "nome          AS nome_fantasia",
+      "segmento      AS cnae_descricao",
+      "telefone      AS telefone1",
+      "instagram_url",
+      "whatsapp_url",
+      "endereco      AS logradouro",
+      "status",
+      "cidade        AS municipio_nome",
+      cols.has("ddd")      ? "ddd      AS ddd_municipio" : "NULL::text AS ddd_municipio",
+      cols.has("email")    ? "email"                     : "NULL::text AS email",
+      cols.has("cnpj")     ? "cnpj"                      : "NULL::text AS cnpj",
+      cols.has("uf")       ? "uf"                        : "NULL::text AS uf",
+    ].join(", ");
+
+    const conditions = ["(instagram_url IS NOT NULL AND instagram_url != '')"];
     const params = [];
-    let sql = "SELECT nome as razao_social, nome as nome_fantasia, segmento as cnae_descricao, telefone as telefone1, whatsapp_url, instagram_url, endereco as logradouro, status, cidade as municipio_nome FROM leads_extra WHERE instagram_url IS NOT NULL AND instagram_url != ''";
-    if (busca) { params.push('%' + busca + '%'); sql += " AND nome ILIKE $" + params.length; }
-    sql += " ORDER BY id DESC LIMIT $" + (params.length + 1);
-    params.push(limit);
-    const result = await pool.query(sql, params);
-    res.json({ total: result.rows.length, data: result.rows });
+    let p = 1;
+
+    if (busca) {
+      conditions.push(`(nome ILIKE $${p} OR segmento ILIKE $${p})`);
+      params.push('%' + busca + '%'); p++;
+    }
+    if (segmento) {
+      conditions.push(`segmento ILIKE $${p++}`);
+      params.push('%' + segmento + '%');
+    }
+    if (cidade && cols.has("cidade")) {
+      conditions.push(`cidade ILIKE $${p++}`);
+      params.push('%' + cidade + '%');
+    }
+
+    const where = "WHERE " + conditions.join(" AND ");
+    const countRes = await pool.query(`SELECT COUNT(*) FROM leads_extra ${where}`, params);
+    const total = parseInt(countRes.rows[0].count) || 0;
+
+    const dataRes = await pool.query(
+      `SELECT ${select} FROM leads_extra ${where} ORDER BY id DESC LIMIT $${p++} OFFSET $${p++}`,
+      [...params, limit, offset]
+    );
+
+    res.json({
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit),
+      data: dataRes.rows,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

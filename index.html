@@ -671,21 +671,29 @@ select option{background:var(--s2)}textarea{resize:vertical}
           </div>
           <div class="ig-title">Encontre Leads<br>com Instagram</div>
           <div class="ig-sub">Negócios com presença no Instagram prontos para prospecção. Acesse o perfil diretamente, veja o nicho e dispare no WhatsApp — tudo em uma tela.</div>
-          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-            <div class="field" style="flex:1;max-width:320px;margin-bottom:0">
-              <input id="ig-busca" placeholder="Filtrar por nome do negócio..." style="height:42px;background:rgba(255,255,255,.04);border-color:rgba(168,85,247,.2)" onkeydown="if(event.key==='Enter')buscarInstagram()">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+            <div class="field" style="margin-bottom:0">
+              <label style="color:rgba(224,170,255,.6)">Nome / Negócio</label>
+              <input id="ig-busca" placeholder="Ex: barbearia, clínica, loja..." style="height:40px;background:rgba(255,255,255,.04);border-color:rgba(168,85,247,.2)" onkeydown="if(event.key==='Enter')buscarInstagram(1)">
             </div>
+            <div class="field" style="margin-bottom:0">
+              <label style="color:rgba(224,170,255,.6)">Segmento</label>
+              <input id="ig-segmento" placeholder="Ex: beleza, alimentação..." style="height:40px;background:rgba(255,255,255,.04);border-color:rgba(168,85,247,.2)" onkeydown="if(event.key==='Enter')buscarInstagram(1)">
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
             <div class="ig-mega-wrap">
               <div class="ig-sparks">
                 <div class="spark"></div><div class="spark"></div><div class="spark"></div>
                 <div class="spark"></div><div class="spark"></div><div class="spark"></div>
                 <div class="spark"></div>
               </div>
-              <button class="ig-mega-btn" id="btn-ig" onclick="buscarInstagram()">
+              <button class="ig-mega-btn" id="btn-ig" onclick="buscarInstagram(1)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg>
                 Buscar Leads com Instagram
               </button>
             </div>
+            <span id="ig-total-hint" style="font-size:12px;color:rgba(224,170,255,.6)"></span>
           </div>
         </div>
       </div>
@@ -1142,23 +1150,45 @@ async function runSearch(page = 1) {
 }
 
 // ══ LEADS INSTAGRAM ══
-async function buscarInstagram() {
+async function buscarInstagram(page = 1) {
   const btn = document.getElementById('btn-ig');
   btn.disabled = true;
-  btn.innerHTML = '<div class="spinner" style="border-color:rgba(255,255,255,.3);border-top-color:#fff"></div> Buscando...';
-  const busca = (document.getElementById('ig-busca').value || '').trim();
+  btn.innerHTML = '<div class="spinner" style="border-color:rgba(255,255,255,.3);border-top-color:#fff;width:15px;height:15px"></div> Buscando...';
+  const busca    = (document.getElementById('ig-busca')?.value    || '').trim();
+  const segmento = (document.getElementById('ig-segmento')?.value || '').trim();
+  const p = new URLSearchParams({ limit: 100, page });
+  if (busca)    p.set('busca', busca);
+  if (segmento) p.set('segmento', segmento);
   try {
-    const d = await api('/leads/instagram?limit=50' + (busca ? '&busca=' + encodeURIComponent(busca) : ''));
+    const d = await api('/leads/instagram?' + p);
     state.results = d.data || [];
+    state.page    = d.page  || 1;
+    state.pages   = d.pages || 1;
+    state.total   = d.total || 0;
     renderResults(state.results, 'instagram');
-    document.getElementById('result-count').textContent = state.results.length + ' leads com Instagram';
+    renderPagIG(d.page, d.pages);
+    const hint = document.getElementById('ig-total-hint');
+    if (hint) hint.textContent = d.total > 0 ? `${d.total.toLocaleString('pt-BR')} leads encontrados` : '';
+    document.getElementById('result-count').textContent = d.total.toLocaleString('pt-BR') + ' leads com Instagram';
     document.getElementById('result-count').style.display = '';
     document.getElementById('btn-export').disabled = false;
-    addFeed('purple', `Instagram: <b>${state.results.length} leads</b> encontrados`);
-    toast(state.results.length + ' leads com Instagram!', 'success');
+    addFeed('purple', `Instagram: <b>${d.total} leads</b> na base`);
+    toast(d.total.toLocaleString('pt-BR') + ' leads com Instagram encontrados!', 'success');
   } catch (e) { toast('Erro: ' + e.message, 'error'); }
   btn.disabled = false;
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg> Buscar Leads com Instagram';
+}
+
+function renderPagIG(page, pages) {
+  const el = document.getElementById('pag');
+  if (!pages || pages <= 1) { el.style.display='none'; return; }
+  el.style.display = 'flex';
+  let h = `<button class="pag-btn" onclick="buscarInstagram(${page-1})" ${page<=1?'disabled':''}>← Anterior</button>`;
+  const s = Math.max(1,page-2), e = Math.min(pages,page+2);
+  for (let i=s;i<=e;i++) h += `<button class="pag-btn ${i===page?'active':''}" onclick="buscarInstagram(${i})">${i}</button>`;
+  h += `<button class="pag-btn" onclick="buscarInstagram(${page+1})" ${page>=pages?'disabled':''}>Próxima →</button>`;
+  h += `<span class="ml-auto t-sm t-muted">${page}/${pages} páginas</span>`;
+  el.innerHTML = h;
 }
 
 // ══ RENDER RESULTS ══
