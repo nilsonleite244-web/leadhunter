@@ -41,6 +41,28 @@ function paginate(req) {
   return { page, limit, offset };
 }
 
+app.get("/debug/ig-counts", async (req, res) => {
+  try {
+    const igCond = `(instagram ~* 'instagram\\.com/[A-Za-z0-9._]{2,}' OR instagram ~* '@[A-Za-z0-9._]{2,}')`;
+    const [total, comReceita, comFunc, comSite, comReceitaEFunc, tudo] = await Promise.all([
+      pool.query(`SELECT COUNT(*) FROM leads_extra WHERE ${igCond}`),
+      pool.query(`SELECT COUNT(*) FROM leads_extra WHERE ${igCond} AND receita IS NOT NULL AND receita != ''`),
+      pool.query(`SELECT COUNT(*) FROM leads_extra WHERE ${igCond} AND funcionarios IS NOT NULL AND funcionarios != ''`),
+      pool.query(`SELECT COUNT(*) FROM leads_extra WHERE ${igCond} AND website IS NOT NULL AND website != '' AND website NOT ILIKE '%instagram.com%'`),
+      pool.query(`SELECT COUNT(*) FROM leads_extra WHERE ${igCond} AND receita IS NOT NULL AND receita != '' AND funcionarios IS NOT NULL AND funcionarios != ''`),
+      pool.query(`SELECT COUNT(*) FROM leads_extra WHERE ${igCond} AND receita IS NOT NULL AND receita != '' AND funcionarios IS NOT NULL AND funcionarios != '' AND website IS NOT NULL AND website != '' AND website NOT ILIKE '%instagram.com%'`),
+    ]);
+    res.json({
+      total_com_ig: parseInt(total.rows[0].count),
+      com_receita: parseInt(comReceita.rows[0].count),
+      com_funcionarios: parseInt(comFunc.rows[0].count),
+      com_site_real: parseInt(comSite.rows[0].count),
+      receita_e_funcionarios: parseInt(comReceitaEFunc.rows[0].count),
+      todos_tres: parseInt(tudo.rows[0].count),
+    });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get("/health", async (req, res) => {
   try {
     const r1 = await pool.query("SELECT COUNT(*) as count FROM leads");
