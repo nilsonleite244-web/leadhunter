@@ -40,6 +40,23 @@ function paginate(req) {
   const offset = (page - 1) * limit;
   return { page, limit, offset };
 }
+app.get("/debug/schema", async (req, res) => {
+  try {
+    const tables = await pool.query(`
+      SELECT table_name FROM information_schema.tables
+      WHERE table_schema='public' ORDER BY table_name`);
+    const result = {};
+    for (const { table_name } of tables.rows) {
+      const cols = await pool.query(
+        `SELECT column_name, data_type FROM information_schema.columns
+         WHERE table_name=$1 ORDER BY ordinal_position`, [table_name]);
+      const cnt  = await pool.query(`SELECT COUNT(*) FROM ${table_name}`).catch(() => ({rows:[{count:'?'}]}));
+      result[table_name] = { count: cnt.rows[0].count, columns: cols.rows.map(r => r.column_name + ':' + r.data_type) };
+    }
+    res.json(result);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get("/health", async (req, res) => {
   try {
     const r1 = await pool.query("SELECT COUNT(*) as count FROM leads");
