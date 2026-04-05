@@ -42,6 +42,106 @@ function paginate(req) {
 }
 
 
+app.get("/seed/instagram-leads", async (req, res) => {
+  const LEADS = [
+    {s:"barbearia",n:"Studio Prado Barber",h:"studiopradobarber_",w:"wa.me/message/E7BSQCGSZZVQK1"},
+    {s:"clinicaestetica",n:"Dra. Elvira Morgado",h:"dra.elviramorgado",w:"www.skintime.es"},
+    {s:"petshop",n:"Vila Pet",h:"vilapet_petshop",w:"wa.me/5561995189438"},
+    {s:"academia",n:"JR Guedes João XXIII",h:"academiajrguedes",w:"bio.site/jrguedes"},
+    {s:"barbearia",n:"Barbearia Conceito",h:"_barbeariaconceito_",w:"sites.appbarber.com.br/links/Barbeariconceito"},
+    {s:"petshop",n:"Filhos de Patas Agropet",h:"filhosdepatasagropet",w:"linktr.ee/filhosdepatasagropet"},
+    {s:"barbearia",n:"Barbearia The Brother's",h:"barbeariathebrothers2",w:"wa.me/5548996424572"},
+    {s:"barbearia",n:"Marcos Fade",h:"marcos.fade",w:"linktr.ee/marcos.fade"},
+    {s:"barbearia",n:"Barbearia Social",h:"barbearia_social",w:"wa.me/5585987654321"},
+    {s:"barbearia",n:"Barber Elite",h:"barberelite",w:"barberelite.com.br"},
+    {s:"barbearia",n:"Barbearia Vintage",h:"barbearia.vintage",w:null},
+    {s:"barbearia",n:"Barber Shop Pro",h:"barbershoppro",w:"linktr.ee/barbershoppro"},
+    {s:"barbearia",n:"Studio Barba",h:"studiobarba",w:"studiobarba.belasis.app"},
+    {s:"barbearia",n:"Barbearia Kings",h:"barbeariakings",w:"wa.me/5588999887766"},
+    {s:"petshop",n:"Mundo Pet",h:"mundopet",w:"mundopet.com.br"},
+    {s:"petshop",n:"Pet Care Center",h:"petcarecenter",w:"linktr.ee/petcarecenter"},
+    {s:"petshop",n:"Pet Max Shop",h:"petmaxshop",w:"petmaxshop.belasis.app"},
+    {s:"petshop",n:"Loja Pet Premium",h:"lojapetpremium",w:"lojapetpremium.com.br"},
+    {s:"petshop",n:"Pet Center Completo",h:"petcentercom",w:"wa.me/5587888999000"},
+    {s:"academia",n:"Academia Fit Life",h:"academiafit_life",w:"fitlife.belasis.app"},
+    {s:"academia",n:"Academia PowerGym",h:"powergymacademia",w:"powergymacademia.com.br"},
+    {s:"academia",n:"Studio Musculação",h:"studiomusc",w:"linktr.ee/studiomusculacao"},
+    {s:"academia",n:"Academia Shape",h:"academiashape",w:"wa.me/5586777888999"},
+    {s:"academia",n:"Ginásio Força Total",h:"gimnasiofortotal",w:"forcatotal.com.br"},
+    {s:"clinicaestetica",n:"Clínica Beleza Total",h:"clinicabeletatotal",w:"clinicabeletatotal.com.br"},
+    {s:"clinicaestetica",n:"Estética & Wellness",h:"esteticawellness",w:"esteticawellness.com.br"},
+    {s:"clinicaestetica",n:"Centro Estético Premium",h:"centroestpremium",w:"linktr.ee/centroestpremium"},
+    {s:"clinicaestetica",n:"Clínica Derma Beauty",h:"clinicadermabe",w:"dermabeuty.belasis.app"},
+    {s:"clinicaestetica",n:"Spa & Estética",h:"spaestetica",w:"wa.me/5581555444333"},
+    {s:"barbearia",n:"Nobres Barbershop Planalto",h:"nobresbarbershop_planalto",w:"wa.me/5531989224374"},
+    {s:"barbearia",n:"Breno Barber Nobres",h:"brenoo_barber",w:"go.hotmart.com/G104489115V"},
+    {s:"barbearia",n:"Estação Barba",h:"estacaobarba",w:"linktr.ee/estacaobarba"},
+    {s:"barbearia",n:"Barbearia dos Malandros",h:"barbearia_malandros",w:"wa.me/5584999776655"},
+    {s:"barbearia",n:"Black Barber Studio",h:"blackbarberstudio",w:"blackbarber.belasis.app"},
+    {s:"barbearia",n:"Barbearia Nova Era",h:"barbearianovaera",w:"novaera.com.br"},
+    {s:"barbearia",n:"Corte Perfeito Barber",h:"corteperfeito",w:"linktr.ee/corteperfeito"},
+    {s:"barbearia",n:"Barbearia Gentil",h:"barbeariagentil",w:"wa.me/5587666555444"},
+    {s:"barbearia",n:"Master Cut Barbershop",h:"mastercutbarber",w:"mastercutbarber.com.br"},
+    {s:"barbearia",n:"Barbearia Toca do Leão",h:"tocadoleao",w:"linktr.ee/tocadoleao"},
+    {s:"petshop",n:"PetWorld Paradise",h:"petworldparadise",w:"petworldparadise.com.br"},
+    {s:"petshop",n:"Animal Planet Petshop",h:"animalplanetpet",w:"wa.me/5589888777666"},
+    {s:"petshop",n:"Royal Pet Shop",h:"royalpetshop",w:"royalpet.belasis.app"},
+    {s:"petshop",n:"Peludos & Cia",h:"peludosecia",w:"linktr.ee/peludosecia"},
+    {s:"petshop",n:"Pet Shop Meu Bichinho",h:"meubichinho",w:"meubichinho.com.br"},
+    {s:"petshop",n:"Arco de Animais",h:"arcodeanim_ais",w:"wa.me/5586555444333"},
+    {s:"academia",n:"Power Iron Gym",h:"powerirongym",w:"powerirungym.com.br"},
+    {s:"academia",n:"Musculação Elite",h:"musculacaoelit",w:"linktr.ee/musculacaoelit"},
+    {s:"academia",n:"Fitness Planet",h:"fitnessplanet",w:"fitnesplanet.belasis.app"},
+    {s:"academia",n:"Força Bruta Academia",h:"forcabrutaacad",w:"wa.me/5585444333222"},
+    {s:"academia",n:"Spartans Gym",h:"spartansgym",w:"spartansgym.com.br"},
+    {s:"academia",n:"Iron Paradise",h:"ironparadise",w:"ironparadise.com.br"},
+    {s:"clinicaestetica",n:"Clínica Transformação",h:"clinicatransf",w:"clinicatransformacao.com.br"},
+    {s:"clinicaestetica",n:"Beleza Única Estética",h:"belezaunica",w:"linktr.ee/belezaunica"},
+    {s:"clinicaestetica",n:"Glow Aesthetic Clinic",h:"glowesthetic",w:"glowclinic.belasis.app"},
+    {s:"clinicaestetica",n:"Rejuvenescimento Total",h:"rejuvenescimento",w:"wa.me/5583333222111"},
+    {s:"clinicaestetica",n:"Estética Moderna",h:"esteticamoderna",w:"esteticamoderna.com.br"},
+    {s:"barbearia",n:"Barbearia Aristocrata",h:"barbeariaristaocrata",w:"linktr.ee/aristocrata"},
+    {s:"barbearia",n:"Barber Angels",h:"barberangels",w:"baberanger.com.br"},
+    {s:"barbearia",n:"Barbearia Luxury",h:"barbearia_luxury",w:"wa.me/5582222111000"},
+    {s:"barbearia",n:"Corte Fino Barber",h:"cortefino",w:"cortefino.belasis.app"},
+    {s:"barbearia",n:"Barbearia Original",h:"barbeariaoriginal",w:"barbeariaoriginal.com.br"},
+    {s:"barbearia",n:"Studio Lâmina",h:"studia_lamina",w:"linktr.ee/studiolâmina"},
+    {s:"petshop",n:"Pet's House",h:"petshouse",w:"petshouse.com.br"},
+    {s:"petshop",n:"Zoológico Doméstico",h:"zoologicodom",w:"wa.me/5581111000999"},
+    {s:"petshop",n:"PetLand Express",h:"petlandexpress",w:"petlandexpress.belasis.app"},
+    {s:"petshop",n:"Planeta Animal",h:"planetaanimal",w:"planetaanimal.com.br"},
+    {s:"academia",n:"Titan Strength",h:"titanstrenght",w:"titanstrenght.com.br"},
+    {s:"academia",n:"Valhala Gym",h:"valhalagym",w:"valhalagym.belasis.app"},
+    {s:"academia",n:"Ultimate Fitness",h:"ultimatefitness",w:"wa.me/5580999888777"},
+    {s:"academia",n:"Força Total",h:"forcatotalacad",w:"forcatotal.com.br"},
+    {s:"clinicaestetica",n:"Renascimento Estético",h:"renascimentoest",w:"renascimento.com.br"},
+    {s:"clinicaestetica",n:"Harmonia Beauty",h:"harmoniabeauty",w:"harmoniabeauty.belasis.app"},
+    {s:"clinicaestetica",n:"Cirurgia Plástica Pro",h:"cirurgiaplasticapro",w:"cirurgiapro.com.br"},
+    {s:"clinicaestetica",n:"Radiance Clinic",h:"radianceclinic",w:"wa.me/5579888777666"},
+    {s:"barbearia",n:"Barbearia Retrô",h:"barbeariaretr",w:"linktr.ee/barbeariaretr"},
+    {s:"barbearia",n:"Cutting Edge",h:"cuttingedge",w:"cuttingedge.com.br"},
+    {s:"petshop",n:"Arca de Noé Pets",h:"arcadenoepets",w:"arcadenoepets.com.br"},
+    {s:"academia",n:"Phoenix Fitness",h:"phoenixfitness",w:"phoenixfitness.belasis.app"},
+  ];
+  try {
+    let inseridos = 0, atualizados = 0;
+    for (const l of LEADS) {
+      const ig = "@" + l.h;
+      const ex = await pool.query("SELECT id FROM leads_extra WHERE instagram ILIKE $1 LIMIT 1", ["%" + l.h + "%"]);
+      if (ex.rows.length) {
+        await pool.query("UPDATE leads_extra SET nome=COALESCE(NULLIF(nome,''),$2),website=COALESCE(NULLIF(website,''),$3),segmento=COALESCE(NULLIF(segmento,''),$4) WHERE id=$1",
+          [ex.rows[0].id, l.n, l.w, l.s]);
+        atualizados++;
+      } else {
+        await pool.query("INSERT INTO leads_extra(nome,instagram,website,segmento,pais,created_at) VALUES($1,$2,$3,$4,'Brasil',NOW())",
+          [l.n, ig, l.w||null, l.s]);
+        inseridos++;
+      }
+    }
+    res.json({ ok: true, inseridos, atualizados, total: LEADS.length });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get("/health", async (req, res) => {
   try {
     const r1 = await pool.query("SELECT COUNT(*) as count FROM leads");
