@@ -13,10 +13,12 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
   connectionTimeoutMillis: 10000,
   idleTimeoutMillis: 30000,
-  max: 10,
+  max: 5,
   family: 4,
 });
 pool.on("error", (err) => { console.error("Erro no pool:", err.message); });
+process.on("uncaughtException",  (err) => { console.error("[uncaughtException]",  err.message); });
+process.on("unhandledRejection", (err) => { console.error("[unhandledRejection]", err); });
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(rateLimit({ windowMs: 60000, max: 300, message: { error: "Muitas requisicoes" } }));
@@ -310,9 +312,7 @@ app.get("/leads/aleatorio", async (req, res) => {
       `SELECT ${cols} FROM leads WHERE situacao_cadastral = 2 AND telefone1 IS NOT NULL AND telefone1 != '' ORDER BY RANDOM() LIMIT $1`,
       [limit]
     );
-    const ok = await verificarCota(req, res, result.rows.length);
-    if (!ok) return;
-    res.json({ total: result.rows.length, data: result.rows });
+    res.json({ total: result.rows.length, data: result.rows, aviso: "Leads da base CNPJ — contato recomendado por ligação." });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -348,15 +348,7 @@ app.get("/leads/buscar", async (req, res) => {
       extraRows = extraRes.rows;
     } catch(e) {}
     const allLeads = [...dataRes.rows, ...extraRows].slice(0, limit);
-    const ok = await verificarCota(req, res, allLeads.length);
-    if (!ok) return;
-    const a = req.assinante;
-    const cota = a?.plano === 'mensal' ? {
-      limite: LIMITE_MENSAL_DIA,
-      usado: Math.min((a.leads_hoje||0) + allLeads.length, LIMITE_MENSAL_DIA),
-      restante: Math.max(0, LIMITE_MENSAL_DIA - (a.leads_hoje||0) - allLeads.length)
-    } : null;
-    res.json({ total: total + extraRows.length, page, limit, pages: Math.ceil(total / limit), data: allLeads, cota });
+    res.json({ total: total + extraRows.length, page, limit, pages: Math.ceil(total / limit), data: allLeads, aviso: "Leads da base CNPJ — contato recomendado por ligação." });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1030,7 +1022,7 @@ const PORT = process.env.PORT || 3000;
     } catch (e) {
       tentativas++;
       console.error("Tentativa " + tentativas + "/5 falhou: " + e.message);
-      if (tentativas >= 5) { console.error("Nao foi possivel conectar."); process.exit(1); }
+      if (tentativas >= 5) { console.error("Nao foi possivel conectar ao banco — continuando mesmo assim."); break; }
       await new Promise(r => setTimeout(r, 3000));
     }
   }
