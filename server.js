@@ -663,8 +663,7 @@ async function enviarEmailBoasVindas(email, nome, token, plano) {
 }
 
 // ── WEBHOOK CAKTO ─────────────────────────────────────────────────────────────
-app.get("/webhook/cakto", (req, res) => res.json({ ok: true, service: "LeadHunter webhook" }));
-app.post("/webhook/cakto", express.raw({ type: "*/*" }), async (req, res) => {
+async function handleCaktoWebhook(req, res) {
   try {
     const body    = typeof req.body === "string" ? req.body : req.body.toString("utf-8");
     const payload = JSON.parse(body);
@@ -696,7 +695,13 @@ app.post("/webhook/cakto", express.raw({ type: "*/*" }), async (req, res) => {
     console.error("[Cakto webhook] erro:", e.message);
     res.status(500).json({ error: e.message });
   }
-});
+}
+
+const rawBody = express.raw({ type: "*/*" });
+app.get("/webhook/cakto", (req, res) => res.json({ ok: true, service: "LeadHunter webhook" }));
+app.get("/webhook",       (req, res) => res.json({ ok: true, service: "LeadHunter webhook" }));
+app.post("/webhook/cakto", rawBody, handleCaktoWebhook);
+app.post("/webhook",       rawBody, handleCaktoWebhook);
 
 // Login por email — retorna token se assinatura ativa
 app.post("/auth/login", async (req, res) => {
