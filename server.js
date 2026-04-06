@@ -444,35 +444,48 @@ app.post("/webhook/kirvano", express.raw({ type: "*/*" }), async (req, res) => {
     const payload = JSON.parse(body);
 
     // Kirvano envia evento em payload.event ou payload.type
-    const evento = payload.event || payload.type || "";
+    const evento = (payload.event || payload.type || "").toLowerCase();
     const dados  = payload.data || payload;
 
-    // Extrai dados do cliente (Kirvano pode variar o formato)
+    // Extrai dados do cliente
     const email = dados.customer?.email || dados.email || dados.buyer?.email;
     const nome  = dados.customer?.name  || dados.name  || dados.buyer?.name || "";
     const txId  = dados.transaction?.id || dados.id    || dados.order_id    || "";
-    const status = evento.includes("approved") || evento.includes("paid") || evento.includes("complete")
-      ? "ativo"
-      : evento.includes("cancel") || evento.includes("refund") || evento.includes("chargeback")
-      ? "cancelado"
-      : null;
 
-    if (!email || !status) return res.json({ ok: true, msg: "evento ignorado" });
+    // Classifica o evento
+    const ePagamento  = ["approved","paid","complete","renewed","reactivated","active"].some(k => evento.includes(k));
+    const eCancelado  = ["cancel","refund","chargeback","expired","suspend","overdue","inactive"].some(k => evento.includes(k));
+    const status = ePagamento ? "ativo" : eCancelado ? "cancelado" : null;
+
+    console.log(`[Kirvano] evento="${evento}" email="${email}" status="${status}"`);
+    if (!email || !status) return res.json({ ok: true, msg: "evento ignorado: " + evento });
+
+    // Data de expiração: 35 dias a partir de agora (5 dias de tolerância além do mês)
+    const expiraEm = ePagamento ? new Date(Date.now() + 35 * 24 * 60 * 60 * 1000) : null;
 
     // Verifica se já existe
     const existing = await pool.query("SELECT * FROM assinantes WHERE email=$1", [email]);
 
     if (existing.rows.length) {
-      await pool.query(
-        "UPDATE assinantes SET status=$1, kirvano_transaction_id=$2, updated_at=NOW() WHERE email=$3",
-        [status, txId, email]
-      );
-      console.log(`[Kirvano] ${email} → ${status}`);
-    } else if (status === "ativo") {
+      if (ePagamento) {
+        // Renovação ou reativação — estende acesso
+        await pool.query(
+          "UPDATE assinantes SET status='ativo', kirvano_transaction_id=$2, expira_em=$3, updated_at=NOW() WHERE email=$1",
+          [email, txId, expiraEm]
+        );
+      } else {
+        // Cancelamento, reembolso, chargeback — bloqueia imediatamente
+        await pool.query(
+          "UPDATE assinantes SET status='cancelado', expira_em=NOW(), kirvano_transaction_id=$2, updated_at=NOW() WHERE email=$1",
+          [email, txId]
+        );
+      }
+      console.log(`[Kirvano] ${email} → ${status}${expiraEm ? ' até ' + expiraEm.toLocaleDateString('pt-BR') : ''}`);
+    } else if (ePagamento) {
       const token = gerarToken();
       await pool.query(
-        "INSERT INTO assinantes(email,nome,status,token,kirvano_transaction_id,plano,ativado_em) VALUES($1,$2,'ativo',$3,$4,'mensal',NOW())",
-        [email, nome, token, txId]
+        "INSERT INTO assinantes(email,nome,status,token,kirvano_transaction_id,plano,ativado_em,expira_em) VALUES($1,$2,'ativo',$3,$4,'mensal',NOW(),$5)",
+        [email, nome, token, txId, expiraEm]
       );
       console.log(`[Kirvano] novo assinante: ${email}`);
 
@@ -514,10 +527,15 @@ app.post("/auth/login", async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: "Email obrigatório" });
-    const r = await pool.query("SELECT nome, token, status, ativado_em FROM assinantes WHERE email=$1", [email.toLowerCase().trim()]);
+    const r = await pool.query("SELECT nome, token, status, ativado_em, expira_em FROM assinantes WHERE email=$1", [email.toLowerCase().trim()]);
     if (!r.rows.length) return res.status(404).json({ error: "Email não encontrado. Assine o plano para ter acesso." });
-    if (r.rows[0].status !== "ativo") return res.status(403).json({ error: "Assinatura inativa. Verifique seu pagamento." });
-    res.json({ token: r.rows[0].token, nome: r.rows[0].nome, ativado_em: r.rows[0].ativado_em });
+    const a = r.rows[0];
+    if (a.status !== "ativo") return res.status(403).json({ error: "Assinatura cancelada ou inativa. Verifique seu pagamento." });
+    if (a.expira_em && new Date(a.expira_em) < new Date()) {
+      await pool.query("UPDATE assinantes SET status='expirado' WHERE email=$1", [email]).catch(() => {});
+      return res.status(403).json({ error: "Assinatura expirada. Renove para continuar." });
+    }
+    res.json({ token: a.token, nome: a.nome, ativado_em: a.ativado_em });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -525,9 +543,17 @@ app.post("/auth/login", async (req, res) => {
 app.get("/auth/verificar", async (req, res) => {
   const token = req.headers["x-assinante-token"] || req.query.token;
   if (!token) return res.status(401).json({ ok: false });
-  const r = await pool.query("SELECT nome, email, status, ativado_em FROM assinantes WHERE token=$1", [token]).catch(() => ({ rows: [] }));
-  if (!r.rows.length || r.rows[0].status !== "ativo") return res.status(401).json({ ok: false });
-  res.json({ ok: true, nome: r.rows[0].nome, email: r.rows[0].email });
+  const r = await pool.query(
+    "SELECT nome, email, status, expira_em FROM assinantes WHERE token=$1", [token]
+  ).catch(() => ({ rows: [] }));
+  if (!r.rows.length) return res.status(401).json({ ok: false, motivo: "token inválido" });
+  const a = r.rows[0];
+  if (a.status !== "ativo") return res.status(401).json({ ok: false, motivo: "assinatura cancelada" });
+  if (a.expira_em && new Date(a.expira_em) < new Date()) {
+    await pool.query("UPDATE assinantes SET status='expirado' WHERE token=$1", [token]).catch(() => {});
+    return res.status(401).json({ ok: false, motivo: "assinatura expirada" });
+  }
+  res.json({ ok: true, nome: a.nome, email: a.email });
 });
 
 // ── FRONTEND ──
@@ -538,7 +564,8 @@ async function criarSchema() {
     await pool.query("CREATE TABLE IF NOT EXISTS campanhas (id BIGSERIAL PRIMARY KEY, nome VARCHAR(200), canal VARCHAR(20), total INT, enviados INT DEFAULT 0, status VARCHAR(20) DEFAULT 'pendente', mensagem_template TEXT, delay_segundos INT DEFAULT 60, created_at TIMESTAMPTZ DEFAULT NOW(), iniciado_at TIMESTAMPTZ, concluido_at TIMESTAMPTZ)");
     await pool.query("CREATE TABLE IF NOT EXISTS campanha_destinatarios (id BIGSERIAL PRIMARY KEY, campanha_id BIGINT REFERENCES campanhas(id), cnpj VARCHAR(14), status VARCHAR(20) DEFAULT 'pendente', enviado_at TIMESTAMPTZ, erro TEXT)");
     await pool.query("CREATE INDEX IF NOT EXISTS idx_dest_campanha ON campanha_destinatarios(campanha_id, status)");
-    await pool.query("CREATE TABLE IF NOT EXISTS assinantes (id BIGSERIAL PRIMARY KEY, email VARCHAR(255) UNIQUE, nome VARCHAR(255), status VARCHAR(20) DEFAULT 'ativo', token VARCHAR(100) UNIQUE, kirvano_transaction_id VARCHAR(200), plano VARCHAR(50) DEFAULT 'mensal', ativado_em TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW())");
+    await pool.query("CREATE TABLE IF NOT EXISTS assinantes (id BIGSERIAL PRIMARY KEY, email VARCHAR(255) UNIQUE, nome VARCHAR(255), status VARCHAR(20) DEFAULT 'ativo', token VARCHAR(100) UNIQUE, kirvano_transaction_id VARCHAR(200), plano VARCHAR(50) DEFAULT 'mensal', ativado_em TIMESTAMPTZ DEFAULT NOW(), expira_em TIMESTAMPTZ, updated_at TIMESTAMPTZ DEFAULT NOW())");
+    await pool.query("ALTER TABLE assinantes ADD COLUMN IF NOT EXISTS expira_em TIMESTAMPTZ");
     await pool.query("CREATE INDEX IF NOT EXISTS idx_assinantes_token ON assinantes(token)");
     console.log("Schema verificado");
   } catch (e) {
