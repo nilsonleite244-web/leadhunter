@@ -532,7 +532,7 @@ app.post("/webhook/kirvano", express.raw({ type: "*/*" }), async (req, res) => {
 
     // Classifica o evento
     const ePagamento  = ["approved","paid","complete","renewed","reactivated","active"].some(k => evento.includes(k));
-    const eCancelado  = ["cancel","refund","chargeback","expired","suspend","overdue","inactive"].some(k => evento.includes(k));
+    const eCancelado  = ["cancel","refund","chargeback","refused"].some(k => evento.includes(k));
     const status = ePagamento ? "ativo" : eCancelado ? "cancelado" : null;
 
     console.log(`[Kirvano] evento="${evento}" email="${email}" status="${status}"`);
@@ -674,7 +674,7 @@ app.post("/webhook/cakto", express.raw({ type: "*/*" }), async (req, res) => {
     const txId    = dados.order?.id       || dados.transaction_id || dados.order_id     || payload.id || "";
 
     const ePagamento = ["approved","paid","complete","renewed","active","created","success"].some(k => evento.includes(k));
-    const eCancelado = ["cancel","refund","chargeback","expired","suspend","overdue","inactive","refused"].some(k => evento.includes(k));
+    const eCancelado = ["cancel","refund","chargeback","refused"].some(k => evento.includes(k));
 
     console.log(`[Cakto] evento="${evento}" email="${email}"`);
     if (!email) return res.json({ ok: true, msg: "sem email no payload" });
