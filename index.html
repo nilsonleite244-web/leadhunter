@@ -875,11 +875,27 @@ select option{background:var(--s2)}textarea{resize:vertical}
                 <button class="btn btn-ghost btn-sm" onclick="saveApiKey()">Salvar</button>
               </div>
             </div>
-            <div class="field">
+            <div class="field mb-16">
               <label>Testar conexão</label>
               <div class="flex gap-8">
                 <input id="health-result" readonly placeholder="Clique em Testar...">
                 <button class="btn btn-ghost btn-sm" onclick="checkHealth()">Testar</button>
+              </div>
+            </div>
+            <div style="height:1px;background:var(--bd);margin:4px 0 16px"></div>
+            <div class="field mb-12">
+              <label>Link de Checkout Kirvano</label>
+              <div class="flex gap-8">
+                <input id="kirvano-url-inp" placeholder="https://pay.kirvano.com/seu-produto">
+                <button class="btn btn-primary btn-sm" onclick="saveKirvanoUrl()">Salvar</button>
+              </div>
+              <span style="font-size:11px;color:var(--t3);margin-top:4px;display:block">Cole aqui a URL do checkout do seu produto na Kirvano. Aparece no botão "Assinar" da tela de login.</span>
+            </div>
+            <div class="field">
+              <label>Seu Token de Acesso</label>
+              <div class="flex gap-8">
+                <input id="meu-token-inp" readonly placeholder="(faça login para ver)" style="font-family:monospace;font-size:11.5px;color:var(--amber)">
+                <button class="btn btn-ghost btn-sm" onclick="copiarToken()">Copiar</button>
               </div>
             </div>
           </div>
@@ -1065,6 +1081,7 @@ function nav(id, el) {
   if (el) el.classList.add('active');
   document.getElementById('page-title').innerHTML = titles[id] || id;
   if (id === 'dashboard') loadDashboard();
+  if (id === 'settings')  preencherConfiguracoes();
   if (id === 'campaigns') loadCampaigns();
   if (id === 'settings')  { checkHealth(); loadSettings(); }
 }
@@ -1519,6 +1536,29 @@ function saveApiKey() {
   API_KEY = key;
   if (key) localStorage.setItem('lh_api_key', key); else localStorage.removeItem('lh_api_key');
   toast(key ? 'Chave salva!' : 'Chave removida', 'success');
+}
+function saveKirvanoUrl() {
+  const url = document.getElementById('kirvano-url-inp').value.trim();
+  if (!url) return toast('Cole a URL do checkout da Kirvano', 'error');
+  localStorage.setItem('lh_kirvano_url', url);
+  const btn = document.getElementById('btn-assinar');
+  if (btn) btn.href = url;
+  toast('URL da Kirvano salva!', 'success');
+}
+function copiarToken() {
+  const t = ASSINANTE_TOKEN;
+  if (!t) return toast('Faça login primeiro', 'error');
+  navigator.clipboard.writeText(t).then(() => toast('Token copiado!', 'success'));
+}
+function preencherConfiguracoes() {
+  const urlInp = document.getElementById('api-url-inp');
+  const keyInp = document.getElementById('api-key-inp');
+  const kirInp = document.getElementById('kirvano-url-inp');
+  const tokInp = document.getElementById('meu-token-inp');
+  if (urlInp) urlInp.value = API_BASE || '';
+  if (keyInp) keyInp.value = API_KEY  || '';
+  if (kirInp) kirInp.value = localStorage.getItem('lh_kirvano_url') || '';
+  if (tokInp) tokInp.value = ASSINANTE_TOKEN || '';
 }
 async function checkWPP() {
   const el = document.getElementById('wpp-status-text');
