@@ -473,9 +473,9 @@ footer{background:var(--s1);border-top:1px solid var(--bd);padding:30px 5%;displ
 <script>
 // URLs dos checkouts Kirvano — configure nas Configurações do app
 const KIRVANO_URLS = {
-  mensal:     localStorage.getItem('lh_kirvano_mensal')     || '',
-  trimestral: localStorage.getItem('lh_kirvano_trimestral') || '',
-  vitalicio:  localStorage.getItem('lh_kirvano_vitalicio')  || '',
+  mensal:     localStorage.getItem('lh_kirvano_mensal')     || 'https://pay.kirvano.com/7f85559a-9ded-40e5-8362-e8036c6b0b07',
+  trimestral: localStorage.getItem('lh_kirvano_trimestral') || 'https://pay.kirvano.com/9d86ce50-5eb8-40e2-989e-79c1364f6266',
+  vitalicio:  localStorage.getItem('lh_kirvano_vitalicio')  || 'https://pay.kirvano.com/e27c4099-4c95-4642-b710-ffc06c4fcac3',
 };
 
 function comprar(plano) {
