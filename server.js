@@ -191,6 +191,7 @@ app.get("/seed/instagram-leads-DISABLED", async (req, res) => {
 });
 
 
+app.get("/version", (req, res) => res.json({ v: "2.1.0", todos_param: true }));
 app.get("/health", async (req, res) => {
   try {
     const r1 = await pool.query("SELECT COUNT(*) as count FROM leads");
