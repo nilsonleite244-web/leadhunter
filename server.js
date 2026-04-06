@@ -644,15 +644,10 @@ app.get("/admin/apify-import/:runId", async (req, res) => {
       if (!handle || seen.has(handle)) { ignorados++; continue; }
       seen.add(handle);
 
-      // Filtra: apenas contas de negócio com mínimo de seguidores
-      const isBiz = item.isBusinessAccount === true || item.type === "Business" || item.businessCategoryName;
-      const followers = item.followersCount || item.ownerFollowersCount || 0;
-      if (!isBiz && followers < 100) { ignorados++; continue; }
-
-      // Mapeia segmento pela hashtag dos resultados
-      const tags = (item.hashtags || []).map(t => (typeof t === "string" ? t : t.name || "").toLowerCase());
-      const tag = tags.find(t => APIFY_SEG[t]);
-      const segmento = tag ? APIFY_SEG[tag] : "geral";
+      // Mapeia segmento pelo inputUrl (hashtag usada na busca) — mais confiável
+      const inputUrl = (item.inputUrl || "").toLowerCase();
+      const matchedTag = Object.keys(APIFY_SEG).find(t => inputUrl.includes("/" + t + "/"));
+      const segmento = matchedTag ? APIFY_SEG[matchedTag] : "geral";
 
       const igVal   = "@" + handle;
       const website = item.externalUrl || null;
