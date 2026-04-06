@@ -1027,6 +1027,7 @@ async function api(path, opts = {}) {
   if (!API_BASE) throw new Error('API não configurada');
   const headers = { 'Content-Type': 'application/json' };
   if (API_KEY) headers['x-api-key'] = API_KEY;
+  if (typeof ASSINANTE_TOKEN !== 'undefined' && ASSINANTE_TOKEN) headers['x-assinante-token'] = ASSINANTE_TOKEN;
   const res = await fetch(API_BASE + path, { headers: { ...headers, ...(opts.headers||{}) }, ...opts });
   if (!res.ok) {
     const e = await res.json().catch(() => ({ error: res.statusText }));
@@ -1124,6 +1125,7 @@ function renderKPIs(d) {
     <div class="kpi"><div class="kpi-lbl">Empresas ativas</div><div class="kpi-val">${f(d.empresas_ativas)}</div></div>
     <div class="kpi"><div class="kpi-lbl">Com e-mail</div><div class="kpi-val">${f(d.com_email)}</div></div>
     <div class="kpi"><div class="kpi-lbl">Com telefone</div><div class="kpi-val">${f(d.com_telefone)}</div></div>
+    ${d.leads_instagram ? `<div class="kpi"><div class="kpi-lbl">Leads Instagram</div><div class="kpi-val" style="color:var(--purple)">${f(d.leads_instagram)}</div></div>` : ''}
   `;
 }
 
@@ -1350,7 +1352,7 @@ function renderResults(rows, mode) {
 
       const loc = [r.cidade||r.municipio_nome, r.estado||r.uf].filter(Boolean).join(' / ') || '—';
       return `<tr>
-        <td><input type="checkbox" style="width:13px;height:13px" onchange="toggleLead(this,'${r.id||igLabel}')"></td>
+        <td><input type="checkbox" style="width:13px;height:13px" data-id="${r.id||igLabel}" onchange="toggleLead(this,'${r.id||igLabel}')"></td>
         <td><b>${r.razao_social||'—'}</b><small>${loc}</small></td>
         <td><span class="badge b-purple" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;display:inline-block">${(r.cnae_descricao||'—').substring(0,24)}</span></td>
         <td>${igUrl ? `<a href="${igUrl}" target="_blank" style="color:var(--purple);text-decoration:none;font-size:12px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>@${igLabel}</a>` : '—'}</td>
@@ -1429,7 +1431,7 @@ function toggleLead(cb, id) {
 function toggleAll(v) {
   document.querySelectorAll('#results-tbody input[type=checkbox]').forEach(cb => {
     cb.checked = v;
-    const id = cb.dataset.cnpj;
+    const id = cb.dataset.cnpj || cb.dataset.id;
     if (id) { if (v) state.selected.add(id); else state.selected.delete(id); }
   });
   document.getElementById('cn-count').textContent = state.selected.size;
@@ -1442,12 +1444,24 @@ function addSelectedToCampaign() {
 }
 function exportCSV() {
   if (!state.results.length) return;
-  const h = ['CNPJ','Nome','Segmento','Cidade','DDD','Telefone','Email','Porte','Score','Instagram'];
-  const rows = state.results.map(r => [fmtCNPJ(r.cnpj),r.nome_fantasia||r.razao_social||'',r.cnae_descricao||'',r.municipio_nome||'',r.ddd_municipio||'',r.telefone1||'',r.email||'',r.porte||'',r.score_completude||0,r.instagram_url||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
-  const csv = [h.join(','),...rows].join('\n');
+  let h, rows;
+  if (searchMode === 'instagram') {
+    h = ['Nome','Segmento','Instagram','Website','Cidade','Estado','WhatsApp'];
+    rows = state.results.map(r => {
+      const igRaw = r.instagram_url || '';
+      const igUrl = igRaw.startsWith('http') ? igRaw : igRaw ? 'https://instagram.com/' + igRaw.replace(/^@/,'') : '';
+      const wppRaw = r.whatsapp_url || '';
+      const wpp = wppRaw.startsWith('http') ? wppRaw : wppRaw ? 'https://wa.me/' + wppRaw.replace(/\D/g,'') : '';
+      return [r.razao_social||'',r.cnae_descricao||'',igUrl,r.website||'',r.municipio_nome||'',r.uf||'',wpp];
+    });
+  } else {
+    h = ['CNPJ','Nome','Segmento','Cidade','DDD','Telefone','Email','Porte','Score','Instagram'];
+    rows = state.results.map(r => [fmtCNPJ(r.cnpj),r.nome_fantasia||r.razao_social||'',r.cnae_descricao||'',r.municipio_nome||'',r.ddd_municipio||'',r.telefone1||'',r.email||'',r.porte||'',r.score_completude||0,r.instagram_url||'']);
+  }
+  const csv = [h.join(','), ...rows.map(row => row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
-  a.download = `leads-${new Date().toISOString().split('T')[0]}.csv`;
+  a.download = `leads-instagram-${new Date().toISOString().split('T')[0]}.csv`;
   a.click();
   toast('CSV exportado!', 'success');
 }

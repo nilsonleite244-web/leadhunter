@@ -28,10 +28,25 @@ const query = (sql, params) => pool.query(sql, params);
 // o header  x-api-key: <segredo>  ou  Authorization: Bearer <segredo>
 function authMiddleware(req, res, next) {
   const secret = process.env.API_SECRET;
-  if (!secret) return next(); // sem segredo configurado = auth desativada
+  if (!secret) return next(); // auth desativada se API_SECRET não configurado
+
+  // Aceita API_SECRET (admin) OU token de assinante ativo
   const key = req.headers["x-api-key"] || (req.headers["authorization"] || "").replace("Bearer ", "");
   if (key === secret) return next();
-  res.status(401).json({ error: "Nao autorizado — configure x-api-key no cliente" });
+
+  const token = req.headers["x-assinante-token"];
+  if (token) {
+    pool.query(
+      "SELECT id FROM assinantes WHERE token=$1 AND status='ativo' AND (expira_em IS NULL OR expira_em > NOW())",
+      [token]
+    ).then(r => {
+      if (r.rows.length) return next();
+      res.status(401).json({ error: "Assinatura inativa ou expirada" });
+    }).catch(() => res.status(500).json({ error: "Erro ao verificar assinatura" }));
+    return;
+  }
+
+  res.status(401).json({ error: "Nao autorizado — faça login no LeadHunter" });
 }
 
 function paginate(req) {
@@ -309,15 +324,26 @@ app.get("/leads/:cnpj", async (req, res) => {
 });
 app.get("/stats/geral", async (req, res) => {
   try {
-    const [total, ativos, comEmail, comTel, porPorte, porUF] = await Promise.all([
+    const [total, ativos, comEmail, comTel, porPorte, porUF, extraCount] = await Promise.all([
       query("SELECT COUNT(*) FROM leads"),
       query("SELECT COUNT(*) FROM leads WHERE situacao_cadastral = 2"),
       query("SELECT COUNT(*) FROM leads WHERE email IS NOT NULL AND email != ''"),
       query("SELECT COUNT(*) FROM leads WHERE telefone1 IS NOT NULL AND telefone1 != ''"),
       query("SELECT porte, COUNT(*) as total FROM leads WHERE situacao_cadastral=2 GROUP BY porte ORDER BY total DESC"),
       query("SELECT uf, COUNT(*) as total FROM leads WHERE situacao_cadastral=2 GROUP BY uf ORDER BY total DESC LIMIT 10"),
+      pool.query("SELECT COUNT(*) FROM leads_extra").catch(() => ({ rows: [{ count: '0' }] })),
     ]);
-    res.json({ total_cnpjs: parseInt(total.rows[0].count), empresas_ativas: parseInt(ativos.rows[0].count), com_email: parseInt(comEmail.rows[0].count), com_telefone: parseInt(comTel.rows[0].count), por_porte: porPorte.rows, top_ufs: porUF.rows });
+    const totalCnpjs  = parseInt(total.rows[0].count);
+    const totalExtras = parseInt(extraCount.rows[0].count) || 0;
+    res.json({
+      total_cnpjs:    totalCnpjs + totalExtras,
+      empresas_ativas: parseInt(ativos.rows[0].count) + totalExtras,
+      com_email:      parseInt(comEmail.rows[0].count),
+      com_telefone:   parseInt(comTel.rows[0].count),
+      leads_instagram: totalExtras,
+      por_porte:      porPorte.rows,
+      top_ufs:        porUF.rows
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
