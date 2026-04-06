@@ -693,6 +693,118 @@ app.get("/admin/apify-import/:runId", async (req, res) => {
   }
 });
 
+// POST /admin/apify-enrich?apify_key=xxx  → scrapa perfis sem website para pegar bio/site/categoria
+app.post("/admin/apify-enrich", async (req, res) => {
+  const key = process.env.APIFY_KEY || req.headers["x-apify-key"] || req.body?.apify_key || req.query.apify_key;
+  if (!key) return res.status(400).json({ error: "Apify key necessária" });
+  const limit = Math.min(500, parseInt(req.query.limit) || 200);
+
+  try {
+    // Busca leads com instagram mas sem website
+    const r = await pool.query(
+      `SELECT id, instagram FROM leads_extra
+       WHERE instagram IS NOT NULL AND instagram != ''
+         AND (website IS NULL OR website = '')
+       ORDER BY id DESC LIMIT $1`,
+      [limit]
+    );
+    if (!r.rows.length) return res.json({ ok: true, msg: "Todos os leads já têm website", count: 0 });
+
+    // Extrai o handle e monta URLs de perfil
+    const profileUrls = [];
+    const handleMap  = {};
+    for (const row of r.rows) {
+      const ig = row.instagram.replace(/^@/, "").trim();
+      if (!ig) continue;
+      const url = `https://www.instagram.com/${ig}/`;
+      profileUrls.push(url);
+      handleMap[url] = { id: row.id, handle: ig };
+    }
+
+    // Dispara Apify scraper em modo "details" (perfil completo)
+    const runRes = await axios.post(
+      `https://api.apify.com/v2/acts/apify~instagram-scraper/runs?token=${key}`,
+      { directUrls: profileUrls, resultsType: "details", resultsLimit: 1, proxy: { useApifyProxy: true } }
+    );
+    const runId = runRes.data.data.id;
+    console.log(`[Apify-Enrich] Run ${runId} iniciado para ${profileUrls.length} perfis`);
+    res.json({ ok: true, runId, profiles: profileUrls.length,
+      proximo: `GET /admin/apify-enrich-import/${runId}?apify_key=${key}` });
+  } catch(e) {
+    console.error("[Apify-Enrich]", e.response?.data || e.message);
+    res.status(500).json({ error: e.response?.data?.error?.message || e.message });
+  }
+});
+
+// GET /admin/apify-enrich-import/:runId → importa dados de perfil e atualiza leads_extra
+app.get("/admin/apify-enrich-import/:runId", async (req, res) => {
+  const key = process.env.APIFY_KEY || req.headers["x-apify-key"] || req.query.apify_key;
+  if (!key) return res.status(400).json({ error: "Apify key necessária" });
+  const { runId } = req.params;
+
+  try {
+    const statusRes = await axios.get(
+      `https://api.apify.com/v2/acts/apify~instagram-scraper/runs/${runId}?token=${key}`
+    );
+    const run = statusRes.data.data;
+    if (run.status !== "SUCCEEDED") return res.json({ ok: false, status: run.status });
+
+    const itemsRes = await axios.get(
+      `https://api.apify.com/v2/datasets/${run.defaultDatasetId}/items?token=${key}&limit=5000`
+    );
+    const items = Array.isArray(itemsRes.data) ? itemsRes.data : [];
+    let atualizados = 0, filtrados = 0;
+
+    const BIZ_CAT = {
+      "barber": "barbearia", "hair": "barbearia", "salon": "barbearia",
+      "pet": "petshop", "veterin": "petshop", "animal": "petshop",
+      "gym": "academia", "fitness": "academia", "crossfit": "academia", "pilates": "academia", "sport": "academia",
+      "estetic": "clinicaestetica", "clinic": "clinicaestetica", "skin": "clinicaestetica", "beauty": "clinicaestetica", "spa": "clinicaestetica"
+    };
+
+    for (const item of items) {
+      const handle = item.username;
+      if (!handle) { filtrados++; continue; }
+
+      // Filtra: conta de negócio com pelo menos 50 seguidores
+      const isBiz = item.isBusinessAccount || item.businessCategoryName;
+      if (!isBiz) { filtrados++; continue; }
+      if ((item.followersCount || 0) < 50) { filtrados++; continue; }
+
+      const website = item.externalUrl || item.bioLinks?.[0]?.url || null;
+      const bio     = item.biography || null;
+      const nome    = item.fullName  || null;
+      const cidade  = item.cityName  || null;
+
+      // Segmento pela categoria do Instagram
+      let segmento = null;
+      if (item.businessCategoryName) {
+        const cat = item.businessCategoryName.toLowerCase();
+        const found = Object.keys(BIZ_CAT).find(k => cat.includes(k));
+        if (found) segmento = BIZ_CAT[found];
+      }
+
+      await pool.query(
+        `UPDATE leads_extra SET
+           nome     = COALESCE(NULLIF(nome,''),     $2),
+           website  = COALESCE(NULLIF(website,''),  $3),
+           descricao= COALESCE(NULLIF(descricao,''),$4),
+           segmento = COALESCE(NULLIF(segmento,''), $5),
+           cidade   = COALESCE(NULLIF(cidade,''),   $6)
+         WHERE instagram ILIKE $1`,
+        ["%" + handle + "%", nome, website, bio, segmento, cidade]
+      );
+      atualizados++;
+    }
+
+    console.log(`[Apify-Enrich] ${atualizados} atualizados, ${filtrados} filtrados`);
+    res.json({ ok: true, total_items: items.length, atualizados, filtrados });
+  } catch(e) {
+    console.error("[Apify-Enrich-Import]", e.response?.data || e.message);
+    res.status(500).json({ error: e.response?.data?.error?.message || e.message });
+  }
+});
+
 // ── FRONTEND ──
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
