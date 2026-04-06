@@ -309,7 +309,9 @@ app.get("/leads/aleatorio", async (req, res) => {
     const limit = Math.min(100, parseInt(req.query.limit) || 50);
     const cols = "cnpj, razao_social, nome_fantasia, cnae_descricao, porte, email, telefone1, ddd_municipio, municipio_nome, uf, nome_socio, score_completude";
     const result = await query(
-      `SELECT ${cols} FROM leads WHERE situacao_cadastral = 2 AND telefone1 IS NOT NULL AND telefone1 != '' ORDER BY RANDOM() LIMIT $1`,
+      `SELECT ${cols} FROM leads TABLESAMPLE SYSTEM(1)
+       WHERE situacao_cadastral = 2 AND telefone1 IS NOT NULL AND telefone1 != ''
+       LIMIT $1`,
       [limit]
     );
     res.json({ total: result.rows.length, data: result.rows, aviso: "Leads da base CNPJ — contato recomendado por ligação." });
