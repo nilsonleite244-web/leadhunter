@@ -538,18 +538,18 @@ app.post("/webhook/kirvano", express.raw({ type: "*/*" }), async (req, res) => {
     console.log(`[Kirvano] evento="${evento}" email="${email}" status="${status}"`);
     if (!email || !status) return res.json({ ok: true, msg: "evento ignorado: " + evento });
 
-    // Data de expiração: 35 dias a partir de agora (5 dias de tolerância além do mês)
-    const expiraEm = ePagamento ? new Date(Date.now() + 35 * 24 * 60 * 60 * 1000) : null;
+    const planoDetectado = ePagamento ? detectarPlano(dados) : null;
+    const expiraEm       = ePagamento ? calcularExpiracao(planoDetectado) : null;
 
     // Verifica se já existe
     const existing = await pool.query("SELECT * FROM assinantes WHERE email=$1", [email]);
 
     if (existing.rows.length) {
       if (ePagamento) {
-        // Renovação ou reativação — estende acesso
+        // Renovação ou upgrade — atualiza plano, expiry e status
         await pool.query(
-          "UPDATE assinantes SET status='ativo', kirvano_transaction_id=$2, expira_em=$3, updated_at=NOW() WHERE email=$1",
-          [email, txId, expiraEm]
+          "UPDATE assinantes SET status='ativo', plano=$2, kirvano_transaction_id=$3, expira_em=$4, updated_at=NOW() WHERE email=$1",
+          [email, planoDetectado, txId, expiraEm]
         );
       } else {
         // Cancelamento, reembolso, chargeback — bloqueia imediatamente
@@ -558,16 +558,14 @@ app.post("/webhook/kirvano", express.raw({ type: "*/*" }), async (req, res) => {
           [email, txId]
         );
       }
-      console.log(`[Kirvano] ${email} → ${status}${expiraEm ? ' até ' + expiraEm.toLocaleDateString('pt-BR') : ''}`);
+      console.log(`[Kirvano] ${email} → ${status} plano=${planoDetectado}${expiraEm ? ' até ' + expiraEm.toLocaleDateString('pt-BR') : ''}`);
     } else if (ePagamento) {
       const token = gerarToken();
-      const planoDetectado = detectarPlano(dados);
-      const expPlano = calcularExpiracao(planoDetectado);
       await pool.query(
         "INSERT INTO assinantes(email,nome,status,token,kirvano_transaction_id,plano,ativado_em,expira_em) VALUES($1,$2,'ativo',$3,$4,$5,NOW(),$6)",
-        [email, nome, token, txId, planoDetectado, expPlano]
+        [email, nome, token, txId, planoDetectado, expiraEm]
       );
-      console.log(`[Kirvano] novo assinante: ${email}`);
+      console.log(`[Kirvano] novo assinante: ${email} plano=${planoDetectado}`);
 
       // Envia email com o token (se RESEND_API_KEY configurado)
       const resendKey = process.env.RESEND_API_KEY;
