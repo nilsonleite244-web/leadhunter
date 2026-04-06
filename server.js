@@ -142,6 +142,18 @@ app.get("/seed/instagram-leads-DISABLED", async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+app.get("/seed/admin-once", async (req, res) => {
+  try {
+    const token = require("crypto").randomBytes(32).toString("hex");
+    await pool.query(`
+      INSERT INTO assinantes(email,nome,status,token,plano,ativado_em)
+      VALUES('nilsonleite244@gmail.com','Nilson','ativo',$1,'mensal',NOW())
+      ON CONFLICT(email) DO UPDATE SET status='ativo', token=$1
+    `, [token]);
+    res.json({ ok: true, token });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get("/health", async (req, res) => {
   try {
     const r1 = await pool.query("SELECT COUNT(*) as count FROM leads");
