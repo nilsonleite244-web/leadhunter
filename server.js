@@ -663,6 +663,7 @@ async function enviarEmailBoasVindas(email, nome, token, plano) {
 }
 
 // ── WEBHOOK CAKTO ─────────────────────────────────────────────────────────────
+app.get("/webhook/cakto", (req, res) => res.json({ ok: true, service: "LeadHunter webhook" }));
 app.post("/webhook/cakto", express.raw({ type: "*/*" }), async (req, res) => {
   try {
     const body    = typeof req.body === "string" ? req.body : req.body.toString("utf-8");
