@@ -559,6 +559,10 @@ select option{background:var(--s2)}textarea{resize:vertical}
     </div>
 
     <div class="nav-label">Sistema</div>
+    <div class="nav-item" onclick="nav('admin',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Assinantes
+    </div>
     <div class="nav-item" onclick="nav('settings',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       Configurações
@@ -862,6 +866,52 @@ select option{background:var(--s2)}textarea{resize:vertical}
       </div>
     </div>
 
+    <!-- ══════ ADMIN ══════ -->
+    <div class="page" id="page-admin">
+      <div class="flex gap-8 mb-20" style="align-items:flex-end">
+        <div>
+          <div style="font-size:18px;font-weight:800;letter-spacing:-.5px;margin-bottom:3px">Assinantes</div>
+          <div style="font-size:13px;color:var(--t2)">Gerencie quem tem acesso ao LeadHunter</div>
+        </div>
+        <div class="ml-auto flex gap-8">
+          <button class="btn btn-ghost btn-sm" onclick="loadAdmin()">Atualizar</button>
+          <button class="btn btn-primary btn-sm" onclick="showModal('novoAssinante')">+ Adicionar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="tw">
+          <table>
+            <thead><tr>
+              <th>Email</th><th>Nome</th><th>Plano</th><th>Status</th><th>Expira</th><th>Leads hoje</th><th>Ações</th>
+            </tr></thead>
+            <tbody id="admin-tbody">
+              <tr><td colspan="7"><div class="loading-row"><div class="spinner light"></div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Modal novo assinante -->
+      <div class="modal-overlay" id="overlay-novoAssinante" onclick="if(event.target===this)closeModal('novoAssinante')">
+        <div class="modal">
+          <div class="modal-header"><div class="modal-title">Adicionar Assinante</div><button class="modal-close" onclick="closeModal('novoAssinante')">✕</button></div>
+          <div class="modal-body">
+            <div class="field mb-12"><label>Email *</label><input id="na-email" type="email" placeholder="cliente@email.com"></div>
+            <div class="field mb-12"><label>Nome</label><input id="na-nome" placeholder="Nome do cliente"></div>
+            <div class="field mb-16"><label>Plano</label>
+              <select id="na-plano">
+                <option value="mensal">Mensal (150 leads/dia)</option>
+                <option value="trimestral">Trimestral (ilimitado)</option>
+                <option value="vitalicio">Vitalício (ilimitado)</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" style="width:100%" onclick="criarAssinante()">Criar acesso</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ══════ SETTINGS ══════ -->
     <div class="page" id="page-settings">
       <div style="margin-bottom:24px">
@@ -1101,6 +1151,7 @@ const titles = {
   dashboard:'Dashboard <span>/ Visão Geral</span>',
   leads:'Buscar Leads <span>/ Base CNPJ · Instagram</span>',
   campaigns:'Campanhas <span>/ Disparos</span>',
+  admin:'Assinantes <span>/ Gestão de Clientes</span>',
   settings:'Configurações <span>/ Sistema</span>',
 };
 function nav(id, el) {
@@ -1110,9 +1161,9 @@ function nav(id, el) {
   if (el) el.classList.add('active');
   document.getElementById('page-title').innerHTML = titles[id] || id;
   if (id === 'dashboard') loadDashboard();
-  if (id === 'settings')  preencherConfiguracoes();
+  if (id === 'settings')  { preencherConfiguracoes(); checkHealth(); loadSettings(); }
   if (id === 'campaigns') loadCampaigns();
-  if (id === 'settings')  { checkHealth(); loadSettings(); }
+  if (id === 'admin')     loadAdmin();
 }
 
 // ══ MODAL ══
@@ -1776,6 +1827,68 @@ function logout() {
   localStorage.removeItem('lh_nome');
   ASSINANTE_TOKEN = '';
   mostrarTelaLogin();
+}
+
+// ══ ADMIN ══
+async function loadAdmin() {
+  const tbody = document.getElementById('admin-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7"><div class="loading-row"><div class="spinner light"></div></div></td></tr>';
+  try {
+    const d = await api('/admin/assinantes');
+    const rows = d.assinantes || [];
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-title">Nenhum assinante</div><div class="empty-sub">Adicione um ou aguarde uma compra na Kirvano</div></div></td></tr>';
+      return;
+    }
+    const statusColor = { ativo:'b-green', cancelado:'b-red', expirado:'b-amber' };
+    const planoColor  = { mensal:'b-amber', trimestral:'b-blue', vitalicio:'b-purple' };
+    tbody.innerHTML = rows.map(a => {
+      const exp = a.expira_em ? new Date(a.expira_em).toLocaleDateString('pt-BR') : '∞ Vitalício';
+      const ativ = a.ativado_em ? new Date(a.ativado_em).toLocaleDateString('pt-BR') : '—';
+      const leadsHoje = a.plano === 'mensal' ? `${a.leads_hoje||0}/150` : '∞';
+      return `<tr>
+        <td style="font-size:12px">${a.email}</td>
+        <td style="font-size:12px">${a.nome||'—'}</td>
+        <td><span class="badge ${planoColor[a.plano]||'bg'}">${a.plano||'mensal'}</span></td>
+        <td><span class="badge ${statusColor[a.status]||'bg'}">${a.status}</span></td>
+        <td style="font-size:12px;color:var(--t2)">${exp}</td>
+        <td style="font-size:12px;color:var(--t2)">${leadsHoje}</td>
+        <td><div class="td-act">
+          ${a.status==='ativo'
+            ? `<button class="ib" onclick="alterarStatus(${a.id},'cancelado')" title="Cancelar acesso" style="color:var(--err)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></button>`
+            : `<button class="ib" onclick="alterarStatus(${a.id},'ativo')" title="Reativar" style="color:var(--ok)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></button>`
+          }
+        </div></td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--err);text-align:center;padding:20px;font-size:13px">Erro: ${e.message}</td></tr>`;
+  }
+}
+
+async function criarAssinante() {
+  const email = document.getElementById('na-email').value.trim();
+  const nome  = document.getElementById('na-nome').value.trim();
+  const plano = document.getElementById('na-plano').value;
+  if (!email) return toast('Email obrigatório', 'error');
+  try {
+    const d = await api('/admin/assinante/criar', { method:'POST', body: JSON.stringify({ email, nome, plano }) });
+    toast(`Acesso criado! Token: ${d.token.substring(0,12)}...`, 'success');
+    closeModal('novoAssinante');
+    loadAdmin();
+    document.getElementById('na-email').value = '';
+    document.getElementById('na-nome').value = '';
+  } catch(e) { toast('Erro: ' + e.message, 'error'); }
+}
+
+async function alterarStatus(id, status) {
+  if (!confirm(`${status==='cancelado'?'Cancelar':'Reativar'} este assinante?`)) return;
+  try {
+    await api(`/admin/assinante/${id}/status`, { method:'PATCH', body: JSON.stringify({ status }) });
+    toast(`Status alterado para ${status}`, 'success');
+    loadAdmin();
+  } catch(e) { toast('Erro: ' + e.message, 'error'); }
 }
 
 // ══ INIT ══

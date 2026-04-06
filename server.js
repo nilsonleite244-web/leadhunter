@@ -747,6 +747,44 @@ app.get("/auth/verificar", async (req, res) => {
 
 // ── APIFY INSTAGRAM SCRAPING ──────────────────────────────────────────────────
 // POST /admin/apify-start  → inicia run no Apify, retorna runId
+// ── ADMIN: ASSINANTES ────────────────────────────────────────────────────────
+app.get("/admin/assinantes", async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT id, email, nome, plano, status, ativado_em, expira_em, leads_hoje, leads_data, updated_at
+      FROM assinantes ORDER BY ativado_em DESC LIMIT 200
+    `);
+    res.json({ total: r.rows.length, assinantes: r.rows });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/admin/assinante/criar", async (req, res) => {
+  try {
+    const { email, nome, plano = 'mensal' } = req.body;
+    if (!email) return res.status(400).json({ error: "email obrigatório" });
+    const expiraEm = calcularExpiracao(plano);
+    const token = require("crypto").randomBytes(32).toString("hex");
+    const existing = await pool.query("SELECT id, token FROM assinantes WHERE email=$1", [email]);
+    if (existing.rows.length) {
+      await pool.query("UPDATE assinantes SET nome=$2, plano=$3, status='ativo', expira_em=$4, updated_at=NOW() WHERE email=$1",
+        [email, nome||existing.rows[0].nome, plano, expiraEm]);
+      return res.json({ ok: true, token: existing.rows[0].token, msg: "Assinante atualizado" });
+    }
+    await pool.query("INSERT INTO assinantes(email,nome,status,token,plano,ativado_em,expira_em) VALUES($1,$2,'ativo',$3,$4,NOW(),$5)",
+      [email, nome||'', token, plano, expiraEm]);
+    res.json({ ok: true, token, msg: "Assinante criado" });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.patch("/admin/assinante/:id/status", async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!['ativo','cancelado','expirado'].includes(status)) return res.status(400).json({ error: "status inválido" });
+    await pool.query("UPDATE assinantes SET status=$1, updated_at=NOW() WHERE id=$2", [status, req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // GET  /admin/apify-import/:runId?apify_key=xxx  → importa resultados quando o run terminar
 
 const APIFY_HASHTAGS = [
