@@ -245,13 +245,14 @@ app.get("/leads/instagram", async (req, res) => {
     `;
 
     const apenasAtivos = req.query.apenas_ativos === 'true';
+    const todos        = req.query.todos === 'true'; // retorna todos os 8k sem exigir handle IG
 
-    // Só retorna leads onde conseguimos extrair um handle de Instagram
-    const conditions = [
+    // Por padrão exige handle Instagram extraível — modo "todos" desativa isso
+    const conditions = todos ? [] : [
       `(instagram ~* 'instagram\\.com/[A-Za-z0-9._]{2,}' OR instagram ~* '@[A-Za-z0-9._]{2,}')`
     ];
 
-    // "Apenas ativos": tem site próprio (não uma rede social como "site") = empresa estabelecida
+    // "Apenas ativos": tem site próprio (não rede social) = empresa estabelecida
     if (apenasAtivos) {
       conditions.push("website IS NOT NULL AND website != ''");
       conditions.push("website NOT ILIKE '%instagram.com%'");
@@ -278,7 +279,7 @@ app.get("/leads/instagram", async (req, res) => {
       params.push('%' + cidade + '%');
     }
 
-    const where = "WHERE " + conditions.join(" AND ");
+    const where = conditions.length ? "WHERE " + conditions.join(" AND ") : "";
     const countRes = await pool.query(`SELECT COUNT(*) FROM leads_extra ${where}`, params);
     const total = parseInt(countRes.rows[0].count) || 0;
 
