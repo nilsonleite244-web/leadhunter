@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeadHunter Pro — Encontre Clientes Todos os Dias no Instagram e CNPJ</title>
+<meta name="description" content="Acesse +200.000 empresas brasileiras com telefone, e-mail e Instagram. Dispare WhatsApp em segundos. LeadHunter Pro.">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:#08080f;color:#eeeef2;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+:root{
+  --amber:#f09030;--amber-l:#f5b455;--amber-d:rgba(240,144,48,.12);
+  --purple:#a855f7;--blue:#60a5fa;--green:#22c55e;
+  --s1:#0e0e18;--s2:#15151f;--s3:#1d1d28;--bd:rgba(255,255,255,.07);
+  --t2:#8888a0;--t3:#3a3a50;
+}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#1d1d28;border-radius:2px}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,8,15,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--bd);padding:0 5%;display:flex;align-items:center;height:60px;gap:20px}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--amber),#e06010);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.nav-name{font-size:15px;font-weight:800;color:#eeeef2}
+.nav-name em{color:var(--amber);font-style:normal}
+.nav-cta{margin-left:auto;display:flex;gap:10px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;border:none;transition:all .15s}
+.btn-ghost{background:transparent;color:var(--t2);border:1px solid var(--bd)}
+.btn-ghost:hover{color:#eeeef2;border-color:rgba(255,255,255,.18)}
+.btn-primary{background:linear-gradient(135deg,var(--amber),#e06010);color:#000;font-weight:700}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(240,144,48,.35)}
+.btn-lg{padding:14px 28px;font-size:15px;border-radius:12px}
+.btn-xl{padding:17px 36px;font-size:16px;border-radius:13px}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 5% 60px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(240,144,48,.12) 0%,transparent 60%)}
+.hero::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 80% 80%,rgba(168,85,247,.07) 0%,transparent 60%)}
+.hero-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(240,144,48,.1);border:1px solid rgba(240,144,48,.25);border-radius:50px;padding:5px 14px;font-size:12px;font-weight:600;color:var(--amber);margin-bottom:28px;position:relative;z-index:1}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+h1{font-size:clamp(38px,5.5vw,72px);font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:20px;position:relative;z-index:1}
+h1 em{font-style:normal;background:linear-gradient(135deg,var(--amber),#e06010);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:clamp(16px,2.2vw,20px);color:var(--t2);max-width:600px;line-height:1.6;margin-bottom:36px;position:relative;z-index:1}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;position:relative;z-index:1;margin-bottom:50px}
+.hero-proof{display:flex;gap:32px;flex-wrap:wrap;justify-content:center;position:relative;z-index:1;padding-top:20px;border-top:1px solid var(--bd)}
+.proof-item{display:flex;flex-direction:column;align-items:center;gap:3px}
+.proof-num{font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--amber),#e06010);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.proof-lbl{font-size:12px;color:var(--t2)}
+
+/* ── SECTION ── */
+section{padding:80px 5%;max-width:1200px;margin:0 auto}
+.section-label{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:14px}
+.section-title{font-size:clamp(28px,3.5vw,44px);font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:16px}
+.section-sub{font-size:16px;color:var(--t2);line-height:1.6;max-width:560px}
+
+/* ── FEATURES ── */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:50px}
+.feat{background:var(--s1);border:1px solid var(--bd);border-radius:16px;padding:24px;position:relative;overflow:hidden;transition:border-color .2s}
+.feat:hover{border-color:rgba(240,144,48,.25)}
+.feat::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(240,144,48,.2),transparent)}
+.feat-icon{width:42px;height:42px;border-radius:11px;background:var(--amber-d);border:1px solid rgba(240,144,48,.2);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:16px}
+.feat-title{font-size:15px;font-weight:700;margin-bottom:7px}
+.feat-desc{font-size:13.5px;color:var(--t2);line-height:1.6}
+
+/* ── HOW IT WORKS ── */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:50px;counter-reset:step}
+.step{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:24px;position:relative}
+.step::before{counter-increment:step;content:counter(step);position:absolute;top:20px;right:20px;font-size:40px;font-weight:900;color:var(--t3);line-height:1}
+.step-icon{font-size:26px;margin-bottom:14px}
+.step-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.step-desc{font-size:13px;color:var(--t2);line-height:1.55}
+
+/* ── PRICING ── */
+.pricing-wrap{padding:80px 5%;background:var(--s1);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+.pricing-inner{max-width:1100px;margin:0 auto}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:50px}
+.plan{background:#08080f;border:1px solid var(--bd);border-radius:18px;padding:28px;display:flex;flex-direction:column;position:relative;transition:transform .2s,border-color .2s}
+.plan:hover{transform:translateY(-3px)}
+.plan.featured{border-color:rgba(240,144,48,.4);background:linear-gradient(160deg,rgba(240,144,48,.05) 0%,#08080f 60%)}
+.plan.featured::before{content:'MAIS POPULAR';position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--amber),#e06010);color:#000;font-size:10px;font-weight:800;letter-spacing:.08em;padding:3px 14px;border-radius:0 0 8px 8px}
+.plan-name{font-size:13px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.plan-price{display:flex;align-items:baseline;gap:6px;margin-bottom:6px}
+.plan-price-cur{font-size:16px;font-weight:700;color:var(--t2)}
+.plan-price-val{font-size:44px;font-weight:900;letter-spacing:-2px;color:#eeeef2}
+.plan-price-per{font-size:13px;color:var(--t2)}
+.plan-desc{font-size:13px;color:var(--t2);margin-bottom:24px;line-height:1.5}
+.plan-features{list-style:none;flex:1;margin-bottom:26px}
+.plan-features li{font-size:13.5px;color:#eeeef2;padding:7px 0;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:9px}
+.plan-features li::before{content:'✓';color:var(--green);font-weight:700;font-size:12px;flex-shrink:0}
+.plan-features li.no::before{content:'✕';color:var(--t3)}
+.plan-features li.no{color:var(--t3)}
+.plan-btn{width:100%;text-align:center;justify-content:center;padding:13px}
+.plan-btn.primary{background:linear-gradient(135deg,var(--amber),#e06010);color:#000}
+.plan-btn.outline{background:transparent;border:1px solid var(--bd);color:var(--t2)}
+.plan-btn.outline:hover{border-color:rgba(255,255,255,.2);color:#eeeef2}
+.plan-btn.purple{background:linear-gradient(135deg,var(--purple),#7c3aed);color:#fff}
+
+/* ── COMPARISON TABLE ── */
+.cmp-table{width:100%;border-collapse:collapse;margin-top:40px;font-size:14px}
+.cmp-table th{padding:14px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);border-bottom:1px solid var(--bd)}
+.cmp-table td{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--t2)}
+.cmp-table td:first-child{color:#eeeef2;font-weight:500}
+.cmp-table tr:hover td{background:rgba(255,255,255,.02)}
+.cmp-check{color:var(--green);font-weight:700}
+.cmp-cross{color:var(--t3)}
+.cmp-val{color:#eeeef2;font-weight:600}
+
+/* ── FAQ ── */
+.faq-list{margin-top:40px;display:flex;flex-direction:column;gap:12px}
+.faq{background:var(--s1);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+.faq-q{padding:18px 20px;font-size:14px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;user-select:none}
+.faq-q:hover{background:var(--s2)}
+.faq-q svg{flex-shrink:0;transition:transform .2s}
+.faq.open .faq-q svg{transform:rotate(180deg)}
+.faq-a{padding:0 20px 18px;font-size:13.5px;color:var(--t2);line-height:1.65;display:none}
+.faq.open .faq-a{display:block}
+
+/* ── SOCIAL PROOF ── */
+.testimonials{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:50px}
+.testi{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:22px}
+.testi-stars{color:var(--amber);font-size:14px;margin-bottom:12px}
+.testi-text{font-size:13.5px;color:var(--t2);line-height:1.6;margin-bottom:16px}
+.testi-author{display:flex;align-items:center;gap:10px}
+.testi-avatar{width:36px;height:36px;border-radius:50%;background:var(--amber-d);border:1px solid rgba(240,144,48,.2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--amber);flex-shrink:0}
+.testi-name{font-size:13px;font-weight:600}
+.testi-role{font-size:12px;color:var(--t3)}
+
+/* ── FINAL CTA ── */
+.cta-section{padding:100px 5%;text-align:center;position:relative;overflow:hidden}
+.cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(240,144,48,.08) 0%,transparent 70%)}
+.cta-title{font-size:clamp(32px,4.5vw,56px);font-weight:900;letter-spacing:-1.5px;margin-bottom:18px;position:relative;z-index:1}
+.cta-sub{font-size:16px;color:var(--t2);margin-bottom:36px;position:relative;z-index:1}
+.cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+
+/* ── FOOTER ── */
+footer{background:var(--s1);border-top:1px solid var(--bd);padding:30px 5%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+.footer-left{font-size:13px;color:var(--t3)}
+.footer-links{display:flex;gap:20px}
+.footer-links a{font-size:12px;color:var(--t3);text-decoration:none}
+.footer-links a:hover{color:var(--t2)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  nav{padding:0 4%}
+  h1{letter-spacing:-1px}
+  .hero-proof{gap:20px}
+  .cta-section{padding:60px 4%}
+  footer{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ NAV ══ -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-mark">🦊</div>
+    <span class="nav-name">Lead<em>Hunter</em></span>
+  </a>
+  <div class="nav-cta">
+    <a href="#planos" class="btn btn-ghost">Ver planos</a>
+    <a href="https://leadhunter-vert.vercel.app" class="btn btn-primary" id="btn-acessar">Acessar →</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<div class="hero">
+  <div class="hero-badge">
+    🔥 Mais de 200.000 leads brasileiros disponíveis
+  </div>
+  <h1>Encontre clientes<br>no <em>Instagram</em> e CNPJ<br>todo dia</h1>
+  <p class="hero-sub">
+    Acesse empresas ativas, filtre por cidade, segmento e porte,
+    abra o WhatsApp direto e escale suas vendas com dados reais.
+  </p>
+  <div class="hero-cta">
+    <a href="#planos" class="btn btn-primary btn-xl">Quero começar agora</a>
+    <a href="https://leadhunter-vert.vercel.app" class="btn btn-ghost btn-lg">Ver demo →</a>
+  </div>
+  <div class="hero-proof">
+    <div class="proof-item"><span class="proof-num">200K+</span><span class="proof-lbl">Empresas CNPJ</span></div>
+    <div class="proof-item"><span class="proof-num">2.000+</span><span class="proof-lbl">Perfis Instagram</span></div>
+    <div class="proof-item"><span class="proof-num">154K+</span><span class="proof-lbl">Com e-mail</span></div>
+    <div class="proof-item"><span class="proof-num">184K+</span><span class="proof-lbl">Com telefone</span></div>
+    <div class="proof-item"><span class="proof-num">0</span><span class="proof-lbl">Setup / Instalação</span></div>
+  </div>
+</div>
+
+<!-- ══ FEATURES ══ -->
+<section>
+  <div class="section-label">O que você ganha</div>
+  <h2 class="section-title">Tudo que você precisa para<br>prospectar mais rápido</h2>
+  <p class="section-sub">Uma plataforma completa: base de dados, busca inteligente, WhatsApp direto e campanhas automáticas.</p>
+  <div class="features-grid">
+    <div class="feat">
+      <div class="feat-icon">🏢</div>
+      <div class="feat-title">Base CNPJ Receita Federal</div>
+      <div class="feat-desc">+200.000 empresas ativas com telefone, e-mail, sócio, CNAE, endereço e score de completude. Filtre por DDD, porte, e-mail, simples e mais.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📸</div>
+      <div class="feat-title">Busca por Instagram</div>
+      <div class="feat-desc">Encontre negócios que estão no Instagram: barbearias, petshops, academias, clínicas estéticas, restaurantes e muito mais. Link direto para o perfil.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">💬</div>
+      <div class="feat-title">WhatsApp com 1 clique</div>
+      <div class="feat-desc">Abra o WhatsApp diretamente para qualquer lead com número cadastrado. Sem copiar, sem digitar — clicou, abriu o chat.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📤</div>
+      <div class="feat-title">Campanhas de Disparo</div>
+      <div class="feat-desc">Selecione centenas de leads e crie uma campanha de mensagens automáticas com delay anti-ban, horário comercial e template personalizado.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📊</div>
+      <div class="feat-title">Dashboard com Métricas</div>
+      <div class="feat-desc">Veja em tempo real quantos leads você tem por DDD, estado e segmento. Acompanhe o progresso das campanhas e o volume de envios.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📥</div>
+      <div class="feat-title">Exportação CSV</div>
+      <div class="feat-desc">Exporte qualquer lista de leads para planilha CSV com os campos completos — integra com qualquer CRM, Google Sheets ou Excel.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ HOW IT WORKS ══ -->
+<section style="padding-top:0">
+  <div class="section-label">Como funciona</div>
+  <h2 class="section-title">Do zero ao primeiro lead<br>em menos de 2 minutos</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-icon">🔐</div>
+      <div class="step-title">Faça seu cadastro</div>
+      <div class="step-desc">Escolha seu plano, pague via Cakto. Você recebe seu token de acesso por e-mail instantaneamente.</div>
+    </div>
+    <div class="step">
+      <div class="step-icon">🔍</div>
+      <div class="step-title">Defina seu público</div>
+      <div class="step-desc">Filtre por DDD, segmento, porte ou busque diretamente por Instagram. Encontre exatamente seu cliente ideal.</div>
+    </div>
+    <div class="step">
+      <div class="step-icon">💬</div>
+      <div class="step-title">Entre em contato</div>
+      <div class="step-desc">Clique no botão WPP para abrir o WhatsApp direto, ou adicione à campanha para disparo em massa automático.</div>
+    </div>
+    <div class="step">
+      <div class="step-icon">📈</div>
+      <div class="step-title">Escale as vendas</div>
+      <div class="step-desc">Com acesso diário ilimitado (planos Trimestral e Vitalício), prospecte centenas de clientes novos todo dia sem repetir.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TESTIMONIALS ══ -->
+<section style="padding-top:0">
+  <div class="section-label">Resultados reais</div>
+  <h2 class="section-title">Quem usa, vende mais</h2>
+  <div class="testimonials">
+    <div class="testi">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"Em 3 dias fechei 2 contratos usando o filtro de Instagram. Encontrei clientes que nunca conseguiria no Google Ads. Melhor investimento do mês."</div>
+      <div class="testi-author">
+        <div class="testi-avatar">M</div>
+        <div><div class="testi-name">Marcos A.</div><div class="testi-role">Agência de Marketing Digital</div></div>
+      </div>
+    </div>
+    <div class="testi">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"Precisava prospectar barbearias na minha cidade. Em 5 minutos tinha 80 leads com WhatsApp. Nunca foi tão fácil. Recomendo para qualquer prestador de serviço."</div>
+      <div class="testi-author">
+        <div class="testi-avatar">C</div>
+        <div><div class="testi-name">Camila R.</div><div class="testi-role">Distribuidora de Insumos</div></div>
+      </div>
+    </div>
+    <div class="testi">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"Comprei o vitalício e já paguei de volta em 1 semana. A base de CNPJ com e-mail e telefone é absurdamente rica. Vale muito mais do que cobra."</div>
+      <div class="testi-author">
+        <div class="testi-avatar">R</div>
+        <div><div class="testi-name">Rafael T.</div><div class="testi-role">Consultor Comercial B2B</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PRICING ══ -->
+<div class="pricing-wrap" id="planos">
+  <div class="pricing-inner">
+    <div class="section-label" style="text-align:center">Planos e preços</div>
+    <h2 class="section-title" style="text-align:center;margin:0 auto">Comece hoje. Sem taxas ocultas.</h2>
+    <p class="section-sub" style="text-align:center;margin:12px auto 0">Cancele quando quiser. Plano Vitalício: pague uma vez, use para sempre.</p>
+    <div class="plans">
+
+      <!-- MENSAL -->
+      <div class="plan">
+        <div class="plan-name">Mensal</div>
+        <div class="plan-price">
+          <span class="plan-price-cur">R$</span>
+          <span class="plan-price-val">77</span>
+          <span class="plan-price-per">/mês</span>
+        </div>
+        <div class="plan-desc">Ideal para começar a prospectar e testar a plataforma.</div>
+        <ul class="plan-features">
+          <li>150 leads por dia</li>
+          <li>Busca por CNPJ (200K+ empresas)</li>
+          <li>Busca por Instagram</li>
+          <li>WhatsApp com 1 clique</li>
+          <li>Exportação CSV</li>
+          <li>Dashboard com métricas</li>
+          <li class="no">Campanhas automáticas ilimitadas</li>
+          <li class="no">Suporte prioritário</li>
+        </ul>
+        <a href="#" class="btn plan-btn outline" id="btn-mensal" onclick="comprar('mensal')">Assinar agora →</a>
+      </div>
+
+      <!-- TRIMESTRAL -->
+      <div class="plan featured">
+        <div class="plan-name">Trimestral</div>
+        <div class="plan-price">
+          <span class="plan-price-cur">R$</span>
+          <span class="plan-price-val">190</span>
+          <span class="plan-price-per">/3 meses</span>
+        </div>
+        <div class="plan-desc">Melhor custo-benefício. Acesso ilimitado por 3 meses completos.</div>
+        <ul class="plan-features">
+          <li>Leads ILIMITADOS por dia</li>
+          <li>Busca por CNPJ (200K+ empresas)</li>
+          <li>Busca por Instagram</li>
+          <li>WhatsApp com 1 clique</li>
+          <li>Exportação CSV</li>
+          <li>Dashboard com métricas</li>
+          <li>Campanhas automáticas ilimitadas</li>
+          <li>Economia de R$41 vs. 3x mensal</li>
+        </ul>
+        <a href="#" class="btn plan-btn primary" id="btn-trimestral" onclick="comprar('trimestral')">Quero este plano →</a>
+      </div>
+
+      <!-- VITALÍCIO -->
+      <div class="plan">
+        <div class="plan-name">Vitalício ∞</div>
+        <div class="plan-price">
+          <span class="plan-price-cur">R$</span>
+          <span class="plan-price-val">350</span>
+          <span class="plan-price-per">único pagamento</span>
+        </div>
+        <div class="plan-desc">Pague uma vez. Acesse para sempre. Nunca mais pague mensalidade.</div>
+        <ul class="plan-features">
+          <li>Leads ILIMITADOS para sempre</li>
+          <li>Busca por CNPJ (200K+ empresas)</li>
+          <li>Busca por Instagram</li>
+          <li>WhatsApp com 1 clique</li>
+          <li>Exportação CSV</li>
+          <li>Dashboard com métricas</li>
+          <li>Campanhas automáticas ilimitadas</li>
+          <li>Atualizações vitalícias incluídas</li>
+        </ul>
+        <a href="#" class="btn plan-btn purple" id="btn-vitalicio" onclick="comprar('vitalicio')">Garantir acesso vitalício →</a>
+      </div>
+    </div>
+
+    <!-- COMPARISON TABLE -->
+    <div style="margin-top:60px">
+      <h3 style="font-size:20px;font-weight:700;margin-bottom:4px;text-align:center">Comparação detalhada</h3>
+      <p style="font-size:13px;color:var(--t2);text-align:center;margin-bottom:0">Veja o que cada plano inclui</p>
+      <div style="overflow-x:auto;margin-top:24px">
+        <table class="cmp-table">
+          <thead>
+            <tr>
+              <th>Recurso</th>
+              <th>Mensal <small style="font-size:10px;font-weight:500">R$77/mês</small></th>
+              <th>Trimestral <small style="font-size:10px;font-weight:500">R$190</small></th>
+              <th>Vitalício <small style="font-size:10px;font-weight:500">R$350</small></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Leads por dia</td><td class="cmp-val">150</td><td class="cmp-val">Ilimitado</td><td class="cmp-val">Ilimitado</td></tr>
+            <tr><td>Base CNPJ</td><td class="cmp-check">✓</td><td class="cmp-check">✓</td><td class="cmp-check">✓</td></tr>
+            <tr><td>Busca Instagram</td><td class="cmp-check">✓</td><td class="cmp-check">✓</td><td class="cmp-check">✓</td></tr>
+            <tr><td>WhatsApp direto</td><td class="cmp-check">✓</td><td class="cmp-check">✓</td><td class="cmp-check">✓</td></tr>
+            <tr><td>Exportação CSV</td><td class="cmp-check">✓</td><td class="cmp-check">✓</td><td class="cmp-check">✓</td></tr>
+            <tr><td>Filtros avançados</td><td class="cmp-check">✓</td><td class="cmp-check">✓</td><td class="cmp-check">✓</td></tr>
+            <tr><td>Campanhas automáticas</td><td class="cmp-cross">✕</td><td class="cmp-check">✓</td><td class="cmp-check">✓</td></tr>
+            <tr><td>Novos leads via Instagram</td><td class="cmp-check">✓</td><td class="cmp-check">✓</td><td class="cmp-check">✓</td></tr>
+            <tr><td>Atualizações incluídas</td><td class="cmp-val">Enquanto ativo</td><td class="cmp-val">3 meses</td><td class="cmp-val">Para sempre</td></tr>
+            <tr><td>Preço por mês</td><td class="cmp-val">R$77</td><td class="cmp-val">R$63</td><td class="cmp-val">R$0 após compra</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FAQ ══ -->
+<section>
+  <div class="section-label">Dúvidas frequentes</div>
+  <h2 class="section-title">Perguntas & Respostas</h2>
+  <div class="faq-list">
+    <div class="faq">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        Como recebo o acesso após o pagamento?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="faq-a">Imediatamente após a confirmação do pagamento, o sistema gera automaticamente um token de acesso único e envia para o seu e-mail. Você cola esse token na tela de login do LeadHunter e já acessa na hora.</div>
+    </div>
+    <div class="faq">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        O que acontece se eu cancelar a assinatura?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="faq-a">O acesso é bloqueado imediatamente após o cancelamento ou reembolso. O plano Vitalício não tem mensalidade — você paga uma vez e nunca perde o acesso (a menos que solicite reembolso).</div>
+    </div>
+    <div class="faq">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        Posso fazer upgrade do plano Mensal para Vitalício?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="faq-a">Sim! Basta comprar o plano superior com o mesmo e-mail da sua conta. O sistema detecta automaticamente o upgrade e atualiza seu plano instantaneamente, sem necessidade de cancelar o atual.</div>
+    </div>
+    <div class="faq">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        O limite de 150 leads/dia do plano Mensal reseta quando?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="faq-a">Todo dia à meia-noite (horário de Brasília) o contador zera e você tem 150 novos leads disponíveis. Para acesso ilimitado, o plano Trimestral ou Vitalício é a melhor escolha.</div>
+    </div>
+    <div class="faq">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        Os leads são de qual base de dados?
+        <svg viewBox="0 0" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="faq-a">A base CNPJ vem da Receita Federal do Brasil — mais de 200.000 empresas ativas com telefone, e-mail, endereço e dados do sócio. Os leads Instagram são coletados de perfis públicos de negócios, com link direto para o perfil.</div>
+    </div>
+    <div class="faq">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        Funciona em celular?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="faq-a">Sim. O LeadHunter é um aplicativo web responsivo — funciona no navegador do celular, tablet ou computador. Não precisa instalar nada.</div>
+    </div>
+    <div class="faq">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        Precisa configurar algo técnico?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="faq-a">Não. Basta fazer login com o token que você recebe por e-mail e já começa a usar. As campanhas de WhatsApp automático requerem configuração da Evolution API, mas a busca e exportação de leads funcionam imediatamente.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FINAL CTA ══ -->
+<div class="cta-section">
+  <div class="cta-title">Comece a prospectar hoje.<br>Sem complicação.</div>
+  <p class="cta-sub">Junte-se a quem já encontra clientes todos os dias com o LeadHunter Pro.</p>
+  <div class="cta-btns">
+    <a href="#planos" class="btn btn-primary btn-xl">Ver planos e preços</a>
+    <a href="https://leadhunter-vert.vercel.app" class="btn btn-ghost btn-lg">Acessar a plataforma →</a>
+  </div>
+</div>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="footer-left">© 2025 LeadHunter Pro · Todos os direitos reservados</div>
+  <div class="footer-links">
+    <a href="https://leadhunter-vert.vercel.app">Entrar na plataforma</a>
+    <a href="mailto:suporte@leadhunter.app">Suporte</a>
+  </div>
+</footer>
+
+<script>
+// URLs dos checkouts Cakto — configure aqui ou serão lidas do localStorage
+const CAKTO_URLS = {
+  mensal:     localStorage.getItem('lh_cakto_mensal')     || '',
+  trimestral: localStorage.getItem('lh_cakto_trimestral') || '',
+  vitalicio:  localStorage.getItem('lh_cakto_vitalicio')  || '',
+};
+
+function comprar(plano) {
+  const url = CAKTO_URLS[plano];
+  if (!url) {
+    alert('Link de pagamento em breve! Entre em contato com o suporte.');
+    return;
+  }
+  window.open(url, '_blank');
+}
+
+function toggleFaq(el) {
+  el.closest('.faq').classList.toggle('open');
+}
+
+// Atualiza os botões se os links estiverem no localStorage
+window.addEventListener('load', () => {
+  const planos = ['mensal', 'trimestral', 'vitalicio'];
+  planos.forEach(p => {
+    const url = CAKTO_URLS[p];
+    if (url) {
+      const btn = document.getElementById('btn-' + p);
+      if (btn) btn.href = url;
+    }
+  });
+});
+</script>
+</body>
+</html>

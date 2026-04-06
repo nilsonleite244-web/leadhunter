@@ -26,27 +26,58 @@ const query = (sql, params) => pool.query(sql, params);
 // ── AUTENTICACAO ──
 // Se API_SECRET estiver definido no .env, todas as rotas (exceto /health) exigem
 // o header  x-api-key: <segredo>  ou  Authorization: Bearer <segredo>
+// ── PLANOS ───────────────────────────────────────────────────────────────────
+const LIMITE_MENSAL_DIA = 150; // leads/dia no plano mensal
+
 function authMiddleware(req, res, next) {
   const secret = process.env.API_SECRET;
-  if (!secret) return next(); // auth desativada se API_SECRET não configurado
+  if (!secret) return next();
 
-  // Aceita API_SECRET (admin) OU token de assinante ativo
   const key = req.headers["x-api-key"] || (req.headers["authorization"] || "").replace("Bearer ", "");
   if (key === secret) return next();
 
   const token = req.headers["x-assinante-token"];
   if (token) {
     pool.query(
-      "SELECT id FROM assinantes WHERE token=$1 AND status='ativo' AND (expira_em IS NULL OR expira_em > NOW())",
+      `SELECT id, plano, leads_hoje, leads_data
+       FROM assinantes
+       WHERE token=$1 AND status='ativo' AND (expira_em IS NULL OR expira_em > NOW())`,
       [token]
     ).then(r => {
-      if (r.rows.length) return next();
-      res.status(401).json({ error: "Assinatura inativa ou expirada" });
+      if (!r.rows.length) return res.status(401).json({ error: "Assinatura inativa ou expirada" });
+      req.assinante = r.rows[0]; // disponível para os endpoints
+      next();
     }).catch(() => res.status(500).json({ error: "Erro ao verificar assinatura" }));
     return;
   }
 
   res.status(401).json({ error: "Nao autorizado — faça login no LeadHunter" });
+}
+
+// Verifica e atualiza cota diária do plano mensal; retorna false se esgotada
+async function verificarCota(req, res, count) {
+  const a = req.assinante;
+  if (!a || a.plano !== 'mensal') return true; // planos superiores: ilimitado
+
+  const hoje = new Date().toISOString().split('T')[0];
+  const ultimaData = a.leads_data ? new Date(a.leads_data).toISOString().split('T')[0] : null;
+  const usadoHoje  = ultimaData === hoje ? (a.leads_hoje || 0) : 0;
+
+  if (usadoHoje >= LIMITE_MENSAL_DIA) {
+    res.status(429).json({
+      error: `Limite de ${LIMITE_MENSAL_DIA} leads/dia atingido no plano Mensal.`,
+      cota: { limite: LIMITE_MENSAL_DIA, usado: usadoHoje, restante: 0 },
+      upgrade: 'Para acesso ilimitado, faça upgrade para o plano Trimestral ou Vitalício.'
+    });
+    return false;
+  }
+
+  const novoTotal = Math.min(usadoHoje + count, LIMITE_MENSAL_DIA);
+  await pool.query(
+    "UPDATE assinantes SET leads_hoje=$2, leads_data=CURRENT_DATE WHERE id=$1",
+    [a.id, novoTotal]
+  ).catch(() => {});
+  return true;
 }
 
 function paginate(req) {
@@ -254,7 +285,18 @@ app.get("/leads/instagram", async (req, res) => {
       [...params, limit, offset]
     );
 
-    res.json({ total, page, limit, pages: Math.ceil(total / limit), data: dataRes.rows });
+    const rows = dataRes.rows;
+    const ok = await verificarCota(req, res, rows.length);
+    if (!ok) return;
+
+    const a = req.assinante;
+    const cota = a?.plano === 'mensal' ? {
+      limite: LIMITE_MENSAL_DIA,
+      usado: Math.min((a.leads_hoje||0) + rows.length, LIMITE_MENSAL_DIA),
+      restante: Math.max(0, LIMITE_MENSAL_DIA - (a.leads_hoje||0) - rows.length)
+    } : null;
+
+    res.json({ total, page, limit, pages: Math.ceil(total / limit), data: rows, cota });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -268,6 +310,8 @@ app.get("/leads/aleatorio", async (req, res) => {
       `SELECT ${cols} FROM leads WHERE situacao_cadastral = 2 AND telefone1 IS NOT NULL AND telefone1 != '' ORDER BY RANDOM() LIMIT $1`,
       [limit]
     );
+    const ok = await verificarCota(req, res, result.rows.length);
+    if (!ok) return;
     res.json({ total: result.rows.length, data: result.rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -303,8 +347,16 @@ app.get("/leads/buscar", async (req, res) => {
       const extraRes = await pool.query("SELECT nome as razao_social, nome as nome_fantasia, segmento as cnae_descricao, telefone as telefone1, whatsapp_url, instagram_url, endereco as logradouro, status FROM leads_extra LIMIT $1", [limit]);
       extraRows = extraRes.rows;
     } catch(e) {}
-    const allLeads = [...dataRes.rows, ...extraRows];
-    res.json({ total: total + extraRows.length, page, limit, pages: Math.ceil(total / limit), data: allLeads.slice(0, limit) });
+    const allLeads = [...dataRes.rows, ...extraRows].slice(0, limit);
+    const ok = await verificarCota(req, res, allLeads.length);
+    if (!ok) return;
+    const a = req.assinante;
+    const cota = a?.plano === 'mensal' ? {
+      limite: LIMITE_MENSAL_DIA,
+      usado: Math.min((a.leads_hoje||0) + allLeads.length, LIMITE_MENSAL_DIA),
+      restante: Math.max(0, LIMITE_MENSAL_DIA - (a.leads_hoje||0) - allLeads.length)
+    } : null;
+    res.json({ total: total + extraRows.length, page, limit, pages: Math.ceil(total / limit), data: allLeads, cota });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -509,9 +561,11 @@ app.post("/webhook/kirvano", express.raw({ type: "*/*" }), async (req, res) => {
       console.log(`[Kirvano] ${email} → ${status}${expiraEm ? ' até ' + expiraEm.toLocaleDateString('pt-BR') : ''}`);
     } else if (ePagamento) {
       const token = gerarToken();
+      const planoDetectado = detectarPlano(dados);
+      const expPlano = calcularExpiracao(planoDetectado);
       await pool.query(
-        "INSERT INTO assinantes(email,nome,status,token,kirvano_transaction_id,plano,ativado_em,expira_em) VALUES($1,$2,'ativo',$3,$4,'mensal',NOW(),$5)",
-        [email, nome, token, txId, expiraEm]
+        "INSERT INTO assinantes(email,nome,status,token,kirvano_transaction_id,plano,ativado_em,expira_em) VALUES($1,$2,'ativo',$3,$4,$5,NOW(),$6)",
+        [email, nome, token, txId, planoDetectado, expPlano]
       );
       console.log(`[Kirvano] novo assinante: ${email}`);
 
@@ -548,6 +602,101 @@ app.post("/webhook/kirvano", express.raw({ type: "*/*" }), async (req, res) => {
   }
 });
 
+// ── HELPERS DE PLANO ──────────────────────────────────────────────────────────
+function detectarPlano(dados) {
+  const txt = JSON.stringify(dados).toLowerCase();
+  if (txt.includes('vitalicio') || txt.includes('vitalício') || txt.includes('lifetime') || txt.includes('vitalic')) return 'vitalicio';
+  if (txt.includes('trimestral') || txt.includes('quarterly') || txt.includes('3 meses') || txt.includes('3meses')) return 'trimestral';
+  return 'mensal';
+}
+
+function calcularExpiracao(plano) {
+  if (plano === 'vitalicio') return null;
+  const dias = plano === 'trimestral' ? 95 : 35;
+  return new Date(Date.now() + dias * 24 * 60 * 60 * 1000);
+}
+
+async function processarPagamento(email, nome, txId, dados, plataforma) {
+  const plano    = detectarPlano(dados);
+  const expiraEm = calcularExpiracao(plano);
+  const existing = await pool.query("SELECT * FROM assinantes WHERE email=$1", [email]);
+  if (existing.rows.length) {
+    await pool.query(
+      "UPDATE assinantes SET status='ativo', plano=$2, expira_em=$3, updated_at=NOW() WHERE email=$1",
+      [email, plano, expiraEm]
+    );
+    console.log(`[${plataforma}] renovacao/upgrade: ${email} → plano ${plano}`);
+    return null;
+  }
+  const token = gerarToken();
+  await pool.query(
+    "INSERT INTO assinantes(email,nome,status,token,plano,ativado_em,expira_em) VALUES($1,$2,'ativo',$3,$4,NOW(),$5)",
+    [email, nome, token, plano, expiraEm]
+  );
+  console.log(`[${plataforma}] novo assinante: ${email} plano=${plano}`);
+  return token;
+}
+
+async function enviarEmailBoasVindas(email, nome, token, plano) {
+  const resendKey = process.env.RESEND_API_KEY;
+  const emailFrom = process.env.EMAIL_FROM || "noreply@leadhunter.app";
+  if (!resendKey || !token) return;
+  const planosLabel = { mensal:'Mensal — R$77', trimestral:'Trimestral — R$190', vitalicio:'Vitalício — R$350' };
+  const limiteLabel = plano === 'mensal' ? '150 leads/dia' : 'Ilimitado';
+  await axios.post("https://api.resend.com/emails", {
+    from: emailFrom, to: email,
+    subject: "🦊 Seu acesso ao LeadHunter Pro está pronto!",
+    html: `<div style="font-family:Inter,sans-serif;max-width:500px;margin:0 auto;background:#08080f;color:#eeeef2;padding:32px;border-radius:16px">
+      <h2 style="color:#f09030;margin-bottom:4px">Bem-vindo ao LeadHunter Pro! 🦊</h2>
+      <p style="color:#8888a0;margin-bottom:24px">Olá${nome?" "+nome.split(" ")[0]:""}! Seu pagamento foi confirmado.</p>
+      <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.2);border-radius:10px;padding:16px;margin-bottom:20px">
+        <div style="font-size:12px;color:#8888a0;margin-bottom:4px">Plano ativo</div>
+        <div style="font-size:16px;font-weight:700;color:#f09030">${planosLabel[plano]||plano}</div>
+        <div style="font-size:12px;color:#8888a0;margin-top:4px">Leads: ${limiteLabel}</div>
+      </div>
+      <p style="margin-bottom:8px;font-size:14px">Seu token de acesso:</p>
+      <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.3);border-radius:10px;padding:16px;font-family:monospace;font-size:13px;word-break:break-all;color:#f5b455">${token}</div>
+      <p style="color:#8888a0;font-size:12px;margin-top:12px">Cole em <b style="color:#eeeef2">Configurações → Token de Acesso</b></p>
+      <a href="https://leadhunter-vert.vercel.app" style="display:inline-block;margin-top:20px;background:linear-gradient(135deg,#f09030,#e06818);color:#000;font-weight:700;padding:12px 24px;border-radius:9px;text-decoration:none">Acessar LeadHunter →</a>
+    </div>`,
+  }, { headers: { Authorization:`Bearer ${resendKey}`, "Content-Type":"application/json" } }).catch(e => console.error("[Resend]", e.message));
+}
+
+// ── WEBHOOK CAKTO ─────────────────────────────────────────────────────────────
+app.post("/webhook/cakto", express.raw({ type: "*/*" }), async (req, res) => {
+  try {
+    const body    = typeof req.body === "string" ? req.body : req.body.toString("utf-8");
+    const payload = JSON.parse(body);
+    const evento  = (payload.event || payload.type || payload.status || "").toLowerCase();
+    const dados   = payload.data || payload.checkout || payload;
+    const email   = dados.customer?.email || dados.customer_email || dados.buyer?.email || dados.email;
+    const nome    = dados.customer?.name  || dados.customer_name  || dados.buyer?.name  || dados.name || "";
+    const txId    = dados.order?.id       || dados.transaction_id || dados.order_id     || payload.id || "";
+
+    const ePagamento = ["approved","paid","complete","renewed","active","created","success"].some(k => evento.includes(k));
+    const eCancelado = ["cancel","refund","chargeback","expired","suspend","overdue","inactive","refused"].some(k => evento.includes(k));
+
+    console.log(`[Cakto] evento="${evento}" email="${email}"`);
+    if (!email) return res.json({ ok: true, msg: "sem email no payload" });
+
+    if (eCancelado && !ePagamento) {
+      await pool.query("UPDATE assinantes SET status='cancelado', expira_em=NOW(), updated_at=NOW() WHERE email=$1", [email]);
+      console.log(`[Cakto] cancelado: ${email}`);
+      return res.json({ ok: true });
+    }
+
+    if (ePagamento) {
+      const token = await processarPagamento(email, nome, txId, dados, 'Cakto');
+      await enviarEmailBoasVindas(email, nome, token, detectarPlano(dados));
+    }
+
+    res.json({ ok: true });
+  } catch(e) {
+    console.error("[Cakto webhook] erro:", e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Login por email — retorna token se assinatura ativa
 app.post("/auth/login", async (req, res) => {
   try {
@@ -570,7 +719,7 @@ app.get("/auth/verificar", async (req, res) => {
   const token = req.headers["x-assinante-token"] || req.query.token;
   if (!token) return res.status(401).json({ ok: false });
   const r = await pool.query(
-    "SELECT nome, email, status, expira_em FROM assinantes WHERE token=$1", [token]
+    "SELECT nome, email, status, expira_em, plano, leads_hoje, leads_data FROM assinantes WHERE token=$1", [token]
   ).catch(() => ({ rows: [] }));
   if (!r.rows.length) return res.status(401).json({ ok: false, motivo: "token inválido" });
   const a = r.rows[0];
@@ -579,7 +728,23 @@ app.get("/auth/verificar", async (req, res) => {
     await pool.query("UPDATE assinantes SET status='expirado' WHERE token=$1", [token]).catch(() => {});
     return res.status(401).json({ ok: false, motivo: "assinatura expirada" });
   }
-  res.json({ ok: true, nome: a.nome, email: a.email });
+
+  const hoje = new Date().toISOString().split('T')[0];
+  const ultimaData = a.leads_data ? new Date(a.leads_data).toISOString().split('T')[0] : null;
+  const usadoHoje = ultimaData === hoje ? (a.leads_hoje || 0) : 0;
+
+  res.json({
+    ok: true,
+    nome: a.nome,
+    email: a.email,
+    plano: a.plano || 'mensal',
+    expira_em: a.expira_em,
+    cota: a.plano === 'mensal' ? {
+      limite: LIMITE_MENSAL_DIA,
+      usado: usadoHoje,
+      restante: Math.max(0, LIMITE_MENSAL_DIA - usadoHoje)
+    } : null
+  });
 });
 
 // ── APIFY INSTAGRAM SCRAPING ──────────────────────────────────────────────────
@@ -833,6 +998,7 @@ app.get("/admin/apify-enrich-import/:runId", async (req, res) => {
 
 // ── FRONTEND ──
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
+app.get("/landing", (req, res) => res.sendFile(path.join(__dirname, "landing.html")));
 
 async function criarSchema() {
   try {
@@ -841,6 +1007,8 @@ async function criarSchema() {
     await pool.query("CREATE INDEX IF NOT EXISTS idx_dest_campanha ON campanha_destinatarios(campanha_id, status)");
     await pool.query("CREATE TABLE IF NOT EXISTS assinantes (id BIGSERIAL PRIMARY KEY, email VARCHAR(255) UNIQUE, nome VARCHAR(255), status VARCHAR(20) DEFAULT 'ativo', token VARCHAR(100) UNIQUE, kirvano_transaction_id VARCHAR(200), plano VARCHAR(50) DEFAULT 'mensal', ativado_em TIMESTAMPTZ DEFAULT NOW(), expira_em TIMESTAMPTZ, updated_at TIMESTAMPTZ DEFAULT NOW())");
     await pool.query("ALTER TABLE assinantes ADD COLUMN IF NOT EXISTS expira_em TIMESTAMPTZ");
+    await pool.query("ALTER TABLE assinantes ADD COLUMN IF NOT EXISTS leads_hoje INT DEFAULT 0");
+    await pool.query("ALTER TABLE assinantes ADD COLUMN IF NOT EXISTS leads_data DATE DEFAULT CURRENT_DATE");
     await pool.query("CREATE INDEX IF NOT EXISTS idx_assinantes_token ON assinantes(token)");
     console.log("Schema verificado");
   } catch (e) {

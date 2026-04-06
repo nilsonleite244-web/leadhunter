@@ -566,11 +566,19 @@ select option{background:var(--s2)}textarea{resize:vertical}
   </nav>
 
   <div class="sidebar-footer">
+    <div style="padding:10px 12px 8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:11px;color:var(--t2)">Plano</span>
+        <span id="plano-badge" style="font-size:11px;font-weight:700;color:var(--amber);border:1px solid rgba(240,144,48,.3);border-radius:5px;padding:1px 7px">Mensal</span>
+      </div>
+      <div id="cota-bar-wrap" style="display:none"></div>
+    </div>
     <div class="api-chip" onclick="nav('settings',document.querySelector('[onclick*=settings]'))">
       <div class="dot" id="api-dot"></div>
       <span id="api-status-text" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">Não conectado</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;opacity:.35"><path d="M9 18l6-6-6-6"/></svg>
     </div>
+    <button onclick="logout()" style="width:100%;margin-top:6px;background:none;border:none;color:var(--t3);font-size:11px;cursor:pointer;padding:4px;text-align:center">Sair da conta</button>
   </div>
 </aside>
 
@@ -884,12 +892,24 @@ select option{background:var(--s2)}textarea{resize:vertical}
             </div>
             <div style="height:1px;background:var(--bd);margin:4px 0 16px"></div>
             <div class="field mb-12">
-              <label>Link de Checkout Kirvano</label>
+              <label>Cakto — Plano Mensal (R$77)</label>
               <div class="flex gap-8">
-                <input id="kirvano-url-inp" placeholder="https://pay.kirvano.com/seu-produto">
-                <button class="btn btn-primary btn-sm" onclick="saveKirvanoUrl()">Salvar</button>
+                <input id="cakto-mensal-inp" placeholder="https://cakto.com.br/checkout/...">
+                <button class="btn btn-primary btn-sm" onclick="saveCaktoUrls()">Salvar</button>
               </div>
-              <span style="font-size:11px;color:var(--t3);margin-top:4px;display:block">Cole aqui a URL do checkout do seu produto na Kirvano. Aparece no botão "Assinar" da tela de login.</span>
+            </div>
+            <div class="field mb-12">
+              <label>Cakto — Plano Trimestral (R$190)</label>
+              <div class="flex gap-8">
+                <input id="cakto-trimestral-inp" placeholder="https://cakto.com.br/checkout/...">
+              </div>
+            </div>
+            <div class="field mb-12">
+              <label>Cakto — Plano Vitalício (R$350)</label>
+              <div class="flex gap-8">
+                <input id="cakto-vitalicio-inp" placeholder="https://cakto.com.br/checkout/...">
+              </div>
+              <span style="font-size:11px;color:var(--t3);margin-top:4px;display:block">Configure o webhook Cakto em: <code style="font-size:10.5px">https://leadhunter-production-bb4c.up.railway.app/webhook/cakto</code></span>
             </div>
             <div class="field">
               <label>Seu Token de Acesso</label>
@@ -1551,14 +1571,19 @@ function saveApiKey() {
   if (key) localStorage.setItem('lh_api_key', key); else localStorage.removeItem('lh_api_key');
   toast(key ? 'Chave salva!' : 'Chave removida', 'success');
 }
-function saveKirvanoUrl() {
-  const url = document.getElementById('kirvano-url-inp').value.trim();
-  if (!url) return toast('Cole a URL do checkout da Kirvano', 'error');
-  localStorage.setItem('lh_kirvano_url', url);
+function saveCaktoUrls() {
+  const mensal     = document.getElementById('cakto-mensal-inp').value.trim();
+  const trimestral = document.getElementById('cakto-trimestral-inp').value.trim();
+  const vitalicio  = document.getElementById('cakto-vitalicio-inp').value.trim();
+  if (mensal)     localStorage.setItem('lh_cakto_mensal',     mensal);
+  if (trimestral) localStorage.setItem('lh_cakto_trimestral', trimestral);
+  if (vitalicio)  localStorage.setItem('lh_cakto_vitalicio',  vitalicio);
   const btn = document.getElementById('btn-assinar');
-  if (btn) btn.href = url;
-  toast('URL da Kirvano salva!', 'success');
+  if (btn && mensal) btn.href = mensal;
+  toast('Links Cakto salvos!', 'success');
 }
+// legacy compat
+function saveKirvanoUrl() { saveCaktoUrls(); }
 function copiarToken() {
   const t = ASSINANTE_TOKEN;
   if (!t) return toast('Faça login primeiro', 'error');
@@ -1567,12 +1592,16 @@ function copiarToken() {
 function preencherConfiguracoes() {
   const urlInp = document.getElementById('api-url-inp');
   const keyInp = document.getElementById('api-key-inp');
-  const kirInp = document.getElementById('kirvano-url-inp');
   const tokInp = document.getElementById('meu-token-inp');
-  if (urlInp) urlInp.value = API_BASE || '';
-  if (keyInp) keyInp.value = API_KEY  || '';
-  if (kirInp) kirInp.value = localStorage.getItem('lh_kirvano_url') || '';
-  if (tokInp) tokInp.value = ASSINANTE_TOKEN || '';
+  const cMensal = document.getElementById('cakto-mensal-inp');
+  const cTrim   = document.getElementById('cakto-trimestral-inp');
+  const cVit    = document.getElementById('cakto-vitalicio-inp');
+  if (urlInp)  urlInp.value  = API_BASE || '';
+  if (keyInp)  keyInp.value  = API_KEY  || '';
+  if (tokInp)  tokInp.value  = ASSINANTE_TOKEN || '';
+  if (cMensal) cMensal.value = localStorage.getItem('lh_cakto_mensal')     || '';
+  if (cTrim)   cTrim.value   = localStorage.getItem('lh_cakto_trimestral') || '';
+  if (cVit)    cVit.value    = localStorage.getItem('lh_cakto_vitalicio')  || '';
 }
 async function checkWPP() {
   const el = document.getElementById('wpp-status-text');
@@ -1630,8 +1659,8 @@ function delTemplate(i) {
   renderTemplates();
 }
 
-// ══ KIRVANO CHECKOUT URL ══
-const KIRVANO_URL = localStorage.getItem('lh_kirvano_url') || '';
+// ══ CAKTO CHECKOUT URLS ══
+const KIRVANO_URL = localStorage.getItem('lh_cakto_mensal') || localStorage.getItem('lh_kirvano_url') || '';
 window.addEventListener('load', () => {
   if (KIRVANO_URL) document.getElementById('btn-assinar').href = KIRVANO_URL;
 }, { once: false });
@@ -1648,6 +1677,8 @@ function switchLoginTab(tab) {
 // ══ AUTH / ASSINATURA ══
 let ASSINANTE_TOKEN = localStorage.getItem('lh_token') || '';
 let ASSINANTE_NOME  = localStorage.getItem('lh_nome')  || '';
+let ASSINANTE_PLANO = localStorage.getItem('lh_plano') || 'mensal';
+let ASSINANTE_COTA  = null; // { limite, usado, restante }
 
 function apiAuth(path, opts = {}) {
   const headers = { 'Content-Type': 'application/json' };
@@ -1663,6 +1694,29 @@ function mostrarTelaLogin() {
 function mostrarApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
+  atualizarBadgePlano();
+}
+
+function atualizarBadgePlano() {
+  const badge = document.getElementById('plano-badge');
+  if (!badge) return;
+  const labels = { mensal: 'Mensal', trimestral: 'Trimestral', vitalicio: 'Vitalício ∞' };
+  const colors = { mensal: 'var(--amber)', trimestral: 'var(--blue)', vitalicio: 'var(--purple)' };
+  badge.textContent = labels[ASSINANTE_PLANO] || ASSINANTE_PLANO;
+  badge.style.color = colors[ASSINANTE_PLANO] || 'var(--amber)';
+  badge.style.borderColor = (colors[ASSINANTE_PLANO] || 'var(--amber)').replace(')', ',.3)').replace('var(', 'rgba(') + ')';
+
+  if (ASSINANTE_PLANO === 'mensal' && ASSINANTE_COTA) {
+    const pct = Math.round((ASSINANTE_COTA.usado / ASSINANTE_COTA.limite) * 100);
+    const cotaEl = document.getElementById('cota-bar-wrap');
+    if (cotaEl) {
+      cotaEl.style.display = '';
+      cotaEl.innerHTML = `<div style="font-size:10px;color:var(--t2);margin-bottom:3px">Leads hoje: ${ASSINANTE_COTA.usado}/${ASSINANTE_COTA.limite}</div><div style="height:3px;background:var(--s3);border-radius:2px"><div style="width:${pct}%;height:100%;background:${pct>90?'var(--err)':pct>60?'var(--amber)':'var(--ok)'};border-radius:2px;transition:width .3s"></div></div>`;
+    }
+  } else {
+    const cotaEl = document.getElementById('cota-bar-wrap');
+    if (cotaEl) cotaEl.style.display = 'none';
+  }
 }
 
 async function loginComEmail() {
@@ -1679,6 +1733,9 @@ async function loginComEmail() {
     ASSINANTE_NOME  = d.nome || email;
     localStorage.setItem('lh_token', d.token);
     localStorage.setItem('lh_nome',  ASSINANTE_NOME);
+    // Verifica plano após login
+    const info = await apiAuth('/auth/verificar').catch(() => ({}));
+    if (info.plano) { ASSINANTE_PLANO = info.plano; ASSINANTE_COTA = info.cota; localStorage.setItem('lh_plano', info.plano); }
     mostrarApp();
     checkHealth().then(ok => { if (ok) loadDashboard(); });
     toast('Bem-vindo, ' + ASSINANTE_NOME.split(' ')[0] + '!', 'success');
@@ -1696,8 +1753,11 @@ async function loginComToken() {
     if (!d.ok) { err.textContent = 'Token inválido ou assinatura inativa.'; return; }
     ASSINANTE_TOKEN = token;
     ASSINANTE_NOME  = d.nome || d.email;
+    ASSINANTE_PLANO = d.plano || 'mensal';
+    ASSINANTE_COTA  = d.cota || null;
     localStorage.setItem('lh_token', token);
     localStorage.setItem('lh_nome',  ASSINANTE_NOME);
+    localStorage.setItem('lh_plano', ASSINANTE_PLANO);
     mostrarApp();
     checkHealth().then(ok => { if (ok) loadDashboard(); });
     toast('Bem-vindo, ' + ASSINANTE_NOME.split(' ')[0] + '!', 'success');
@@ -1723,8 +1783,11 @@ window.addEventListener('load', async () => {
   if (ASSINANTE_TOKEN) {
     const d = await apiAuth('/auth/verificar').catch(() => ({ ok: false }));
     if (d.ok) {
-      ASSINANTE_NOME = d.nome || d.email || ASSINANTE_NOME;
-      localStorage.setItem('lh_nome', ASSINANTE_NOME);
+      ASSINANTE_NOME  = d.nome || d.email || ASSINANTE_NOME;
+      ASSINANTE_PLANO = d.plano || ASSINANTE_PLANO;
+      ASSINANTE_COTA  = d.cota || null;
+      localStorage.setItem('lh_nome',  ASSINANTE_NOME);
+      localStorage.setItem('lh_plano', ASSINANTE_PLANO);
       mostrarApp();
       checkHealth().then(ok => { if (ok) loadDashboard(); });
       return;
