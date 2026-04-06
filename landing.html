@@ -471,15 +471,15 @@ footer{background:var(--s1);border-top:1px solid var(--bd);padding:30px 5%;displ
 </footer>
 
 <script>
-// URLs dos checkouts Cakto — configure aqui ou serão lidas do localStorage
-const CAKTO_URLS = {
-  mensal:     localStorage.getItem('lh_cakto_mensal')     || '',
-  trimestral: localStorage.getItem('lh_cakto_trimestral') || '',
-  vitalicio:  localStorage.getItem('lh_cakto_vitalicio')  || '',
+// URLs dos checkouts Kirvano — configure nas Configurações do app
+const KIRVANO_URLS = {
+  mensal:     localStorage.getItem('lh_kirvano_mensal')     || '',
+  trimestral: localStorage.getItem('lh_kirvano_trimestral') || '',
+  vitalicio:  localStorage.getItem('lh_kirvano_vitalicio')  || '',
 };
 
 function comprar(plano) {
-  const url = CAKTO_URLS[plano];
+  const url = KIRVANO_URLS[plano];
   if (!url) {
     alert('Link de pagamento em breve! Entre em contato com o suporte.');
     return;
