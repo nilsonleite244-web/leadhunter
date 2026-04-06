@@ -1055,20 +1055,25 @@ async function criarSchema() {
   }
 }
 const PORT = process.env.PORT || 3000;
-(async () => {
-  let tentativas = 0;
-  while (tentativas < 5) {
-    try {
-      await pool.query("SELECT 1");
-      console.log("Banco conectado");
-      break;
-    } catch (e) {
-      tentativas++;
-      console.error("Tentativa " + tentativas + "/5 falhou: " + e.message);
-      if (tentativas >= 5) { console.error("Nao foi possivel conectar ao banco — continuando mesmo assim."); break; }
-      await new Promise(r => setTimeout(r, 3000));
+
+// Sobe o servidor imediatamente para passar o health check do Railway
+// DB e schema são inicializados em background
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("LeadHunter API rodando na porta " + PORT);
+  (async () => {
+    let tentativas = 0;
+    while (tentativas < 5) {
+      try {
+        await pool.query("SELECT 1");
+        console.log("Banco conectado");
+        break;
+      } catch (e) {
+        tentativas++;
+        console.error("Tentativa " + tentativas + "/5 falhou: " + e.message);
+        if (tentativas >= 5) { console.error("Nao foi possivel conectar ao banco — continuando mesmo assim."); break; }
+        await new Promise(r => setTimeout(r, 3000));
+      }
     }
-  }
-  await criarSchema();
-  app.listen(PORT, "0.0.0.0", () => { console.log("LeadHunter API rodando na porta " + PORT); });
-})();
+    await criarSchema();
+  })().catch(e => console.error("[startup]", e.message));
+});
