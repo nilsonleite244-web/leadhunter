@@ -8,6 +8,7 @@ const rateLimit = require("express-rate-limit");
 const axios = require("axios");
 require("dotenv").config();
 const app = express();
+app.set("trust proxy", 1); // Railway usa proxy reverso — necessário para rate-limit e IPs corretos
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
