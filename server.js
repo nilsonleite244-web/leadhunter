@@ -556,6 +556,148 @@ app.get("/auth/verificar", async (req, res) => {
   res.json({ ok: true, nome: a.nome, email: a.email });
 });
 
+// ── APIFY INSTAGRAM SCRAPING ──────────────────────────────────────────────────
+// POST /admin/apify-start  → inicia run no Apify, retorna runId
+// GET  /admin/apify-import/:runId?apify_key=xxx  → importa resultados quando o run terminar
+
+const APIFY_HASHTAGS = [
+  // Barbearia
+  "barbearia","barberashop","barbeirosbrasil","barber",
+  // Clínica Estética
+  "clinicaestetica","esteticafacial","esteticacorporal","esteticabrasil",
+  // Petshop
+  "petshop","petshopbrasil","clinicaveterinaria","petlovers",
+  // Academia / Fitness
+  "academia","crossfit","pilates","musculacao"
+];
+
+const APIFY_SEG = {
+  barbearia:"barbearia", barberashop:"barbearia", barbeirosbrasil:"barbearia", barber:"barbearia",
+  clinicaestetica:"clinicaestetica", esteticafacial:"clinicaestetica", esteticacorporal:"clinicaestetica", esteticabrasil:"clinicaestetica",
+  petshop:"petshop", petshopbrasil:"petshop", clinicaveterinaria:"petshop", petlovers:"petshop",
+  academia:"academia", crossfit:"academia", pilates:"academia", musculacao:"academia"
+};
+
+app.post("/admin/apify-start", async (req, res) => {
+  const key = process.env.APIFY_KEY || req.headers["x-apify-key"] || req.body?.apify_key;
+  if (!key) return res.status(400).json({ error: "Apify key necessária (body: apify_key ou header x-apify-key)" });
+
+  const directUrls = APIFY_HASHTAGS.map(h => `https://www.instagram.com/explore/tags/${h}/`);
+
+  try {
+    const r = await axios.post(
+      `https://api.apify.com/v2/acts/apify~instagram-scraper/runs?token=${key}`,
+      {
+        directUrls,
+        resultsType: "posts",
+        resultsLimit: 300,
+        proxy: { useApifyProxy: true }
+      }
+    );
+    const runId = r.data.data.id;
+    console.log(`[Apify] Run iniciado: ${runId}`);
+    res.json({
+      ok: true, runId,
+      proximo: `GET /admin/apify-import/${runId}?apify_key=${key}`,
+      msg: "Run iniciado! Aguarde ~5-15 min, depois chame o endpoint proximo."
+    });
+  } catch(e) {
+    console.error("[Apify] Erro ao iniciar:", e.response?.data || e.message);
+    res.status(500).json({ error: e.response?.data?.error?.message || e.message });
+  }
+});
+
+app.get("/admin/apify-import/:runId", async (req, res) => {
+  const key = process.env.APIFY_KEY || req.headers["x-apify-key"] || req.query.apify_key;
+  if (!key) return res.status(400).json({ error: "Apify key necessária (?apify_key=xxx)" });
+  const { runId } = req.params;
+
+  try {
+    // Verifica status
+    const statusRes = await axios.get(
+      `https://api.apify.com/v2/acts/apify~instagram-scraper/runs/${runId}?token=${key}`
+    );
+    const runData = statusRes.data.data;
+    const status  = runData.status;
+
+    if (status === "RUNNING" || status === "READY" || status === "ABORTING") {
+      return res.json({ ok: false, status, msg: "Run ainda em execução. Aguarde e tente novamente." });
+    }
+    if (status !== "SUCCEEDED") {
+      return res.json({ ok: false, status, msg: "Run não completou com sucesso: " + status });
+    }
+
+    // Busca os itens do dataset (paginado em até 5000)
+    const dsId = runData.defaultDatasetId;
+    const itemsRes = await axios.get(
+      `https://api.apify.com/v2/datasets/${dsId}/items?token=${key}&limit=5000&offset=0`
+    );
+    const items = Array.isArray(itemsRes.data) ? itemsRes.data : [];
+    console.log(`[Apify] ${items.length} itens para processar`);
+
+    // De-duplica por ownerUsername dentro dos resultados
+    const seen = new Set();
+    let inseridos = 0, atualizados = 0, ignorados = 0;
+
+    for (const item of items) {
+      const handle = item.ownerUsername || item.username;
+      if (!handle || seen.has(handle)) { ignorados++; continue; }
+      seen.add(handle);
+
+      // Filtra: apenas contas de negócio com mínimo de seguidores
+      const isBiz = item.isBusinessAccount === true || item.type === "Business" || item.businessCategoryName;
+      const followers = item.followersCount || item.ownerFollowersCount || 0;
+      if (!isBiz && followers < 100) { ignorados++; continue; }
+
+      // Mapeia segmento pela hashtag dos resultados
+      const tags = (item.hashtags || []).map(t => (typeof t === "string" ? t : t.name || "").toLowerCase());
+      const tag = tags.find(t => APIFY_SEG[t]);
+      const segmento = tag ? APIFY_SEG[tag] : "geral";
+
+      const igVal   = "@" + handle;
+      const website = item.externalUrl || null;
+      const nome    = item.ownerFullName || item.fullName || handle;
+      const bio     = item.biography || item.ownerBiography || null;
+      const cidade  = item.locationCity || null;
+      const estado  = item.locationState || null;
+
+      try {
+        const ex = await pool.query(
+          "SELECT id FROM leads_extra WHERE instagram ILIKE $1 LIMIT 1",
+          ["%" + handle + "%"]
+        );
+        if (ex.rows.length) {
+          await pool.query(
+            `UPDATE leads_extra SET
+               nome     = COALESCE(NULLIF(nome,''),     $2),
+               website  = COALESCE(NULLIF(website,''),  $3),
+               segmento = COALESCE(NULLIF(segmento,''), $4),
+               descricao= COALESCE(NULLIF(descricao,''),$5)
+             WHERE id = $1`,
+            [ex.rows[0].id, nome, website, segmento, bio]
+          );
+          atualizados++;
+        } else {
+          await pool.query(
+            `INSERT INTO leads_extra(nome, instagram, website, descricao, segmento, cidade, estado, pais, created_at)
+             VALUES($1,$2,$3,$4,$5,$6,$7,'Brasil',NOW())`,
+            [nome, igVal, website, bio, segmento, cidade, estado]
+          );
+          inseridos++;
+        }
+      } catch(dbErr) {
+        console.error("[Apify] DB error para @" + handle + ":", dbErr.message);
+      }
+    }
+
+    console.log(`[Apify] Import: ${inseridos} inseridos, ${atualizados} atualizados, ${ignorados} ignorados`);
+    res.json({ ok: true, status, total_items: items.length, unique_handles: seen.size, inseridos, atualizados, ignorados });
+  } catch(e) {
+    console.error("[Apify] Erro no import:", e.response?.data || e.message);
+    res.status(500).json({ error: e.response?.data?.error?.message || e.message });
+  }
+});
+
 // ── FRONTEND ──
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
