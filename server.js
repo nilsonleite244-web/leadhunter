@@ -200,7 +200,7 @@ app.get("/health", async (req, res) => {
     res.status(500).json({ status: "erro", error: e.message });
   }
 });
-app.use(["/leads", "/stats", "/campanha", "/whatsapp"], authMiddleware);
+app.use(["/leads", "/stats", "/campanha", "/whatsapp", "/admin"], authMiddleware);
 
 // leads_extra schema: id, nome, website, descricao, funcionarios, receita,
 //   pais, estado, cidade, segmento, instagram (descrição que menciona IG), whatsapp, created_at
