@@ -1778,6 +1778,11 @@ function atualizarBadgePlano() {
   }
 }
 
+function checkCota(cota) {
+  if (cota) { ASSINANTE_COTA = cota; }
+  updatePlanoUI();
+}
+
 async function loginComEmail() {
   const email = document.getElementById('login-email').value.trim();
   const btn   = document.getElementById('btn-login');
