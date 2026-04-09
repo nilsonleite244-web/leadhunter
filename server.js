@@ -194,12 +194,16 @@ app.get("/leads/instagram", async (req, res) => {
     const total = countSnap.data().count;
 
     // Busca por nome (prefix search no campo nome_lower)
+    const hasFilters = apenasIG || req.query.sem_ig === "true" || apenasAtivos || segmento || cidade;
     let dataSnap;
     if (busca) {
       dataSnap = await leadsCol()
         .where("nome_lower", ">=", busca)
         .where("nome_lower", "<=", busca + "\uf8ff")
         .limit(limit).offset(offset).get();
+    } else if (hasFilters) {
+      // Com filtros: evita orderBy para não exigir índice composto no Firestore
+      dataSnap = await q.limit(limit).offset(offset).get();
     } else {
       dataSnap = await q.orderBy("nome_lower").limit(limit).offset(offset).get();
     }
