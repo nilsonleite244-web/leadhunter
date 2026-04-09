@@ -214,13 +214,14 @@ select option{background:var(--s2)}textarea{resize:vertical}
 .chip.on{border-color:var(--amber);background:var(--amber-d);color:var(--amber)}
 
 /* ── MODE TOGGLE ── */
-.mode-toggle{display:flex;gap:0;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:3px;width:fit-content;margin-bottom:16px}
-.mode-btn{padding:7px 16px;border-radius:7px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--t2);transition:all .15s;user-select:none;display:flex;align-items:center;gap:7px;border:none;background:transparent;font-family:'Inter',sans-serif}
-.mode-btn svg{width:13px;height:13px}
+.mode-toggle{display:flex;gap:0;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:3px;margin-bottom:16px}
+.mode-btn{padding:8px 14px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--t2);transition:all .15s;user-select:none;display:flex;align-items:center;gap:8px;border:none;background:transparent;font-family:'Inter',sans-serif;text-align:left}
+.mode-btn svg{width:14px;height:14px;flex-shrink:0}
 .mode-btn:hover{color:var(--txt)}
 .mode-btn.active{background:var(--s4);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .mode-btn.active.wpp{color:var(--ok)}
 .mode-btn.active.ig{color:var(--purple)}
+.mode-btn.active.frio{color:var(--blue)}
 
 /* ── INSTAGRAM MEGA CARD ── */
 @keyframes ig-bg-shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
@@ -668,16 +669,19 @@ select option{background:var(--s2)}textarea{resize:vertical}
         <span>Configure a URL da API em Configurações.</span>
       </div>
 
-      <!-- Mode toggle -->
-      <div class="mode-toggle">
-        <button class="mode-btn" id="mode-cnpj" onclick="setMode('cnpj')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-          Base CNPJ
+      <!-- Mode toggle — 3 botões -->
+      <div class="mode-toggle" style="width:100%;margin-bottom:18px">
+        <button class="mode-btn" id="mode-cnpj" onclick="setMode('cnpj')" style="flex:1;justify-content:center">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>CNPJ Registrados<span style="display:block;font-size:10px;font-weight:400;color:var(--t2);line-height:1.2">Leads para Ligação</span></span>
         </button>
-        <button class="mode-btn ig active" id="mode-ig" onclick="setMode('instagram')">
+        <button class="mode-btn ig active" id="mode-ig" onclick="setMode('instagram')" style="flex:1;justify-content:center">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
-          Instagram
-          <span style="font-size:9px;font-weight:700;background:rgba(168,85,247,.25);color:#c084fc;padding:1px 5px;border-radius:4px;margin-left:4px">RECOMENDADO</span>
+          <span>Leads Ativos<span style="display:block;font-size:10px;font-weight:400;color:rgba(192,132,252,.7);line-height:1.2">Com Instagram</span></span>
+        </button>
+        <button class="mode-btn" id="mode-frios" onclick="setMode('frios')" style="flex:1;justify-content:center">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>
+          <span>Leads Frios<span style="display:block;font-size:10px;font-weight:400;color:var(--t2);line-height:1.2">Sem Instagram</span></span>
         </button>
       </div>
 
@@ -789,10 +793,9 @@ select option{background:var(--s2)}textarea{resize:vertical}
             <div>
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
                 <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,.6)"></div>
-                <span style="font-size:15px;font-weight:700;color:#86efac">Leads Ativos</span>
-                <span style="font-size:10px;font-weight:600;background:rgba(34,197,94,.15);color:#4ade80;padding:2px 8px;border-radius:5px">TODOS OS 8K</span>
+                <span style="font-size:15px;font-weight:700;color:#86efac">Todos os Leads Ativos</span>
               </div>
-              <div style="font-size:12.5px;color:rgba(134,239,172,.6)">Empresas com site próprio — presença digital estabelecida, maior taxa de resposta.</div>
+              <div style="font-size:12.5px;color:rgba(134,239,172,.6)">Todos os negócios com Instagram — prospecção direta por DM ou WhatsApp.</div>
             </div>
             <button id="btn-ativos" onclick="buscarAtivos(1)" style="
               display:inline-flex;align-items:center;gap:8px;padding:11px 20px;
@@ -807,6 +810,56 @@ select option{background:var(--s2)}textarea{resize:vertical}
           <div id="ativos-total-hint" style="font-size:11.5px;color:rgba(134,239,172,.5);margin-top:10px;display:none"></div>
         </div>
 
+      </div>
+
+      <!-- Leads Frios mode -->
+      <div id="view-frios" style="display:none">
+        <div style="background:rgba(96,165,250,.04);border:1px solid rgba(96,165,250,.18);border-radius:14px;padding:22px 24px;margin-bottom:16px">
+          <div style="display:flex;align-items:flex-start;gap:14px">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" style="width:16px;height:16px"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                <span style="font-size:15px;font-weight:700;color:#93c5fd">Leads Frios</span>
+                <span style="font-size:10px;font-weight:600;background:rgba(96,165,250,.15);color:#60a5fa;padding:2px 8px;border-radius:5px">SEM INSTAGRAM</span>
+              </div>
+              <div style="font-size:12.5px;color:rgba(147,197,253,.6);margin-bottom:14px">Negócios sem perfil no Instagram — abordagem por telefone, e-mail ou WhatsApp direto.</div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <button id="btn-frios" onclick="buscarFrios(1)" style="
+                  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;
+                  border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Inter',sans-serif;
+                  background:rgba(96,165,250,.1);border:1.5px solid rgba(96,165,250,.3);color:#60a5fa;
+                  transition:all .2s;white-space:nowrap
+                ">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  Carregar Leads Frios
+                </button>
+                <span id="frios-total-hint" style="font-size:11.5px;color:rgba(147,197,253,.5)"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="frios-search" style="background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:16px">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+            <div class="field" style="flex:1;min-width:160px">
+              <label>Buscar por nome</label>
+              <input type="text" id="frios-busca" placeholder="Ex: clínica, pet shop..." onkeydown="if(event.key==='Enter')buscarFrios(1)">
+            </div>
+            <div class="field" style="flex:1;min-width:130px">
+              <label>Segmento</label>
+              <input type="text" id="frios-seg" placeholder="Ex: restaurante">
+            </div>
+            <div class="field" style="flex:1;min-width:130px">
+              <label>Cidade</label>
+              <input type="text" id="frios-cidade" placeholder="Ex: São Paulo">
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="buscarFrios(1)" style="height:36px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              Buscar
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Results (shared) -->
@@ -1270,13 +1323,18 @@ setInterval(() => {
 // ══ MODE TOGGLE ══
 function setMode(mode) {
   searchMode = mode;
-  document.getElementById('view-cnpj').style.display     = mode === 'cnpj'      ? '' : 'none';
-  document.getElementById('view-instagram').style.display = mode === 'instagram' ? '' : 'none';
-  document.getElementById('mode-cnpj').classList.toggle('active', mode === 'cnpj');
-  document.getElementById('mode-ig').classList.toggle('active',   mode === 'instagram');
-  // Update table headers based on mode
-  if (mode === 'instagram') updateHeadersIG();
+  document.getElementById('view-cnpj').style.display      = mode === 'cnpj'      ? '' : 'none';
+  document.getElementById('view-instagram').style.display  = mode === 'instagram' ? '' : 'none';
+  document.getElementById('view-frios').style.display      = mode === 'frios'     ? '' : 'none';
+  document.getElementById('mode-cnpj').classList.toggle('active',  mode === 'cnpj');
+  document.getElementById('mode-ig').classList.toggle('active',    mode === 'instagram');
+  document.getElementById('mode-frios').classList.toggle('active', mode === 'frios');
+  document.getElementById('mode-frios').classList.toggle('frio',   mode === 'frios');
+  // Update table headers
+  if (mode === 'instagram' || mode === 'frios') updateHeadersIG();
   else updateHeadersCNPJ();
+  // Clear results on mode switch
+  document.getElementById('results-card').style.display = 'none';
 }
 
 function updateHeadersIG() {
@@ -1349,6 +1407,7 @@ async function buscarAtivos(page = 1) {
     const d = await api('/leads/instagram?' + p);
     state.results = d.data || [];
     renderResults(state.results, 'instagram');
+    document.getElementById('results-card').style.display = '';
     document.getElementById('result-count').textContent = state.results.length + ' leads ativos';
     document.getElementById('result-count').style.display = '';
     document.getElementById('btn-export').disabled = false;
@@ -1362,6 +1421,36 @@ async function buscarAtivos(page = 1) {
   } catch(e) { toast('Erro: ' + e.message, 'error'); }
   btn.disabled = false;
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px"><polyline points="20 6 9 17 4 12"/></svg> Carregar Leads Ativos';
+}
+
+async function buscarFrios(page = 1) {
+  const btn = document.getElementById('btn-frios');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="border-color:rgba(96,165,250,.3);border-top-color:#60a5fa;width:14px;height:14px"></div> Carregando...';
+  const busca  = document.getElementById('frios-busca')?.value.trim() || '';
+  const seg    = document.getElementById('frios-seg')?.value.trim() || '';
+  const cidade = document.getElementById('frios-cidade')?.value.trim() || '';
+  const p = new URLSearchParams({ sem_ig: 'true', limit: 100, page });
+  if (busca)  p.set('busca', busca);
+  if (seg)    p.set('segmento', seg);
+  if (cidade) p.set('cidade', cidade);
+  try {
+    const d = await api('/leads/instagram?' + p);
+    state.results = d.data || [];
+    renderResults(state.results, 'instagram');
+    document.getElementById('results-card').style.display = '';
+    document.getElementById('result-count').textContent = (d.total||0).toLocaleString('pt-BR') + ' leads frios';
+    document.getElementById('result-count').style.display = '';
+    document.getElementById('btn-export').disabled = false;
+    const hint = document.getElementById('frios-total-hint');
+    if (hint) hint.textContent = `${(d.total||0).toLocaleString('pt-BR')} leads sem Instagram · página ${page}/${d.pages||1}`;
+    renderPagIG(page, d.pages || 1, 'buscarFrios');
+    updateHeadersIG();
+    addFeed('amber', `Leads frios: <b>${state.results.length}</b> carregados`);
+    checkCota(d.cota);
+  } catch(e) { toast('Erro: ' + e.message, 'error'); }
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Carregar Leads Frios';
 }
 
 async function buscarInstagram(page = 1) {

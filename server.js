@@ -184,6 +184,7 @@ app.get("/leads/instagram", async (req, res) => {
     let q = leadsCol();
 
     if (apenasIG) q = q.where("has_instagram", "==", true);
+    if (req.query.sem_ig === "true") q = q.where("has_instagram", "==", false);
     if (apenasAtivos) q = q.where("has_own_website", "==", true);
     if (segmento) q = q.where("segmento", "==", segmento);
     if (cidade)   q = q.where("cidade",   "==", cidade);
