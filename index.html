@@ -1034,6 +1034,14 @@ select option{background:var(--s2)}textarea{resize:vertical}
               <label>Apify API Key <span style="color:var(--t2);font-weight:400">(ou configure APIFY_KEY no Railway)</span></label>
               <input type="password" id="import-apify-key" placeholder="apify_api_xxxxxxxxxxxxx">
             </div>
+            <!-- Opção auto-import -->
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+              <input type="checkbox" id="import-auto" style="width:14px;height:14px;accent-color:var(--amber);cursor:pointer">
+              <label for="import-auto" style="font-size:12.5px;color:var(--t2);cursor:pointer;text-transform:none;letter-spacing:0">
+                Importar automaticamente quando a coleta concluir
+              </label>
+            </div>
+
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
               <button class="btn btn-primary btn-sm" id="import-btn-start" onclick="importApifyStart()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -1043,12 +1051,25 @@ select option{background:var(--s2)}textarea{resize:vertical}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Importar Resultados
               </button>
-              <button class="btn btn-ghost btn-sm" onclick="loadImportStats()" title="Atualizar contagens">
+              <button class="btn btn-ghost btn-sm" onclick="loadImportStats()" title="Atualizar stats">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
               </button>
               <span id="import-apify-msg" style="font-size:12px;color:var(--t2)"></span>
             </div>
-            <div id="import-apify-result" style="display:none;margin-top:14px;padding:13px 16px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:9px;font-size:12.5px;color:#86efac;line-height:1.8"></div>
+
+            <!-- Barra de progresso (visível durante importação) -->
+            <div id="import-progress-wrap" style="display:none;margin-top:14px">
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t2);margin-bottom:5px">
+                <span>Inserindo leads no banco...</span>
+                <span id="import-progress-pct" style="font-weight:600;color:var(--amber)">0%</span>
+              </div>
+              <div style="height:5px;background:var(--s3);border-radius:3px;overflow:hidden">
+                <div id="import-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--amber),#e06818);border-radius:3px;transition:width .4s ease"></div>
+              </div>
+            </div>
+
+            <!-- Log ao vivo -->
+            <div id="import-live-log" style="display:none;margin-top:12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;font-family:monospace;font-size:11.5px;line-height:1.75;max-height:220px;overflow-y:auto;color:var(--t2)"></div>
           </div>
         </div>
 
@@ -2138,15 +2159,21 @@ async function importApifyPoll(key) {
     const headers = { 'x-api-key': IMPORT_TOKEN };
     if (key) headers['x-apify-key'] = key;
     const res = await fetch(API_BASE + `/admin/apify-status/${importRunId}`, { headers });
-    const d = await res.json();
+    const d   = await res.json();
     setImportBadge(d.status);
-    document.getElementById('import-apify-msg').textContent = `Status: ${d.status} · ${d.stats?.itemCount||0} posts coletados`;
+    const count = d.stats?.itemCount || 0;
+    document.getElementById('import-apify-msg').textContent = `Status: ${d.status} · ${count} posts coletados`;
     if (['SUCCEEDED','FAILED','ABORTED'].includes(d.status)) {
       clearInterval(importPollTimer);
       if (d.status === 'SUCCEEDED') {
         document.getElementById('import-btn-import').disabled = false;
-        document.getElementById('import-apify-msg').textContent = `✓ Concluído — ${d.stats?.itemCount||0} posts prontos para importar.`;
-        toast('Coleta concluída! Clique em Importar Resultados.', 'success');
+        document.getElementById('import-apify-msg').textContent = `✓ ${count} posts prontos para importar.`;
+        if (document.getElementById('import-auto')?.checked) {
+          toast('Coleta concluída — importação automática iniciando...', 'info');
+          importApifyImport();
+        } else {
+          toast('Coleta concluída! Clique em Importar Resultados.', 'success');
+        }
       } else {
         document.getElementById('import-apify-msg').textContent = `Run ${d.status}. Tente novamente.`;
       }
@@ -2154,33 +2181,101 @@ async function importApifyPoll(key) {
   } catch(e) {}
 }
 
+// Streaming import — usa fetch + ReadableStream para receber eventos SSE ao vivo
 async function importApifyImport() {
   if (!importRunId) { toast('Nenhum run ativo.', 'error'); return; }
   const key = document.getElementById('import-apify-key').value.trim();
   const btn = document.getElementById('import-btn-import');
-  const msg = document.getElementById('import-apify-msg');
+
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner" style="width:12px;height:12px"></div> Importando...';
+
+  const logEl    = document.getElementById('import-live-log');
+  const progWrap = document.getElementById('import-progress-wrap');
+  const progBar  = document.getElementById('import-progress-bar');
+  const progPct  = document.getElementById('import-progress-pct');
+  logEl.style.display    = '';
+  progWrap.style.display = '';
+  logEl.innerHTML = '';
+  if (progBar) progBar.style.width = '0%';
+  if (progPct) progPct.textContent = '0%';
+
+  let url = `${API_BASE}/admin/import/live/${importRunId}`;
+  if (key) url += `?apify_key=${encodeURIComponent(key)}`;
+
   try {
-    const body = key ? { apify_key: key } : {};
-    const res = await fetch(API_BASE + `/admin/apify-import/${importRunId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': IMPORT_TOKEN },
-      body: JSON.stringify(body)
-    });
-    const d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'Erro na importação');
-    const resultEl = document.getElementById('import-apify-result');
-    resultEl.style.display = '';
-    resultEl.innerHTML = `<strong>✅ Importação concluída!</strong><br>Posts coletados: <b>${d.total_coletados}</b><br>Leads novos inseridos: <b>${d.inseridos}</b><br>Duplicados ignorados: <b>${d.ignorados_duplicados}</b>`;
-    msg.textContent = '';
-    setImportBadge('DONE');
-    toast(`${d.inseridos} leads novos importados do Instagram!`, 'success');
-    importRunId = null;
-    loadImportStats();
-  } catch(e) { msg.textContent = 'Erro: ' + e.message; toast('Erro na importação: ' + e.message, 'error'); }
+    const response = await fetch(url, { headers: { 'x-api-key': IMPORT_TOKEN } });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${response.status}`);
+    }
+
+    const reader  = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer    = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try { handleImportEvent(JSON.parse(line.slice(6))); } catch {}
+      }
+    }
+    if (buffer.startsWith('data: ')) {
+      try { handleImportEvent(JSON.parse(buffer.slice(6))); } catch {}
+    }
+  } catch(e) {
+    appendImportLog(`❌ Erro: ${e.message}`, 'error');
+    toast('Erro na importação: ' + e.message, 'error');
+  }
+
   btn.disabled = false;
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Importar Resultados';
+}
+
+function handleImportEvent(ev) {
+  const progBar = document.getElementById('import-progress-bar');
+  const progPct = document.getElementById('import-progress-pct');
+  const msg     = document.getElementById('import-apify-msg');
+
+  if (ev.type === 'log') {
+    appendImportLog(ev.msg);
+  } else if (ev.type === 'progress') {
+    appendImportLog(ev.msg, 'ok');
+    if (progBar) progBar.style.width = ev.pct + '%';
+    if (progPct) progPct.textContent = ev.pct + '%';
+    if (msg) msg.textContent = `${ev.inseridos}/${ev.total} leads inseridos`;
+  } else if (ev.type === 'done') {
+    if (progBar) progBar.style.width = '100%';
+    if (progPct) progPct.textContent = '100%';
+    appendImportLog('', '');
+    appendImportLog(`🎉 Concluído! ${ev.inseridos} leads novos · ${ev.ignorados} duplicados ignorados`, 'done');
+    if (msg) msg.textContent = '';
+    setImportBadge('DONE');
+    toast(`${ev.inseridos} leads novos importados do Instagram!`, 'success');
+    importRunId = null;
+    loadImportStats();
+  } else if (ev.type === 'error') {
+    appendImportLog(`❌ ${ev.msg}`, 'error');
+    toast(ev.msg, 'error');
+  }
+}
+
+function appendImportLog(text, type) {
+  const logEl = document.getElementById('import-live-log');
+  if (!logEl) return;
+  if (!text) { logEl.appendChild(document.createElement('br')); return; }
+  const line = document.createElement('div');
+  line.textContent = text;
+  if (type === 'ok')    line.style.color = '#86efac';
+  if (type === 'done')  { line.style.color = 'var(--ok)'; line.style.fontWeight = '600'; }
+  if (type === 'error') line.style.color = 'var(--err)';
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
 }
 
 // Helper: fetch para rotas admin (requer API_SECRET via IMPORT_TOKEN)

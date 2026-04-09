@@ -858,10 +858,127 @@ app.post("/admin/apify-import/:runId", async (req, res) => {
 });
 
 // ── ADMIN: VERIFICAR TOKEN DE IMPORTAÇÃO ─────────────────────────────────────
-// GET /admin/import/verificar — retorna ok:true se o x-api-key === API_SECRET
-// Usado pelo frontend da aba "Importar Leads" para desbloquear a área
 app.get("/admin/import/verificar", (req, res) => {
   res.json({ ok: true, msg: "Token de importação válido" });
+});
+
+// ── ADMIN: IMPORTAR COM STREAMING SSE (log ao vivo) ──────────────────────────
+// GET /admin/import/live/:runId — streama eventos SSE durante a importação
+// Usa fetch com x-api-key no header (não EventSource nativo, que não suporta headers)
+app.get("/admin/import/live/:runId", async (req, res) => {
+  const apifyKey = process.env.APIFY_KEY || req.query.apify_key;
+  if (!apifyKey) {
+    return res.status(400).json({ error: "Apify API Key necessária (configure APIFY_KEY no Railway ou informe no campo)" });
+  }
+  if (!pool) return res.status(503).json({ error: "DATABASE_URL não configurado" });
+
+  res.writeHead(200, {
+    "Content-Type":  "text/event-stream",
+    "Cache-Control": "no-cache",
+    "Connection":    "keep-alive",
+  });
+
+  const send = (data) => { try { res.write(`data: ${JSON.stringify(data)}\n\n`); } catch {} };
+
+  try {
+    send({ type: "log", msg: "🔍 Verificando status do run Apify..." });
+
+    const statusRes = await axios.get(
+      `https://api.apify.com/v2/actor-runs/${req.params.runId}?token=${apifyKey}`
+    );
+    const runData = statusRes.data.data;
+
+    if (runData.status !== "SUCCEEDED") {
+      send({ type: "error", msg: `Run ainda não concluído: ${runData.status}. Aguarde e tente novamente.` });
+      return res.end();
+    }
+
+    send({ type: "log", msg: "✓ Run concluído. Baixando resultados do Apify..." });
+
+    const itemsRes = await axios.get(
+      `https://api.apify.com/v2/datasets/${runData.defaultDatasetId}/items?token=${apifyKey}&limit=5000`
+    );
+    const items = Array.isArray(itemsRes.data) ? itemsRes.data : [];
+
+    send({ type: "log", msg: `📦 ${items.length} posts baixados. Verificando duplicados no banco...` });
+
+    const existingRes = await pgQuery("SELECT instagram FROM leads_extra WHERE instagram IS NOT NULL");
+    const existingHandles = new Set(existingRes.rows.map(r => {
+      const m = (r.instagram || "").match(/instagram\.com\/([A-Za-z0-9._]+)/i);
+      return m ? m[1].toLowerCase() : (r.instagram || "").toLowerCase();
+    }));
+
+    const toInsert = [];
+    const seen     = new Set();
+    let ignorados  = 0;
+
+    for (const item of items) {
+      const handle = item.ownerUsername || item.username;
+      if (!handle || seen.has(handle.toLowerCase())) { ignorados++; continue; }
+      seen.add(handle.toLowerCase());
+      if (existingHandles.has(handle.toLowerCase())) { ignorados++; continue; }
+
+      const nome      = item.ownerFullName || item.fullName || handle;
+      const website   = item.externalUrl  || null;
+      const inputUrl  = (item.inputUrl    || "").toLowerCase();
+      const hashTag   = (inputUrl.match(/tags\/([^/]+)\//)||[])[1] || "";
+      const segmento  = hashTag || "instagram";
+      const instagram = `https://instagram.com/${handle}`;
+      const descricao = item.biography || item.caption || null;
+      const cidade    = item.locationCity  || item.locationName || null;
+      const estado    = item.locationState || null;
+
+      toInsert.push({
+        row: [nome, website, segmento, cidade, estado, "Brasil", null, null, instagram, null, descricao],
+        nome,
+        handle,
+        segmento,
+      });
+    }
+
+    send({ type: "log", msg: `🎯 ${toInsert.length} leads novos para inserir · ${ignorados} duplicados/ignorados` });
+
+    if (toInsert.length === 0) {
+      send({ type: "done", inseridos: 0, ignorados, total: items.length });
+      return res.end();
+    }
+
+    const BATCH  = 100;
+    let inseridos = 0;
+
+    for (let i = 0; i < toInsert.length; i += BATCH) {
+      const batch  = toInsert.slice(i, i + BATCH);
+      const rows   = batch.map(b => b.row);
+      const values = rows.map((_, idx) => {
+        const b = idx * 11;
+        return `($${b+1},$${b+2},$${b+3},$${b+4},$${b+5},$${b+6},$${b+7},$${b+8},$${b+9},$${b+10},$${b+11},NOW())`;
+      }).join(",");
+
+      await pgQuery(
+        `INSERT INTO leads_extra (nome,website,segmento,cidade,estado,pais,funcionarios,receita,instagram,whatsapp,descricao,created_at) VALUES ${values}`,
+        rows.flat()
+      );
+
+      inseridos += batch.length;
+      const pct    = Math.round((inseridos / toInsert.length) * 100);
+      const sample = batch.slice(0, 3).map(b => `@${b.handle}`).join(" · ");
+
+      send({
+        type:     "progress",
+        inseridos,
+        total:    toInsert.length,
+        pct,
+        sample,
+        msg:      `✓ ${inseridos}/${toInsert.length} inseridos (${pct}%) — ${sample}`,
+      });
+    }
+
+    send({ type: "done", inseridos, ignorados, total: items.length });
+  } catch(e) {
+    send({ type: "error", msg: e.response?.data?.error?.message || e.message });
+  }
+
+  res.end();
 });
 
 // ── FRONTEND ──────────────────────────────────────────────────────────────────
