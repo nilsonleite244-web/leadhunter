@@ -168,7 +168,17 @@ app.get("/health", async (req, res) => {
 });
 
 // ── LEADS (protegidos) ────────────────────────────────────────────────────────
-app.use(["/leads", "/stats", "/campanha", "/whatsapp", "/admin"], authMiddleware);
+app.use(["/leads", "/stats", "/campanha", "/whatsapp"], authMiddleware);
+
+// Rotas admin — exigem API_SECRET (somente o dono do sistema)
+function adminMiddleware(req, res, next) {
+  const secret = process.env.API_SECRET;
+  if (!secret) return next(); // sem secret configurado, permite (dev)
+  const key = req.headers["x-api-key"] || (req.headers["authorization"] || "").replace("Bearer ", "");
+  if (key === secret) return next();
+  return res.status(403).json({ error: "Acesso restrito ao administrador" });
+}
+app.use("/admin", adminMiddleware);
 
 // GET /leads/instagram — busca no Supabase leads_extra (2k+ com Instagram)
 app.get("/leads/instagram", async (req, res) => {
@@ -401,7 +411,23 @@ app.get("/stats/segmentos", async (req, res) => {
 });
 
 app.get("/stats/ddd/:ddd", async (req, res) => {
-  res.json({ ddd: req.params.ddd, total_leads: 0, top_segmentos: [], top_cidades: [] });
+  try {
+    const ddd = req.params.ddd;
+    if (!pool) return res.json({ ddd, total_leads: 0, top_segmentos: [], top_cidades: [] });
+    const [totalRes, segRes, cidRes] = await Promise.all([
+      pgQuery("SELECT COUNT(*) FROM leads WHERE situacao_cadastral=2 AND ddd_municipio=$1", [ddd]),
+      pgQuery("SELECT cnae_descricao AS segmento, COUNT(*) AS total FROM leads WHERE situacao_cadastral=2 AND ddd_municipio=$1 GROUP BY cnae_descricao ORDER BY total DESC LIMIT 5", [ddd]),
+      pgQuery("SELECT municipio_nome AS cidade, COUNT(*) AS total FROM leads WHERE situacao_cadastral=2 AND ddd_municipio=$1 GROUP BY municipio_nome ORDER BY total DESC LIMIT 5", [ddd]),
+    ]);
+    res.json({
+      ddd,
+      total_leads:    parseInt(totalRes.rows[0].count),
+      top_segmentos:  segRes.rows,
+      top_cidades:    cidRes.rows,
+    });
+  } catch(e) {
+    res.json({ ddd: req.params.ddd, total_leads: 0, top_segmentos: [], top_cidades: [] });
+  }
 });
 
 // ── CAMPANHAS ────────────────────────────────────────────────────────────────
@@ -829,6 +855,13 @@ app.post("/admin/apify-import/:runId", async (req, res) => {
   } catch(e) {
     res.status(500).json({ error: e.response?.data?.error?.message || e.message });
   }
+});
+
+// ── ADMIN: VERIFICAR TOKEN DE IMPORTAÇÃO ─────────────────────────────────────
+// GET /admin/import/verificar — retorna ok:true se o x-api-key === API_SECRET
+// Usado pelo frontend da aba "Importar Leads" para desbloquear a área
+app.get("/admin/import/verificar", (req, res) => {
+  res.json({ ok: true, msg: "Token de importação válido" });
 });
 
 // ── FRONTEND ──────────────────────────────────────────────────────────────────

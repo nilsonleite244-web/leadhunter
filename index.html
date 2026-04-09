@@ -564,6 +564,11 @@ select option{background:var(--s2)}textarea{resize:vertical}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Assinantes
     </div>
+    <div class="nav-item" onclick="nav('import',this)" id="nav-import">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Importar Leads
+      <span class="nav-badge" style="background:rgba(168,85,247,.15);color:var(--purple);font-size:9px">ADMIN</span>
+    </div>
     <div class="nav-item" onclick="nav('settings',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       Configurações
@@ -916,45 +921,6 @@ select option{background:var(--s2)}textarea{resize:vertical}
     <!-- ══════ ADMIN ══════ -->
     <div class="page" id="page-admin">
 
-      <!-- ── APIFY SCRAPING ── -->
-      <div class="card mb-20">
-        <div class="card-header">
-          <div class="card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-            Coletar Leads via Apify (Instagram)
-          </div>
-          <span id="apify-status-badge" style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px;display:none"></span>
-        </div>
-        <div class="card-body">
-          <div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:14px">
-            <div class="field">
-              <label>Hashtags para buscar <span style="color:var(--t2);font-weight:400">(separadas por vírgula, sem #)</span></label>
-              <input type="text" id="apify-tags" value="barbearia,clinicaestetica,petshop,academia,salaobeleza,restaurante" placeholder="barbearia, salaobeleza, clinicaestetica...">
-            </div>
-            <div class="field" style="min-width:110px">
-              <label>Posts por tag</label>
-              <input type="number" id="apify-limit" value="200" min="50" max="1000" step="50">
-            </div>
-          </div>
-          <div class="field" style="margin-bottom:16px">
-            <label>Apify API Key <span style="color:var(--t2);font-weight:400">(ou configure APIFY_KEY no Railway)</span></label>
-            <input type="password" id="apify-key" placeholder="apify_api_xxxxxxxxxxxxx">
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-primary btn-sm" id="apify-btn-start" onclick="apifyStart()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Iniciar Coleta
-            </button>
-            <button class="btn btn-ghost btn-sm" id="apify-btn-import" onclick="apifyImport()" disabled>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Importar Resultados
-            </button>
-            <span id="apify-msg" style="font-size:12px;color:var(--t2)"></span>
-          </div>
-          <div id="apify-result" style="display:none;margin-top:14px;padding:12px 16px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:9px;font-size:12.5px;color:#86efac;line-height:1.7"></div>
-        </div>
-      </div>
-
       <!-- ── ASSINANTES ── -->
       <div class="flex gap-8 mb-20" style="align-items:flex-end">
         <div>
@@ -995,6 +961,120 @@ select option{background:var(--s2)}textarea{resize:vertical}
               </select>
             </div>
             <button class="btn btn-primary" style="width:100%" onclick="criarAssinante()">Criar acesso</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ IMPORTAR LEADS (Admin Exclusivo) ══════ -->
+    <div class="page" id="page-import">
+
+      <!-- ── Tela de bloqueio ── -->
+      <div id="import-lock" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:20px">
+        <div style="width:68px;height:68px;border-radius:50%;background:var(--amber-d);border:1px solid rgba(240,144,48,.22);display:flex;align-items:center;justify-content:center;margin-bottom:22px;box-shadow:0 0 40px rgba(240,144,48,.12)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" style="width:30px;height:30px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div style="font-size:20px;font-weight:800;letter-spacing:-.4px;margin-bottom:6px">Área Exclusiva do Administrador</div>
+        <div style="font-size:13px;color:var(--t2);margin-bottom:28px;max-width:340px;line-height:1.65">Para importar leads, insira o token de acesso administrativo. Este token é diferente do token de assinante.</div>
+        <div style="width:100%;max-width:360px">
+          <input type="password" id="import-token-input" placeholder="Token de administrador..."
+            style="width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);color:var(--amber);font-family:monospace;font-size:13px;padding:11px 14px;outline:none;box-sizing:border-box;margin-bottom:10px;letter-spacing:.5px;transition:border-color .2s"
+            onfocus="this.style.borderColor='rgba(240,144,48,.4)'" onblur="this.style.borderColor=''"
+            onkeydown="if(event.key==='Enter')verificarTokenImport()">
+          <button class="btn btn-primary" style="width:100%;padding:11px" onclick="verificarTokenImport()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Desbloquear
+          </button>
+          <p id="import-token-err" style="color:var(--err);font-size:12px;margin-top:10px;min-height:16px"></p>
+        </div>
+      </div>
+
+      <!-- ── Painel desbloqueado ── -->
+      <div id="import-panel" style="display:none">
+        <!-- Cabeçalho -->
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:18px;font-weight:800;letter-spacing:-.5px;margin-bottom:3px">Importar Leads</div>
+            <div style="font-size:13px;color:var(--t2)">Colete leads do Instagram via Apify ou importe via CSV</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="lockImport()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Bloquear
+          </button>
+        </div>
+
+        <!-- Stats rápidas -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px" id="import-stats-grid">
+          <div class="kpi"><div class="kpi-lbl">Leads com Instagram</div><div class="kpi-sk" id="import-stat-ig" style="height:28px;border-radius:4px"></div></div>
+          <div class="kpi"><div class="kpi-lbl">Leads Frios (sem IG)</div><div class="kpi-sk" id="import-stat-frio" style="height:28px;border-radius:4px"></div></div>
+          <div class="kpi"><div class="kpi-lbl">CNPJ registrados</div><div class="kpi-sk" id="import-stat-cnpj" style="height:28px;border-radius:4px"></div></div>
+        </div>
+
+        <!-- Apify scraping -->
+        <div class="card mb-20">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              Coletar via Apify · Instagram Scraper
+            </div>
+            <span id="import-apify-badge" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:5px;display:none"></span>
+          </div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:14px">
+              <div class="field">
+                <label>Hashtags <span style="color:var(--t2);font-weight:400">(sem #, separadas por vírgula)</span></label>
+                <input type="text" id="import-tags" value="barbearia,clinicaestetica,petshop,academia,salaobeleza,restaurante" placeholder="barbearia, petshop, academia...">
+              </div>
+              <div class="field" style="min-width:120px">
+                <label>Posts por tag</label>
+                <input type="number" id="import-limit" value="200" min="50" max="1000" step="50">
+              </div>
+            </div>
+            <div class="field" style="margin-bottom:16px">
+              <label>Apify API Key <span style="color:var(--t2);font-weight:400">(ou configure APIFY_KEY no Railway)</span></label>
+              <input type="password" id="import-apify-key" placeholder="apify_api_xxxxxxxxxxxxx">
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <button class="btn btn-primary btn-sm" id="import-btn-start" onclick="importApifyStart()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Iniciar Coleta
+              </button>
+              <button class="btn btn-ghost btn-sm" id="import-btn-import" onclick="importApifyImport()" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Importar Resultados
+              </button>
+              <button class="btn btn-ghost btn-sm" onclick="loadImportStats()" title="Atualizar contagens">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              </button>
+              <span id="import-apify-msg" style="font-size:12px;color:var(--t2)"></span>
+            </div>
+            <div id="import-apify-result" style="display:none;margin-top:14px;padding:13px 16px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:9px;font-size:12.5px;color:#86efac;line-height:1.8"></div>
+          </div>
+        </div>
+
+        <!-- CSV import info -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Importar via CSV (Zero-Downtime)
+            </div>
+          </div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--t2);margin-bottom:14px;line-height:1.65">Para importar arquivos CSV sem impactar os usuários online, execute na pasta do projeto:</p>
+            <div style="background:var(--s2);border:1px solid rgba(240,144,48,.18);border-radius:var(--r);padding:13px 16px;font-family:monospace;font-size:12.5px;color:var(--amber);letter-spacing:.02em">
+              node import-csv.js "C:\Users\Micro\Downloads\leads_novos.csv"
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">
+              <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:10px 14px">
+                <div style="font-size:10.5px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">Formatos suportados</div>
+                <div style="font-size:12px;color:var(--t2);line-height:1.6">Apollo.io · Snov.io · Hunter.io<br>LinkedIn Sales Navigator<br>Planilhas manuais<br>Formato Hashtag|Nome|@IG</div>
+              </div>
+              <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:10px 14px">
+                <div style="font-size:10.5px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">Garantias</div>
+                <div style="font-size:12px;color:var(--t2);line-height:1.6">Detecção automática de duplicados<br>Nenhum restart necessário<br>Leads aparecem imediatamente<br>Batches de 500 por query</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1240,6 +1320,7 @@ const titles = {
   leads:'Buscar Leads <span>/ Base CNPJ · Instagram</span>',
   campaigns:'Campanhas <span>/ Disparos</span>',
   admin:'Assinantes <span>/ Gestão de Clientes</span>',
+  import:'Importar Leads <span>/ Área Exclusiva do Admin</span>',
   settings:'Configurações <span>/ Sistema</span>',
 };
 function nav(id, el) {
@@ -1252,6 +1333,7 @@ function nav(id, el) {
   if (id === 'settings')  { preencherConfiguracoes(); checkHealth(); loadSettings(); }
   if (id === 'campaigns') loadCampaigns();
   if (id === 'admin')     loadAdmin();
+  if (id === 'import')    initImportPage();
 }
 
 // ══ MODAL ══
@@ -1947,100 +2029,183 @@ function logout() {
 }
 
 // ══ ADMIN ══
-// ══ APIFY ══
-let apifyRunId = null;
-let apifyPollTimer = null;
 
-async function apifyStart() {
-  const key  = document.getElementById('apify-key').value.trim();
-  const tags = document.getElementById('apify-tags').value.split(',').map(t => t.trim()).filter(Boolean);
-  const limit = parseInt(document.getElementById('apify-limit').value) || 200;
-  const btn  = document.getElementById('apify-btn-start');
-  const msg  = document.getElementById('apify-msg');
+// ══ IMPORTAR LEADS (Página Exclusiva do Admin) ══
+let IMPORT_TOKEN = sessionStorage.getItem('lh_import_token') || '';
+let importRunId = null;
+let importPollTimer = null;
+
+function initImportPage() {
+  if (IMPORT_TOKEN) unlockImport();
+  else {
+    document.getElementById('import-lock').style.display = 'flex';
+    document.getElementById('import-panel').style.display = 'none';
+    document.getElementById('import-token-err').textContent = '';
+  }
+}
+
+async function verificarTokenImport() {
+  const token = document.getElementById('import-token-input').value.trim();
+  const err   = document.getElementById('import-token-err');
+  if (!token) { err.textContent = 'Digite o token de administrador.'; return; }
+  err.textContent = '';
+  try {
+    const res = await fetch(API_BASE + '/admin/import/verificar', {
+      headers: { 'x-api-key': token, 'Content-Type': 'application/json' }
+    });
+    const d = await res.json();
+    if (!res.ok || !d.ok) { err.textContent = 'Token inválido — verifique e tente novamente.'; return; }
+    IMPORT_TOKEN = token;
+    sessionStorage.setItem('lh_import_token', token);
+    unlockImport();
+    toast('Área de importação desbloqueada!', 'success');
+  } catch(e) { err.textContent = 'Erro de conexão. Verifique a URL da API.'; }
+}
+
+function unlockImport() {
+  document.getElementById('import-lock').style.display = 'none';
+  document.getElementById('import-panel').style.display = '';
+  loadImportStats();
+}
+
+function lockImport() {
+  IMPORT_TOKEN = '';
+  sessionStorage.removeItem('lh_import_token');
+  document.getElementById('import-lock').style.display = 'flex';
+  document.getElementById('import-panel').style.display = 'none';
+  document.getElementById('import-token-input').value = '';
+  document.getElementById('import-token-err').textContent = '';
+  toast('Área bloqueada.', 'info');
+}
+
+async function loadImportStats() {
+  try {
+    const d = await api('/stats/geral');
+    const f = n => (n||0).toLocaleString('pt-BR');
+    const ig  = document.getElementById('import-stat-ig');
+    const fri = document.getElementById('import-stat-frio');
+    const cnp = document.getElementById('import-stat-cnpj');
+    if (ig)  ig.innerHTML  = `<div class="kpi-val" style="color:var(--purple)">${f(d.leads_instagram)}</div>`;
+    if (fri) fri.innerHTML = `<div class="kpi-val" style="color:var(--blue)">${f((d.leads_com_site||0) - (d.leads_instagram||0))}</div>`;
+    if (cnp) cnp.innerHTML = `<div class="kpi-val">${f(d.empresas_ativas)}</div>`;
+  } catch(e) {}
+}
+
+function setImportBadge(status) {
+  const b = document.getElementById('import-apify-badge');
+  if (!b) return;
+  const map = { RUNNING:['🟡 Coletando...','rgba(251,191,36,.2)','#fbbf24'], SUCCEEDED:['✅ Concluído','rgba(34,197,94,.2)','#4ade80'], FAILED:['❌ Falhou','rgba(239,68,68,.2)','#f87171'], ABORTED:['⛔ Abortado','rgba(239,68,68,.1)','#f87171'], DONE:['✅ Importado','rgba(34,197,94,.2)','#4ade80'] };
+  const [label,bg,color] = map[status] || ['⚪ Idle','var(--s3)','var(--t2)'];
+  b.textContent=label; b.style.background=bg; b.style.color=color; b.style.display='';
+}
+
+async function importApifyStart() {
+  const key   = document.getElementById('import-apify-key').value.trim();
+  const tags  = document.getElementById('import-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const limit = parseInt(document.getElementById('import-limit').value) || 200;
+  const btn   = document.getElementById('import-btn-start');
+  const msg   = document.getElementById('import-apify-msg');
   if (!tags.length) { msg.textContent = 'Digite ao menos uma hashtag.'; return; }
-
   btn.disabled = true;
-  btn.innerHTML = '<div class="spinner" style="width:12px;height:12px"></div> Iniciando...';
+  btn.innerHTML = '<div class="spinner" style="width:12px;height:12px;border-color:rgba(0,0,0,.15);border-top-color:#000"></div> Iniciando...';
   msg.textContent = '';
-  document.getElementById('apify-result').style.display = 'none';
-
+  document.getElementById('import-apify-result').style.display = 'none';
   try {
     const body = { hashtags: tags, limit };
     if (key) body.apify_key = key;
-    const d = await api('/admin/apify-start', { method: 'POST', body: JSON.stringify(body) });
-    apifyRunId = d.runId;
-    setBadge('RUNNING');
-    msg.textContent = `Run iniciado: ${apifyRunId} — aguardando conclusão...`;
-    document.getElementById('apify-btn-import').disabled = true;
+    const res = await fetch(API_BASE + '/admin/apify-start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': IMPORT_TOKEN },
+      body: JSON.stringify(body)
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Erro ao iniciar coleta');
+    importRunId = d.runId;
+    setImportBadge('RUNNING');
+    msg.textContent = `Run: ${importRunId} — aguardando conclusão...`;
+    document.getElementById('import-btn-import').disabled = true;
     toast(`Coleta iniciada para ${tags.length} hashtag(s)!`, 'success');
-    apifyPollTimer = setInterval(() => apifyPoll(key), 8000);
+    if (importPollTimer) clearInterval(importPollTimer);
+    importPollTimer = setInterval(() => importApifyPoll(key), 8000);
   } catch(e) { msg.textContent = 'Erro: ' + e.message; toast('Erro Apify: ' + e.message, 'error'); }
-
   btn.disabled = false;
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px"><polygon points="5 3 19 12 5 21 5 3"/></svg> Iniciar Coleta';
 }
 
-async function apifyPoll(key) {
-  if (!apifyRunId) return;
+async function importApifyPoll(key) {
+  if (!importRunId) return;
   try {
-    const headers = key ? { 'x-apify-key': key } : {};
-    const d = await api(`/admin/apify-status/${apifyRunId}`, { headers });
-    setBadge(d.status);
-    document.getElementById('apify-msg').textContent = `Status: ${d.status} · ${d.stats?.itemCount || 0} posts coletados`;
-    if (d.status === 'SUCCEEDED' || d.status === 'FAILED' || d.status === 'ABORTED') {
-      clearInterval(apifyPollTimer);
+    const headers = { 'x-api-key': IMPORT_TOKEN };
+    if (key) headers['x-apify-key'] = key;
+    const res = await fetch(API_BASE + `/admin/apify-status/${importRunId}`, { headers });
+    const d = await res.json();
+    setImportBadge(d.status);
+    document.getElementById('import-apify-msg').textContent = `Status: ${d.status} · ${d.stats?.itemCount||0} posts coletados`;
+    if (['SUCCEEDED','FAILED','ABORTED'].includes(d.status)) {
+      clearInterval(importPollTimer);
       if (d.status === 'SUCCEEDED') {
-        document.getElementById('apify-btn-import').disabled = false;
-        document.getElementById('apify-msg').textContent = `✓ Concluído — ${d.stats?.itemCount || 0} posts. Clique em "Importar Resultados".`;
+        document.getElementById('import-btn-import').disabled = false;
+        document.getElementById('import-apify-msg').textContent = `✓ Concluído — ${d.stats?.itemCount||0} posts prontos para importar.`;
         toast('Coleta concluída! Clique em Importar Resultados.', 'success');
       } else {
-        document.getElementById('apify-msg').textContent = `Run ${d.status}. Tente novamente.`;
+        document.getElementById('import-apify-msg').textContent = `Run ${d.status}. Tente novamente.`;
       }
     }
   } catch(e) {}
 }
 
-async function apifyImport() {
-  if (!apifyRunId) { toast('Nenhum run ativo.', 'error'); return; }
-  const key = document.getElementById('apify-key').value.trim();
-  const btn = document.getElementById('apify-btn-import');
-  const msg = document.getElementById('apify-msg');
+async function importApifyImport() {
+  if (!importRunId) { toast('Nenhum run ativo.', 'error'); return; }
+  const key = document.getElementById('import-apify-key').value.trim();
+  const btn = document.getElementById('import-btn-import');
+  const msg = document.getElementById('import-apify-msg');
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner" style="width:12px;height:12px"></div> Importando...';
   try {
     const body = key ? { apify_key: key } : {};
-    const d = await api(`/admin/apify-import/${apifyRunId}`, { method: 'POST', body: JSON.stringify(body) });
-    const res = document.getElementById('apify-result');
-    res.style.display = '';
-    res.innerHTML = `
-      <strong>✅ Importação concluída!</strong><br>
-      Posts coletados: <b>${d.total_coletados}</b><br>
-      Leads novos inseridos: <b>${d.inseridos}</b><br>
-      Duplicados ignorados: <b>${d.ignorados_duplicados}</b>
-    `;
+    const res = await fetch(API_BASE + `/admin/apify-import/${importRunId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': IMPORT_TOKEN },
+      body: JSON.stringify(body)
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Erro na importação');
+    const resultEl = document.getElementById('import-apify-result');
+    resultEl.style.display = '';
+    resultEl.innerHTML = `<strong>✅ Importação concluída!</strong><br>Posts coletados: <b>${d.total_coletados}</b><br>Leads novos inseridos: <b>${d.inseridos}</b><br>Duplicados ignorados: <b>${d.ignorados_duplicados}</b>`;
     msg.textContent = '';
-    setBadge('DONE');
+    setImportBadge('DONE');
     toast(`${d.inseridos} leads novos importados do Instagram!`, 'success');
-    apifyRunId = null;
+    importRunId = null;
+    loadImportStats();
   } catch(e) { msg.textContent = 'Erro: ' + e.message; toast('Erro na importação: ' + e.message, 'error'); }
   btn.disabled = false;
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Importar Resultados';
 }
 
-function setBadge(status) {
-  const b = document.getElementById('apify-status-badge');
-  if (!b) return;
-  const map = { RUNNING: ['🟡 Coletando...','rgba(251,191,36,.2)','#fbbf24'], SUCCEEDED: ['✅ Concluído','rgba(34,197,94,.2)','#4ade80'], FAILED: ['❌ Falhou','rgba(239,68,68,.2)','#f87171'], DONE: ['✅ Importado','rgba(34,197,94,.2)','#4ade80'] };
-  const [label, bg, color] = map[status] || ['⚪ Idle','var(--s3)','var(--t2)'];
-  b.textContent = label; b.style.background = bg; b.style.color = color; b.style.display = '';
+// Helper: fetch para rotas admin (requer API_SECRET via IMPORT_TOKEN)
+function adminFetch(path, opts = {}) {
+  if (!IMPORT_TOKEN) return Promise.reject(new Error('Token de admin necessário. Autentique-se em "Importar Leads".'));
+  const headers = { 'Content-Type': 'application/json', 'x-api-key': IMPORT_TOKEN, ...(opts.headers || {}) };
+  return fetch(API_BASE + path, { ...opts, headers }).then(async r => {
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || r.statusText);
+    return d;
+  });
 }
 
 async function loadAdmin() {
   const tbody = document.getElementById('admin-tbody');
   if (!tbody) return;
+
+  if (!IMPORT_TOKEN) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-title">Autenticação necessária</div><div class="empty-sub">Acesse "Importar Leads" e insira o token de administrador primeiro.</div></div></td></tr>';
+    return;
+  }
+
   tbody.innerHTML = '<tr><td colspan="7"><div class="loading-row"><div class="spinner light"></div></div></td></tr>';
   try {
-    const d = await api('/admin/assinantes');
+    const d = await adminFetch('/admin/assinantes');
     const rows = d.assinantes || [];
     if (!rows.length) {
       tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-title">Nenhum assinante</div><div class="empty-sub">Adicione um ou aguarde uma compra na Kirvano</div></div></td></tr>';
@@ -2050,8 +2215,8 @@ async function loadAdmin() {
     const planoColor  = { mensal:'b-amber', trimestral:'b-blue', vitalicio:'b-purple' };
     tbody.innerHTML = rows.map(a => {
       const exp = a.expira_em ? new Date(a.expira_em).toLocaleDateString('pt-BR') : '∞ Vitalício';
-      const ativ = a.ativado_em ? new Date(a.ativado_em).toLocaleDateString('pt-BR') : '—';
       const leadsHoje = a.plano === 'mensal' ? `${a.leads_hoje||0}/150` : '∞';
+      const escapedId = (a.id || '').replace(/'/g, "\\'");
       return `<tr>
         <td style="font-size:12px">${a.email}</td>
         <td style="font-size:12px">${a.nome||'—'}</td>
@@ -2061,14 +2226,14 @@ async function loadAdmin() {
         <td style="font-size:12px;color:var(--t2)">${leadsHoje}</td>
         <td><div class="td-act">
           ${a.status==='ativo'
-            ? `<button class="ib" onclick="alterarStatus(${a.id},'cancelado')" title="Cancelar acesso" style="color:var(--err)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></button>`
-            : `<button class="ib" onclick="alterarStatus(${a.id},'ativo')" title="Reativar" style="color:var(--ok)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></button>`
+            ? `<button class="ib" onclick="alterarStatus('${escapedId}','cancelado')" title="Cancelar" style="color:var(--err)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></button>`
+            : `<button class="ib" onclick="alterarStatus('${escapedId}','ativo')" title="Reativar" style="color:var(--ok)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></button>`
           }
         </div></td>
       </tr>`;
     }).join('');
   } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--err);text-align:center;padding:20px;font-size:13px">Erro: ${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--err);text-align:center;padding:20px;font-size:13px">${e.message}</td></tr>`;
   }
 }
 
@@ -2078,8 +2243,8 @@ async function criarAssinante() {
   const plano = document.getElementById('na-plano').value;
   if (!email) return toast('Email obrigatório', 'error');
   try {
-    const d = await api('/admin/assinante/criar', { method:'POST', body: JSON.stringify({ email, nome, plano }) });
-    toast(`Acesso criado! Token: ${d.token.substring(0,12)}...`, 'success');
+    const d = await adminFetch('/admin/assinante/criar', { method:'POST', body: JSON.stringify({ email, nome, plano }) });
+    toast(`Acesso criado! Token: ${(d.token||'').substring(0,12)}...`, 'success');
     closeModal('novoAssinante');
     loadAdmin();
     document.getElementById('na-email').value = '';
@@ -2090,7 +2255,7 @@ async function criarAssinante() {
 async function alterarStatus(id, status) {
   if (!confirm(`${status==='cancelado'?'Cancelar':'Reativar'} este assinante?`)) return;
   try {
-    await api(`/admin/assinante/${id}/status`, { method:'PATCH', body: JSON.stringify({ status }) });
+    await adminFetch(`/admin/assinante/${id}/status`, { method:'PATCH', body: JSON.stringify({ status }) });
     toast(`Status alterado para ${status}`, 'success');
     loadAdmin();
   } catch(e) { toast('Erro: ' + e.message, 'error'); }
