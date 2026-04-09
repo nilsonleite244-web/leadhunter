@@ -1869,9 +1869,11 @@ function atualizarBadgePlano() {
   }
 }
 
+function updatePlanoUI() { atualizarBadgePlano(); }
+
 function checkCota(cota) {
   if (cota) { ASSINANTE_COTA = cota; }
-  updatePlanoUI();
+  atualizarBadgePlano();
 }
 
 async function loginComEmail() {
