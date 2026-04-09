@@ -888,9 +888,13 @@ app.get("/admin/import/live/:runId", async (req, res) => {
     );
     const runData = statusRes.data.data;
 
-    if (runData.status !== "SUCCEEDED") {
-      send({ type: "error", msg: `Run ainda não concluído: ${runData.status}. Aguarde e tente novamente.` });
+    const terminalStatus = ["SUCCEEDED","FAILED","ABORTED","TIMED-OUT"];
+    if (!terminalStatus.includes(runData.status)) {
+      send({ type: "error", msg: `Run ainda em andamento: ${runData.status}. Aguarde e tente novamente.` });
       return res.end();
+    }
+    if (runData.status !== "SUCCEEDED") {
+      send({ type: "log", msg: `⚠️  Run ${runData.status} — importando dados parciais coletados...` });
     }
 
     send({ type: "log", msg: "✓ Run concluído. Baixando resultados do Apify..." });
