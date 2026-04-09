@@ -753,10 +753,8 @@ select option{background:var(--s2)}textarea{resize:vertical}
         </div>
       </div>
 
-      <!-- Instagram mode -->
+      <!-- Leads Ativos (com Instagram) -->
       <div id="view-instagram">
-
-        <!-- Seção 1: Leads Recomendados -->
         <div class="ig-hero" style="margin-bottom:16px">
           <div class="ig-hero-ring"></div>
           <div class="ig-orb ig-orb-1"></div>
@@ -764,49 +762,45 @@ select option{background:var(--s2)}textarea{resize:vertical}
           <div class="ig-orb ig-orb-3"></div>
           <div class="ig-badge">
             <div class="ig-badge-dot"></div>
-            Instagram Leads
+            Leads Ativos
           </div>
-          <div class="ig-title">Leads Recomendados</div>
-          <div class="ig-sub">Negócios com presença no Instagram prontos para prospecção. Acesse o perfil diretamente e dispare no WhatsApp — tudo em uma tela.</div>
-          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div class="ig-title">Negócios com Instagram</div>
+          <div class="ig-sub">Apenas empresas com perfil no Instagram confirmado — prontas para prospecção por DM ou WhatsApp.</div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">
             <div class="ig-mega-wrap">
               <div class="ig-sparks">
                 <div class="spark"></div><div class="spark"></div><div class="spark"></div>
                 <div class="spark"></div><div class="spark"></div><div class="spark"></div>
                 <div class="spark"></div>
               </div>
-              <button class="ig-mega-btn" id="btn-ig" onclick="buscarInstagram(1)">
+              <button class="ig-mega-btn" id="btn-ig" onclick="buscarAtivos(1)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg>
-                Buscar Leads com Instagram
+                Carregar Leads com Instagram
               </button>
             </div>
             <span id="ig-total-hint" style="font-size:12px;color:rgba(224,170,255,.6)"></span>
           </div>
-        </div>
-
-        <!-- Seção 2: Leads Ativos (área separada) -->
-        <div style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.18);border-radius:14px;padding:22px 24px;margin-bottom:16px">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-            <div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-                <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,.6)"></div>
-                <span style="font-size:15px;font-weight:700;color:#86efac">Todos os Leads Ativos</span>
-              </div>
-              <div style="font-size:12.5px;color:rgba(134,239,172,.6)">Todos os negócios com Instagram — prospecção direta por DM ou WhatsApp.</div>
+          <!-- Filtros inline -->
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+            <div class="field" style="flex:1;min-width:150px">
+              <label style="color:rgba(255,255,255,.5)">Buscar por nome</label>
+              <input type="text" id="ig-busca" placeholder="Ex: salão, clínica..." onkeydown="if(event.key==='Enter')buscarAtivos(1)" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)">
             </div>
-            <button id="btn-ativos" onclick="buscarAtivos(1)" style="
-              display:inline-flex;align-items:center;gap:8px;padding:11px 20px;
-              border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Inter',sans-serif;
-              background:rgba(34,197,94,.12);border:1.5px solid rgba(34,197,94,.35);color:#4ade80;
-              transition:all .2s;white-space:nowrap
-            ">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px"><polyline points="20 6 9 17 4 12"/></svg>
-              Carregar Leads Ativos
+            <div class="field" style="flex:1;min-width:130px">
+              <label style="color:rgba(255,255,255,.5)">Segmento</label>
+              <input type="text" id="ig-seg" placeholder="Ex: restaurante" onkeydown="if(event.key==='Enter')buscarAtivos(1)" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)">
+            </div>
+            <div class="field" style="flex:1;min-width:130px">
+              <label style="color:rgba(255,255,255,.5)">Cidade</label>
+              <input type="text" id="ig-cidade" placeholder="Ex: São Paulo" onkeydown="if(event.key==='Enter')buscarAtivos(1)" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)">
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="buscarAtivos(1)" style="height:36px;color:rgba(255,255,255,.6)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              Filtrar
             </button>
           </div>
-          <div id="ativos-total-hint" style="font-size:11.5px;color:rgba(134,239,172,.5);margin-top:10px;display:none"></div>
+          <div id="ativos-total-hint" style="font-size:11.5px;color:rgba(224,170,255,.5);margin-top:10px;display:none"></div>
         </div>
-
       </div>
 
       <!-- Leads Frios mode -->
@@ -1401,28 +1395,33 @@ async function runSearch(page = 1) {
 // ══ LEADS INSTAGRAM ══
 
 async function buscarAtivos(page = 1) {
-  const btn = document.getElementById('btn-ativos');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner" style="border-color:rgba(34,197,94,.3);border-top-color:#4ade80;width:14px;height:14px"></div> Carregando...';
-  const p = new URLSearchParams({ limit: 100, page, todos: 'true' });
+  const btn = document.getElementById('btn-ig') || document.getElementById('btn-ativos');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner" style="border-color:rgba(255,255,255,.3);border-top-color:#fff;width:15px;height:15px"></div> Carregando...'; }
+  const busca  = document.getElementById('ig-busca')?.value.trim() || '';
+  const seg    = document.getElementById('ig-seg')?.value.trim() || '';
+  const cidade = document.getElementById('ig-cidade')?.value.trim() || '';
+  const params = new URLSearchParams({ apenas_ig: 'true', limit: 100, page });
+  if (busca)  params.set('busca', busca);
+  if (seg)    params.set('segmento', seg);
+  if (cidade) params.set('cidade', cidade);
   try {
-    const d = await api('/leads/instagram?' + p);
+    const d = await api('/leads/instagram?' + params);
     state.results = d.data || [];
     renderResults(state.results, 'instagram');
     document.getElementById('results-card').style.display = '';
-    document.getElementById('result-count').textContent = state.results.length + ' leads ativos';
+    document.getElementById('result-count').textContent = (d.total||0).toLocaleString('pt-BR') + ' leads com Instagram';
     document.getElementById('result-count').style.display = '';
     document.getElementById('btn-export').disabled = false;
     const hint = document.getElementById('ativos-total-hint');
-    hint.style.display = '';
-    hint.textContent = `${(d.total||0).toLocaleString('pt-BR')} leads ativos na base · página ${page}/${d.pages||1}`;
+    if (hint) { hint.style.display = ''; hint.textContent = `${(d.total||0).toLocaleString('pt-BR')} leads com Instagram · página ${page}/${d.pages||1}`; }
+    const igHint = document.getElementById('ig-total-hint');
+    if (igHint) igHint.textContent = `${(d.total||0).toLocaleString('pt-BR')} leads encontrados`;
     renderPagIG(page, d.pages || 1, 'buscarAtivos');
     updateHeadersIG();
-    addFeed('green', `Leads ativos: <b>${state.results.length}</b> carregados`);
+    addFeed('green', `Leads com Instagram: <b>${state.results.length}</b> carregados`);
     checkCota(d.cota);
   } catch(e) { toast('Erro: ' + e.message, 'error'); }
-  btn.disabled = false;
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px"><polyline points="20 6 9 17 4 12"/></svg> Carregar Leads Ativos';
+  if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg> Carregar Leads com Instagram'; }
 }
 
 async function buscarFrios(page = 1) {
@@ -1455,30 +1454,8 @@ async function buscarFrios(page = 1) {
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Carregar Leads Frios';
 }
 
-async function buscarInstagram(page = 1) {
-  const btn = document.getElementById('btn-ig');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner" style="border-color:rgba(255,255,255,.3);border-top-color:#fff;width:15px;height:15px"></div> Buscando...';
-  const p = new URLSearchParams({ limit: 100, page });
-  try {
-    const d = await api('/leads/instagram?' + p);
-    state.results = d.data || [];
-    state.page    = d.page  || 1;
-    state.pages   = d.pages || 1;
-    state.total   = d.total || 0;
-    renderResults(state.results, 'instagram');
-    renderPagIG(d.page, d.pages);
-    const hint = document.getElementById('ig-total-hint');
-    if (hint) hint.textContent = d.total > 0 ? `${d.total.toLocaleString('pt-BR')} leads encontrados` : '';
-    document.getElementById('result-count').textContent = d.total.toLocaleString('pt-BR') + ' leads com Instagram';
-    document.getElementById('result-count').style.display = '';
-    document.getElementById('btn-export').disabled = false;
-    addFeed('purple', `Instagram: <b>${d.total} leads</b>`);
-    toast(d.total.toLocaleString('pt-BR') + ' leads com Instagram encontrados!', 'success');
-  } catch (e) { toast('Erro: ' + e.message, 'error'); }
-  btn.disabled = false;
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg> Buscar Leads com Instagram';
-}
+// buscarInstagram agora delega para buscarAtivos (que usa apenas_ig=true)
+function buscarInstagram(page = 1) { return buscarAtivos(page); }
 
 function renderPagIG(page, pages, fn = 'buscarInstagram') {
   const el = document.getElementById('pag');
