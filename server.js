@@ -715,84 +715,117 @@ app.patch("/admin/assinante/:id/status", async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── ADMIN: APIFY SCRAPING ─────────────────────────────────────────────────────
-const APIFY_HASHTAGS = [
-  "barbearia","barberashop","barbeirosbrasil","barber",
-  "clinicaestetica","esteticafacial","esteticacorporal","esteticabrasil",
-  "petshop","petshopbrasil","clinicaveterinaria","petlovers",
-  "academia","crossfit","pilates","musculacao"
-];
-const APIFY_SEG = {
-  barbearia:"barbearia",barberashop:"barbearia",barbeirosbrasil:"barbearia",barber:"barbearia",
-  clinicaestetica:"clinicaestetica",esteticafacial:"clinicaestetica",esteticacorporal:"clinicaestetica",esteticabrasil:"clinicaestetica",
-  petshop:"petshop",petshopbrasil:"petshop",clinicaveterinaria:"petshop",petlovers:"petshop",
-  academia:"academia",crossfit:"academia",pilates:"academia",musculacao:"academia"
-};
+// ── ADMIN: APIFY SCRAPING ────────────────────────────────────────────────────
 
+// POST /admin/apify-start — inicia scraping de hashtags no Instagram
 app.post("/admin/apify-start", async (req, res) => {
   const key = process.env.APIFY_KEY || req.headers["x-apify-key"] || req.body?.apify_key;
-  if (!key) return res.status(400).json({ error: "Apify key necessária" });
+  if (!key) return res.status(400).json({ error: "Configure APIFY_KEY nas variáveis de ambiente." });
+
+  // Aceita hashtags do body ou usa defaults
+  const hashtags = Array.isArray(req.body?.hashtags) && req.body.hashtags.length
+    ? req.body.hashtags.map(h => h.replace(/^#/, "").trim().toLowerCase()).filter(Boolean)
+    : ["barbearia","clinicaestetica","petshop","academia","salaobeleza","restaurante","pizzaria","clinicaodontologica"];
+
+  const resultsLimit = Math.min(parseInt(req.body?.limit) || 200, 1000);
+
   try {
-    const r = await axios.post(`https://api.apify.com/v2/acts/apify~instagram-scraper/runs?token=${key}`, {
-      directUrls: APIFY_HASHTAGS.map(h => `https://www.instagram.com/explore/tags/${h}/`),
-      resultsType: "posts", resultsLimit: 300, proxy: { useApifyProxy: true }
-    });
+    const r = await axios.post(
+      `https://api.apify.com/v2/acts/apify~instagram-scraper/runs?token=${key}`,
+      {
+        directUrls: hashtags.map(h => `https://www.instagram.com/explore/tags/${h}/`),
+        resultsType: "posts",
+        resultsLimit,
+        proxy: { useApifyProxy: true },
+      }
+    );
     const runId = r.data.data.id;
-    res.json({ ok: true, runId, proximo: `GET /admin/apify-import/${runId}?apify_key=${key}` });
+    res.json({ ok: true, runId, hashtags, resultsLimit, status: "RUNNING" });
   } catch(e) {
     res.status(500).json({ error: e.response?.data?.error?.message || e.message });
   }
 });
 
-app.get("/admin/apify-import/:runId", async (req, res) => {
+// GET /admin/apify-status/:runId — checa status do run
+app.get("/admin/apify-status/:runId", async (req, res) => {
   const key = process.env.APIFY_KEY || req.headers["x-apify-key"] || req.query.apify_key;
-  if (!key) return res.status(400).json({ error: "Apify key necessária" });
+  if (!key) return res.status(400).json({ error: "APIFY_KEY necessária" });
   try {
-    const statusRes = await axios.get(`https://api.apify.com/v2/acts/apify~instagram-scraper/runs/${req.params.runId}?token=${key}`);
+    const r = await axios.get(`https://api.apify.com/v2/actor-runs/${req.params.runId}?token=${key}`);
+    const d = r.data.data;
+    res.json({ status: d.status, stats: d.stats || {}, datasetId: d.defaultDatasetId });
+  } catch(e) {
+    res.status(500).json({ error: e.response?.data?.error?.message || e.message });
+  }
+});
+
+// POST /admin/apify-import/:runId — importa resultados do run para Supabase
+app.post("/admin/apify-import/:runId", async (req, res) => {
+  const key = process.env.APIFY_KEY || req.headers["x-apify-key"] || req.body?.apify_key;
+  if (!key) return res.status(400).json({ error: "APIFY_KEY necessária" });
+  if (!pool) return res.status(503).json({ error: "DATABASE_URL não configurado" });
+
+  try {
+    // Verifica status
+    const statusRes = await axios.get(`https://api.apify.com/v2/actor-runs/${req.params.runId}?token=${key}`);
     const runData = statusRes.data.data;
-    if (runData.status !== "SUCCEEDED") return res.json({ ok: false, status: runData.status, msg: "Run não completou: " + runData.status });
+    if (runData.status !== "SUCCEEDED")
+      return res.json({ ok: false, status: runData.status, msg: `Run ainda em andamento: ${runData.status}` });
 
-    const itemsRes = await axios.get(`https://api.apify.com/v2/datasets/${runData.defaultDatasetId}/items?token=${key}&limit=5000`);
+    // Busca itens
+    const itemsRes = await axios.get(
+      `https://api.apify.com/v2/datasets/${runData.defaultDatasetId}/items?token=${key}&limit=5000`
+    );
     const items = Array.isArray(itemsRes.data) ? itemsRes.data : [];
+    if (!items.length) return res.json({ ok: true, inseridos: 0, ignorados: 0, msg: "Nenhum resultado encontrado" });
 
+    // Carrega handles existentes para checagem de duplicados
+    const existingRes = await pgQuery("SELECT instagram FROM leads_extra WHERE instagram IS NOT NULL");
+    const existingHandles = new Set(existingRes.rows.map(r => {
+      const m = (r.instagram||"").match(/instagram\.com\/([A-Za-z0-9._]+)/i);
+      return m ? m[1].toLowerCase() : r.instagram.toLowerCase();
+    }));
+
+    const toInsert = [];
     const seen = new Set();
-    let inseridos = 0, atualizados = 0, ignorados = 0;
+    let ignorados = 0;
 
     for (const item of items) {
       const handle = item.ownerUsername || item.username;
-      if (!handle || seen.has(handle)) { ignorados++; continue; }
-      seen.add(handle);
+      if (!handle || seen.has(handle.toLowerCase())) { ignorados++; continue; }
+      seen.add(handle.toLowerCase());
+      if (existingHandles.has(handle.toLowerCase())) { ignorados++; continue; }
 
-      const inputUrl = (item.inputUrl || "").toLowerCase();
-      const matchedTag = Object.keys(APIFY_SEG).find(t => inputUrl.includes("/" + t + "/"));
-      const segmento = (matchedTag ? APIFY_SEG[matchedTag] : "geral").toLowerCase();
-      const website  = item.externalUrl || null;
       const nome     = item.ownerFullName || item.fullName || handle;
+      const website  = item.externalUrl || null;
+      const inputUrl = (item.inputUrl || "").toLowerCase();
+      const hashTag  = (inputUrl.match(/tags\/([^/]+)\//)||[])[1] || "";
+      const segmento = hashTag || "instagram";
+      const instagram = `https://instagram.com/${handle}`;
+      const descricao = item.biography || item.caption || null;
+      const cidade   = item.locationCity || item.locationName || null;
+      const estado   = item.locationState || null;
 
-      const snap = await leadsCol().where("instagram_handle", "==", handle).limit(1).get();
-      if (!snap.empty) {
-        await snap.docs[0].ref.update({
-          nome:     nome     || admin.firestore.FieldValue.delete(),
-          website:  website  || admin.firestore.FieldValue.delete(),
-          segmento: segmento || admin.firestore.FieldValue.delete(),
-          descricao: item.biography || admin.firestore.FieldValue.delete(),
-          has_own_website: hasOwnWebsite(website),
-        });
-        atualizados++;
-      } else {
-        await leadsCol().add({
-          nome, nome_lower: nome.toLowerCase(),
-          instagram: "@" + handle, instagram_handle: handle, has_instagram: true,
-          website, has_own_website: hasOwnWebsite(website),
-          segmento, descricao: item.biography || null,
-          cidade: item.locationCity || null, estado: item.locationState || null,
-          pais: "Brasil", created_at: admin.firestore.FieldValue.serverTimestamp()
-        });
-        inseridos++;
-      }
+      toInsert.push([nome, website, segmento, cidade, estado, "Brasil", null, null, instagram, null, descricao]);
     }
 
-    res.json({ ok: true, total_items: items.length, inseridos, atualizados, ignorados });
+    // Insere em batches de 500
+    const BATCH = 500;
+    let inseridos = 0;
+    for (let i = 0; i < toInsert.length; i += BATCH) {
+      const batch = toInsert.slice(i, i + BATCH);
+      const values = batch.map((_, idx) => {
+        const b = idx * 11;
+        return `($${b+1},$${b+2},$${b+3},$${b+4},$${b+5},$${b+6},$${b+7},$${b+8},$${b+9},$${b+10},$${b+11},NOW())`;
+      }).join(",");
+      await pgQuery(
+        `INSERT INTO leads_extra (nome,website,segmento,cidade,estado,pais,funcionarios,receita,instagram,whatsapp,descricao,created_at) VALUES ${values}`,
+        batch.flat()
+      );
+      inseridos += batch.length;
+    }
+
+    res.json({ ok: true, total_coletados: items.length, inseridos, ignorados_duplicados: ignorados });
   } catch(e) {
     res.status(500).json({ error: e.response?.data?.error?.message || e.message });
   }
