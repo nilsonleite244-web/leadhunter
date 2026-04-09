@@ -714,14 +714,18 @@ select option{background:var(--s2)}textarea{resize:vertical}
           <div class="card-header">
             <div class="card-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-              Filtrar por região
+              Filtros de Busca
             </div>
-            <button class="btn btn-primary btn-sm" id="search-btn" onclick="runSearch()">
+            <button class="btn btn-primary btn-sm" id="search-btn" onclick="runSearch(1)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               Buscar
             </button>
           </div>
           <div class="card-body">
+            <div class="field" style="margin-bottom:14px">
+              <label>Buscar por nome / segmento</label>
+              <input type="text" id="f-busca" placeholder="Ex: clínica, restaurante, academia..." onkeydown="if(event.key==='Enter')runSearch(1)" style="width:100%">
+            </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
               <div class="field">
                 <label>DDD / Região</label>
@@ -731,25 +735,18 @@ select option{background:var(--s2)}textarea{resize:vertical}
                 </select>
               </div>
               <div class="field">
-                <label>Porte</label>
-                <select id="f-porte">
-                  <option value="">Todos os portes</option>
-                  <option value="MEI">MEI — Microempreendedor</option>
-                  <option value="ME">ME — Microempresa</option>
-                  <option value="EPP">EPP — Pequeno Porte</option>
+                <label>Estado (UF)</label>
+                <select id="f-uf">
+                  <option value="">Todos os estados</option>
+                  <option value="SP">SP — São Paulo</option><option value="RJ">RJ — Rio de Janeiro</option><option value="MG">MG — Minas Gerais</option><option value="RS">RS — Rio Grande do Sul</option><option value="PR">PR — Paraná</option><option value="SC">SC — Santa Catarina</option><option value="BA">BA — Bahia</option><option value="GO">GO — Goiás</option><option value="PE">PE — Pernambuco</option><option value="CE">CE — Ceará</option><option value="DF">DF — Distrito Federal</option><option value="ES">ES — Espírito Santo</option><option value="PA">PA — Pará</option><option value="MT">MT — Mato Grosso</option><option value="MS">MS — Mato Grosso do Sul</option><option value="AM">AM — Amazonas</option><option value="MA">MA — Maranhão</option><option value="RN">RN — Rio Grande do Norte</option><option value="AL">AL — Alagoas</option><option value="PB">PB — Paraíba</option><option value="PI">PI — Piauí</option><option value="SE">SE — Sergipe</option><option value="TO">TO — Tocantins</option><option value="RO">RO — Rondônia</option><option value="AC">AC — Acre</option><option value="AP">AP — Amapá</option><option value="RR">RR — Roraima</option>
                 </select>
               </div>
             </div>
             <div>
-              <label style="display:block;margin-bottom:8px">Filtros extras</label>
+              <label style="display:block;margin-bottom:8px">Filtros rápidos</label>
               <div class="chips">
                 <div class="chip on" id="chk-tel" onclick="this.classList.toggle('on')">Com Telefone</div>
                 <div class="chip" id="chk-email" onclick="this.classList.toggle('on')">Com E-mail</div>
-                <div class="chip" id="chk-simples" onclick="this.classList.toggle('on')">Simples Nacional</div>
-                <div class="chip chip-ig" id="chk-ig" onclick="setMode('instagram')" title="Ver leads com Instagram">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;display:inline-block;vertical-align:middle;margin-right:3px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg>
-                  Com Instagram ✦
-                </div>
               </div>
             </div>
           </div>
@@ -1355,10 +1352,12 @@ async function buscarAleatorio() {
     const d = await api('/leads/aleatorio?limit=50');
     state.results = d.data || [];
     renderResults(state.results, 'cnpj');
-    document.getElementById('result-count').textContent = state.results.length + ' leads';
+    document.getElementById('results-card').style.display = '';
+    document.getElementById('result-count').textContent = state.results.length + ' leads aleatórios';
     document.getElementById('result-count').style.display = '';
     document.getElementById('leads-count').textContent = state.results.length + ' leads gerados aleatoriamente';
     document.getElementById('btn-export').disabled = false;
+    updateHeadersCNPJ();
     addFeed('amber', `Público aleatório: <b>${state.results.length} leads</b> gerados`);
     toast(state.results.length + ' leads aleatórios prontos!', 'success');
   } catch (e) { toast('Erro: ' + e.message, 'error'); }
@@ -1370,26 +1369,29 @@ async function runSearch(page = 1) {
   const btn = document.getElementById('search-btn');
   btn.innerHTML = '<div class="spinner"></div>';
   btn.disabled = true;
-  const p = new URLSearchParams();
-  const ddd   = document.getElementById('f-ddd').value;
-  const porte = document.getElementById('f-porte').value;
-  if (ddd)   p.set('ddd', ddd);
-  if (porte) p.set('porte', porte);
-  p.set('tem_telefone','true');
-  if (document.getElementById('chk-email').classList.contains('on'))  p.set('tem_email','true');
-  if (document.getElementById('chk-simples').classList.contains('on')) p.set('simples','true');
-  p.set('page', page); p.set('limit', 50);
+  const params = new URLSearchParams();
+  const busca = document.getElementById('f-busca')?.value.trim() || '';
+  const ddd   = document.getElementById('f-ddd')?.value || '';
+  const uf    = document.getElementById('f-uf')?.value || '';
+  if (busca) params.set('busca', busca);
+  if (ddd)   params.set('ddd', ddd);
+  if (uf)    params.set('uf', uf);
+  if (document.getElementById('chk-tel')?.classList.contains('on'))   params.set('tem_telefone', 'true');
+  if (document.getElementById('chk-email')?.classList.contains('on')) params.set('tem_email', 'true');
+  params.set('page', page); params.set('limit', 50);
   try {
-    const d = await api('/leads/buscar?' + p);
+    const d = await api('/leads/buscar?' + params);
     state.results = d.data || [];
     state.total   = d.total || 0;
     state.page    = d.page  || 1;
     state.pages   = d.pages || 1;
     renderResults(state.results, 'cnpj');
     renderPag(d.page, d.pages);
+    document.getElementById('results-card').style.display = '';
     document.getElementById('result-count').textContent = (d.total||0).toLocaleString('pt-BR') + ' resultados';
     document.getElementById('result-count').style.display = '';
     document.getElementById('btn-export').disabled = !state.results.length;
+    updateHeadersCNPJ();
     toast((d.total||0).toLocaleString('pt-BR') + ' leads encontrados!', 'success');
   } catch (e) { toast('Erro: ' + e.message, 'error'); }
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Buscar';

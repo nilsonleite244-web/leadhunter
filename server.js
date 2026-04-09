@@ -244,11 +244,11 @@ app.get("/leads/buscar", async (req, res) => {
 
     if (uf)    { where.push(`uf = $${p++}`);                          params.push(uf.toUpperCase()); }
     if (seg)   { where.push(`cnae_descricao ILIKE $${p++}`);          params.push("%" + seg + "%"); }
-    if (busca) { where.push(`(razao_social ILIKE $${p++} OR nome_fantasia ILIKE $${p++})`); params.push("%" + busca + "%", "%" + busca + "%"); p++; }
+    if (busca) { where.push(`(razao_social ILIKE $${p} OR nome_fantasia ILIKE $${p+1})`); params.push("%" + busca + "%", "%" + busca + "%"); p += 2; }
     if (ddd)   { where.push(`ddd_municipio = $${p++}`);               params.push(ddd); }
     if (porte) { where.push(`porte = $${p++}`);                       params.push(porte.toUpperCase()); }
-    if (apenas_com_email    === "true") where.push("email IS NOT NULL AND email != ''");
-    if (apenas_com_telefone === "true") where.push("telefone1 IS NOT NULL AND telefone1 != ''");
+    if (req.query.tem_telefone    === "true" || apenas_com_telefone === "true") where.push("telefone1 IS NOT NULL AND telefone1 != ''");
+    if (req.query.tem_email === "true" || apenas_com_email === "true") where.push("email IS NOT NULL AND email != ''");
 
     const whereStr = where.length ? "WHERE " + where.join(" AND ") : "";
     const cols = "cnpj, razao_social, nome_fantasia, cnae_descricao, porte, email, telefone1, ddd_municipio, municipio_nome, uf, nome_socio, score_completude";
@@ -280,15 +280,27 @@ app.get("/leads/buscar", async (req, res) => {
   }
 });
 
-// GET /leads/aleatorio
+// GET /leads/aleatorio — 50 CNPJs aleatórios com telefone (PostgreSQL)
 app.get("/leads/aleatorio", async (req, res) => {
   try {
     const limit = Math.min(100, parseInt(req.query.limit) || 50);
-    // Firestore não tem TABLESAMPLE — pega os mais recentes com has_instagram
-    const snap = await leadsCol()
-      .where("has_instagram", "==", true)
-      .orderBy("created_at", "desc")
-      .limit(limit).get();
+    if (pool) {
+      const cols = "cnpj, razao_social, nome_fantasia, cnae_descricao, porte, email, telefone1, ddd_municipio, municipio_nome, uf, nome_socio, score_completude";
+      const r = await pgQuery(
+        `SELECT ${cols} FROM leads WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != '' ORDER BY RANDOM() LIMIT $1`,
+        [limit]
+      );
+      const data = r.rows.map(row => ({
+        id: row.cnpj, cnpj: row.cnpj, razao_social: row.razao_social,
+        nome_fantasia: row.nome_fantasia, cnae_descricao: row.cnae_descricao,
+        porte: row.porte, email: row.email, telefone1: row.telefone1,
+        ddd_municipio: row.ddd_municipio, municipio_nome: row.municipio_nome,
+        uf: row.uf, nome_socio: row.nome_socio,
+      }));
+      return res.json({ total: data.length, data });
+    }
+    // Fallback Firebase
+    const snap = await leadsCol().limit(limit).get();
     const data = snap.docs.map(doc => docToLead(doc.id, doc.data()));
     res.json({ total: data.length, data });
   } catch(e) {
