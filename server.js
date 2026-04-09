@@ -5,6 +5,7 @@ const rateLimit  = require("express-rate-limit");
 const axios      = require("axios");
 const admin      = require("firebase-admin");
 const path       = require("path");
+const { Pool }   = require("pg");
 require("dotenv").config();
 
 // ── FIREBASE INIT ─────────────────────────────────────────────────────────────
@@ -32,6 +33,19 @@ const leadsCol      = () => db.collection("leads_extra");
 const assinantesCol = () => db.collection("assinantes");
 const campanhasCol  = () => db.collection("campanhas");
 const destinatariosCol = () => db.collection("campanha_destinatarios");
+
+// ── POSTGRESQL (Supabase) — CNPJ leads ───────────────────────────────────────
+let pool = null;
+if (process.env.DATABASE_URL) {
+  pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 5 });
+  pool.query("SELECT 1").then(() => console.log("[PostgreSQL] Conectado — Supabase")).catch(e => console.warn("[PostgreSQL] Aviso:", e.message));
+} else {
+  console.warn("[PostgreSQL] DATABASE_URL não definida — queries de CNPJ desativadas");
+}
+function pgQuery(sql, params) {
+  if (!pool) return Promise.reject(new Error("DATABASE_URL não configurada"));
+  return pool.query(sql, params);
+}
 
 // ── EXPRESS ──────────────────────────────────────────────────────────────────
 const app = express();
@@ -137,12 +151,17 @@ async function verificarCota(req, res, count) {
 }
 
 // ── ROTAS PÚBLICAS ────────────────────────────────────────────────────────────
-app.get("/version", (req, res) => res.json({ v: "2.0.0", db: "firebase" }));
+app.get("/version", (req, res) => res.json({ v: "2.1.0", db: "firebase+postgresql" }));
 
 app.get("/health", async (req, res) => {
   try {
-    const snap = await leadsCol().count().get();
-    res.json({ status: "ok", leads_ativos: snap.data().count, timestamp: new Date().toISOString() });
+    const [snapFb, pgRes] = await Promise.all([
+      leadsCol().count().get(),
+      pool ? pgQuery("SELECT COUNT(*) FROM leads").catch(() => null) : Promise.resolve(null)
+    ]);
+    const cnpjCount  = pgRes ? parseInt(pgRes.rows[0].count) : 0;
+    const extraCount = snapFb.data().count;
+    res.json({ status: "ok", leads_cnpj: cnpjCount, leads_instagram: extraCount, leads_ativos: cnpjCount + extraCount, timestamp: new Date().toISOString() });
   } catch(e) {
     res.status(500).json({ status: "erro", error: e.message });
   }
@@ -205,30 +224,50 @@ app.get("/leads/instagram", async (req, res) => {
   }
 });
 
-// GET /leads/buscar — busca geral (redireciona para leads_extra)
+// GET /leads/buscar — busca nos 200k leads de CNPJ (PostgreSQL)
 app.get("/leads/buscar", async (req, res) => {
   try {
+    if (!pool) return res.status(503).json({ error: "Banco de CNPJ não configurado. Configure DATABASE_URL." });
     const { page, limit, offset } = paginate(req);
-    const { uf, segmento: seg, busca } = req.query;
+    const { uf, segmento: seg, busca, ddd, porte, apenas_com_email, apenas_com_telefone } = req.query;
 
-    let q = leadsCol();
-    if (uf)  q = q.where("estado", "==", uf.toUpperCase());
-    if (seg) q = q.where("segmento", "==", seg.toLowerCase());
+    const params = [];
+    const where  = [];
+    let p = 1;
 
-    let dataSnap;
-    if (busca?.trim()) {
-      const b = busca.trim().toLowerCase();
-      dataSnap = await leadsCol()
-        .where("nome_lower", ">=", b)
-        .where("nome_lower", "<=", b + "\uf8ff")
-        .limit(limit).offset(offset).get();
-    } else {
-      dataSnap = await q.orderBy("nome_lower").limit(limit).offset(offset).get();
-    }
+    where.push("situacao_cadastral = 2");
 
-    const countSnap = await q.count().get();
-    const total = countSnap.data().count;
-    const data  = dataSnap.docs.map(doc => docToLead(doc.id, doc.data()));
+    if (uf)    { where.push(`uf = $${p++}`);                          params.push(uf.toUpperCase()); }
+    if (seg)   { where.push(`cnae_descricao ILIKE $${p++}`);          params.push("%" + seg + "%"); }
+    if (busca) { where.push(`(razao_social ILIKE $${p++} OR nome_fantasia ILIKE $${p++})`); params.push("%" + busca + "%", "%" + busca + "%"); p++; }
+    if (ddd)   { where.push(`ddd_municipio = $${p++}`);               params.push(ddd); }
+    if (porte) { where.push(`porte = $${p++}`);                       params.push(porte.toUpperCase()); }
+    if (apenas_com_email    === "true") where.push("email IS NOT NULL AND email != ''");
+    if (apenas_com_telefone === "true") where.push("telefone1 IS NOT NULL AND telefone1 != ''");
+
+    const whereStr = where.length ? "WHERE " + where.join(" AND ") : "";
+    const cols = "cnpj, razao_social, nome_fantasia, cnae_descricao, porte, email, telefone1, ddd_municipio, municipio_nome, uf, nome_socio, score_completude";
+
+    const [countRes, dataRes] = await Promise.all([
+      pgQuery(`SELECT COUNT(*) FROM leads ${whereStr}`, params),
+      pgQuery(`SELECT ${cols} FROM leads ${whereStr} ORDER BY score_completude DESC LIMIT $${p++} OFFSET $${p++}`, [...params, limit, offset])
+    ]);
+
+    const total = parseInt(countRes.rows[0].count);
+    const data = dataRes.rows.map(r => ({
+      id:            r.cnpj,
+      cnpj:          r.cnpj,
+      razao_social:  r.razao_social,
+      nome_fantasia: r.nome_fantasia,
+      cnae_descricao: r.cnae_descricao,
+      porte:         r.porte,
+      email:         r.email,
+      telefone1:     r.telefone1,
+      ddd_municipio: r.ddd_municipio,
+      municipio_nome: r.municipio_nome,
+      uf:            r.uf,
+      nome_socio:    r.nome_socio,
+    }));
 
     res.json({ total, page, limit, pages: Math.ceil(total / limit), data });
   } catch(e) {
@@ -252,10 +291,20 @@ app.get("/leads/aleatorio", async (req, res) => {
   }
 });
 
-// GET /leads/:id
+// GET /leads/:id — busca por CNPJ no PostgreSQL primeiro, depois Firebase
 app.get("/leads/:id", async (req, res) => {
   try {
-    const doc = await leadsCol().doc(req.params.id).get();
+    const id = req.params.id;
+    const cnpj = id.replace(/\D/g, "").padStart(14, "0");
+
+    // Tenta PostgreSQL se parece CNPJ (só dígitos)
+    if (pool && /^\d+$/.test(id)) {
+      const r = await pgQuery("SELECT * FROM leads WHERE cnpj = $1", [cnpj]);
+      if (r.rows.length) return res.json(r.rows[0]);
+    }
+
+    // Fallback: Firebase (leads_extra)
+    const doc = await leadsCol().doc(id).get();
     if (!doc.exists) return res.status(404).json({ error: "Lead não encontrado" });
     res.json({ id: doc.id, ...doc.data() });
   } catch(e) {
@@ -266,21 +315,40 @@ app.get("/leads/:id", async (req, res) => {
 // ── STATS ────────────────────────────────────────────────────────────────────
 app.get("/stats/geral", async (req, res) => {
   try {
-    const [total, comIG, comSite] = await Promise.all([
+    const fbPromises = [
       leadsCol().count().get(),
       leadsCol().where("has_instagram", "==", true).count().get(),
-      leadsCol().where("has_own_website", "==", true).count().get(),
+    ];
+    const pgPromises = pool ? [
+      pgQuery("SELECT COUNT(*) FROM leads WHERE situacao_cadastral=2"),
+      pgQuery("SELECT COUNT(*) FROM leads WHERE situacao_cadastral=2 AND email IS NOT NULL AND email != ''"),
+      pgQuery("SELECT COUNT(*) FROM leads WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != ''"),
+      pgQuery("SELECT porte, COUNT(*) as total FROM leads WHERE situacao_cadastral=2 GROUP BY porte ORDER BY total DESC"),
+      pgQuery("SELECT uf, COUNT(*) as total FROM leads WHERE situacao_cadastral=2 GROUP BY uf ORDER BY total DESC LIMIT 10"),
+    ] : [];
+
+    const [fbResults, pgResults] = await Promise.all([
+      Promise.all(fbPromises),
+      Promise.all(pgPromises).catch(() => [])
     ]);
 
+    const extraCount = fbResults[0].data().count;
+    const igCount    = fbResults[1].data().count;
+    const cnpjCount  = pgResults[0] ? parseInt(pgResults[0].rows[0].count) : 0;
+    const emailCount = pgResults[1] ? parseInt(pgResults[1].rows[0].count) : 0;
+    const foneCount  = pgResults[2] ? parseInt(pgResults[2].rows[0].count) : 0;
+    const portes     = pgResults[3] ? pgResults[3].rows : [];
+    const ufs        = pgResults[4] ? pgResults[4].rows : [];
+
     res.json({
-      total_cnpjs:      total.data().count,
-      empresas_ativas:  total.data().count,
-      com_email:        0,
-      com_telefone:     0,
-      leads_instagram:  comIG.data().count,
-      leads_com_site:   comSite.data().count,
-      por_porte:        [],
-      top_ufs:          []
+      total_cnpjs:     cnpjCount + extraCount,
+      empresas_ativas: cnpjCount,
+      leads_instagram: igCount,
+      com_email:       emailCount,
+      com_telefone:    foneCount,
+      leads_com_site:  extraCount,
+      por_porte:       portes,
+      top_ufs:         ufs
     });
   } catch(e) {
     res.status(500).json({ error: e.message });
