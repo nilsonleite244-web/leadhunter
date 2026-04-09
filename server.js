@@ -186,7 +186,7 @@ app.get("/leads/instagram", async (req, res) => {
     let p = 1;
 
     if (apenasIG) where.push("instagram IS NOT NULL AND instagram != ''");
-    if (semIG)    where.push("(instagram IS NULL OR instagram = '')");
+    if (semIG)    where.push("(instagram IS NULL OR instagram = '') AND (whatsapp IS NOT NULL AND whatsapp != '')");
     if (busca)    { where.push(`nome ILIKE $${p}`);     params.push("%" + busca + "%");    p++; }
     if (segmento) { where.push(`segmento ILIKE $${p}`); params.push("%" + segmento + "%"); p++; }
     if (cidade)   { where.push(`cidade ILIKE $${p}`);   params.push("%" + cidade + "%");   p++; }
