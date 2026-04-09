@@ -170,57 +170,64 @@ app.get("/health", async (req, res) => {
 // ── LEADS (protegidos) ────────────────────────────────────────────────────────
 app.use(["/leads", "/stats", "/campanha", "/whatsapp", "/admin"], authMiddleware);
 
-// GET /leads/instagram — listagem principal de leads
+// GET /leads/instagram — busca no Supabase leads_extra (2k+ com Instagram)
 app.get("/leads/instagram", async (req, res) => {
   try {
+    if (!pool) return res.status(503).json({ error: "Banco não configurado" });
     const { page, limit, offset } = paginate(req);
-    const busca       = req.query.busca?.trim()?.toLowerCase();
-    const segmento    = req.query.segmento?.trim()?.toLowerCase();
-    const cidade      = req.query.cidade?.trim()?.toLowerCase();
-    const apenasAtivos = req.query.apenas_ativos === "true";
-    const apenasIG     = req.query.apenas_ig    === "true";
+    const busca    = req.query.busca?.trim();
+    const segmento = req.query.segmento?.trim();
+    const cidade   = req.query.cidade?.trim();
+    const apenasIG = req.query.apenas_ig === "true";
+    const semIG    = req.query.sem_ig    === "true";
 
-    // Monta query base
-    let q = leadsCol();
+    const params = [];
+    const where  = [];
+    let p = 1;
 
-    if (apenasIG) q = q.where("has_instagram", "==", true);
-    if (req.query.sem_ig === "true") q = q.where("has_instagram", "==", false);
-    if (apenasAtivos) q = q.where("has_own_website", "==", true);
-    if (segmento) q = q.where("segmento", "==", segmento);
-    if (cidade)   q = q.where("cidade",   "==", cidade);
+    if (apenasIG) where.push("instagram IS NOT NULL AND instagram != ''");
+    if (semIG)    where.push("(instagram IS NULL OR instagram = '')");
+    if (busca)    { where.push(`nome ILIKE $${p}`);     params.push("%" + busca + "%");    p++; }
+    if (segmento) { where.push(`segmento ILIKE $${p}`); params.push("%" + segmento + "%"); p++; }
+    if (cidade)   { where.push(`cidade ILIKE $${p}`);   params.push("%" + cidade + "%");   p++; }
 
-    // Conta total
-    const countSnap = await q.count().get();
-    const total = countSnap.data().count;
+    const whereStr = where.length ? "WHERE " + where.join(" AND ") : "";
 
-    // Busca por nome (prefix search no campo nome_lower)
-    const hasFilters = apenasIG || req.query.sem_ig === "true" || apenasAtivos || segmento || cidade;
-    let dataSnap;
-    if (busca) {
-      dataSnap = await leadsCol()
-        .where("nome_lower", ">=", busca)
-        .where("nome_lower", "<=", busca + "\uf8ff")
-        .limit(limit).offset(offset).get();
-    } else if (hasFilters) {
-      // Com filtros: evita orderBy para não exigir índice composto no Firestore
-      dataSnap = await q.limit(limit).offset(offset).get();
-    } else {
-      dataSnap = await q.orderBy("nome_lower").limit(limit).offset(offset).get();
-    }
+    const [countRes, dataRes] = await Promise.all([
+      pgQuery(`SELECT COUNT(*) FROM leads_extra ${whereStr}`, params),
+      pgQuery(`SELECT id, nome, segmento, cidade, estado, instagram, whatsapp, website, funcionarios, receita FROM leads_extra ${whereStr} ORDER BY id LIMIT $${p} OFFSET $${p+1}`, [...params, limit, offset])
+    ]);
 
-    const rows = dataSnap.docs.map(doc => docToLead(doc.id, doc.data()));
+    const total = parseInt(countRes.rows[0].count);
+    const rows = dataRes.rows.map(r => {
+      const igRaw = r.instagram || "";
+      const handleMatch = igRaw.match(/instagram\.com\/([A-Za-z0-9._]{2,40})/i);
+      const handle = handleMatch ? handleMatch[1] : (igRaw.startsWith("@") ? igRaw.slice(1) : (/^[A-Za-z0-9._]{2,40}$/.test(igRaw) ? igRaw : null));
+      return {
+        id:            String(r.id),
+        razao_social:  r.nome,
+        nome_fantasia: r.nome,
+        cnae_descricao: r.segmento,
+        municipio_nome: r.cidade,
+        uf:            r.estado,
+        instagram_url: handle ? `https://instagram.com/${handle}` : (igRaw.startsWith("http") ? igRaw : null),
+        whatsapp_url:  r.whatsapp,
+        website:       r.website,
+        funcionarios:  r.funcionarios,
+        receita:       r.receita,
+        email:         null, cnpj: null, telefone1: null, ddd_municipio: null,
+      };
+    });
 
     const ok = await verificarCota(req, res, rows.length);
     if (!ok) return;
 
     const a = req.assinante;
     const hoje = new Date().toISOString().split("T")[0];
-    const ultimaData = a?.leads_data || null;
-    const usadoHoje  = ultimaData === hoje ? (a?.leads_hoje || 0) : 0;
+    const usadoHoje = a?.leads_data === hoje ? (a?.leads_hoje || 0) : 0;
     const cota = a?.plano === "mensal" ? {
-      limite:    LIMITE_MENSAL_DIA,
-      usado:     Math.min(usadoHoje + rows.length, LIMITE_MENSAL_DIA),
-      restante:  Math.max(0, LIMITE_MENSAL_DIA - usadoHoje - rows.length)
+      limite: LIMITE_MENSAL_DIA, usado: Math.min(usadoHoje + rows.length, LIMITE_MENSAL_DIA),
+      restante: Math.max(0, LIMITE_MENSAL_DIA - usadoHoje - rows.length)
     } : null;
 
     res.json({ total, page, limit, pages: Math.ceil(total / limit), data: rows, cota });
@@ -342,6 +349,8 @@ app.get("/stats/geral", async (req, res) => {
       pgQuery("SELECT COUNT(*) FROM leads WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != ''"),
       pgQuery("SELECT porte, COUNT(*) as total FROM leads WHERE situacao_cadastral=2 GROUP BY porte ORDER BY total DESC"),
       pgQuery("SELECT uf, COUNT(*) as total FROM leads WHERE situacao_cadastral=2 GROUP BY uf ORDER BY total DESC LIMIT 10"),
+      pgQuery("SELECT COUNT(*) FROM leads_extra WHERE instagram IS NOT NULL AND instagram != ''"),
+      pgQuery("SELECT COUNT(*) FROM leads_extra"),
     ] : [];
 
     const [fbResults, pgResults] = await Promise.all([
@@ -349,13 +358,13 @@ app.get("/stats/geral", async (req, res) => {
       Promise.all(pgPromises).catch(() => [])
     ]);
 
-    const extraCount = fbResults[0].data().count;
-    const igCount    = fbResults[1].data().count;
     const cnpjCount  = pgResults[0] ? parseInt(pgResults[0].rows[0].count) : 0;
     const emailCount = pgResults[1] ? parseInt(pgResults[1].rows[0].count) : 0;
     const foneCount  = pgResults[2] ? parseInt(pgResults[2].rows[0].count) : 0;
     const portes     = pgResults[3] ? pgResults[3].rows : [];
     const ufs        = pgResults[4] ? pgResults[4].rows : [];
+    const igCount    = pgResults[5] ? parseInt(pgResults[5].rows[0].count) : 0;
+    const extraCount = pgResults[6] ? parseInt(pgResults[6].rows[0].count) : 0;
 
     res.json({
       total_cnpjs:     cnpjCount + extraCount,
