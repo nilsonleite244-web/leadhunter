@@ -846,7 +846,7 @@ app.get("/auth/verificar", async (req, res) => {
     const usadoHoje = a.leads_data === hoje ? (a.leads_hoje || 0) : 0;
     res.json({
       ok: true, nome: a.nome, email: a.email, plano: a.plano || "mensal", expira_em: a.expira_em,
-      cota: a.plano === "mensal" ? { limite: LIMITE_MENSAL_DIA, usado: usadoHoje, restante: Math.max(0, LIMITE_MENSAL_DIA - usadoHoje) } : null
+      cota: { limite: getLimiteDiario(a), usado: usadoHoje, restante: Math.max(0, getLimiteDiario(a) - usadoHoje) }
     });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
