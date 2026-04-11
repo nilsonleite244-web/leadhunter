@@ -708,8 +708,8 @@ async function processarPagamento(email, nome, txId, dados, plataforma) {
 async function enviarEmailBoasVindas(email, nome, token, plano) {
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey || !token) return;
-  const planosLabel = { mensal: "Mensal — R$77", trimestral: "Trimestral — R$190", vitalicio: "Vitalício — R$350" };
-  const limiteLabel = plano === "mensal" ? "150 leads/dia" : "Ilimitado";
+  const planosLabel = { mensal: "Básico — R$97/mês", trimestral: "Pro — R$147/mês", vitalicio: "Alpha Member — R$267/mês" };
+  const limiteLabel = { mensal: "150 leads/dia", trimestral: "300 leads/dia", vitalicio: "600 leads/dia" }[plano] || "—";
   await axios.post("https://api.resend.com/emails", {
     from: process.env.EMAIL_FROM || "noreply@leadhunter.app",
     to: email,
