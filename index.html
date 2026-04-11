@@ -1703,10 +1703,10 @@ async function checkHealth() {
   try {
     const d = await api('/health');
     dot.className = 'dot on pulse';
-    txt.textContent = (d.leads_ativos||0).toLocaleString('pt-BR') + ' leads';
-    if (hr) hr.value = '✓ Online · ' + (d.leads_ativos||0).toLocaleString('pt-BR') + ' leads ativos';
+    txt.textContent = 'Online';
+    if (hr) hr.value = '✓ Online · API conectada';
     const db = document.getElementById('db-status-text');
-    if (db) db.innerHTML = `<span class="sdot on"></span>Conectado · ${(d.leads_ativos||0).toLocaleString('pt-BR')} registros`;
+    if (db) db.innerHTML = `<span class="sdot on"></span>Conectado`;
     showErr('dash-err', false);
     showErr('leads-err', false);
     return true;
@@ -1789,7 +1789,7 @@ function renderKPIs(d) {
     <div class="kpi"><div class="kpi-lbl">Empresas ativas</div><div class="kpi-val">${f(d.empresas_ativas)}</div></div>
     <div class="kpi"><div class="kpi-lbl">Com e-mail</div><div class="kpi-val">${f(d.com_email)}</div></div>
     <div class="kpi"><div class="kpi-lbl">Com telefone</div><div class="kpi-val">${f(d.com_telefone)}</div></div>
-    ${d.leads_instagram ? `<div class="kpi"><div class="kpi-lbl">Leads Instagram</div><div class="kpi-val" style="color:var(--purple)">${f(d.leads_instagram)}</div></div>` : ''}
+    ${d.leads_instagram != null ? `<div class="kpi"><div class="kpi-lbl">Leads Instagram</div><div class="kpi-val" style="color:var(--purple)">${f(d.leads_instagram)}</div></div>` : d.limite_diario != null ? `<div class="kpi"><div class="kpi-lbl">Restantes Hoje</div><div class="kpi-val" style="color:var(--ok)">${f(Math.max(0,(d.limite_diario||0)-(d.leads_hoje||0)))}</div></div>` : ''}
   `;
 }
 
@@ -1920,11 +1920,13 @@ async function runSearch(page = 1) {
     renderResults(state.results, 'cnpj');
     renderPag(d.page, d.pages);
     document.getElementById('results-card').style.display = '';
-    document.getElementById('result-count').textContent = (d.total||0).toLocaleString('pt-BR') + ' resultados';
+    const cotaInfoC = d.cota ? ` · ${d.cota.restante} restantes hoje` : '';
+    document.getElementById('result-count').textContent = state.results.length + ' leads encontrados' + cotaInfoC;
     document.getElementById('result-count').style.display = '';
     document.getElementById('btn-export').disabled = !state.results.length;
     updateHeadersCNPJ();
-    toast((d.total||0).toLocaleString('pt-BR') + ' leads encontrados!', 'success');
+    checkCota(d.cota);
+    toast(state.results.length + ' leads encontrados!', 'success');
   } catch (e) { toast('Erro: ' + e.message, 'error'); }
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Buscar';
   btn.disabled = false;
@@ -1947,13 +1949,14 @@ async function buscarAtivos(page = 1) {
     state.results = d.data || [];
     renderResults(state.results, 'instagram');
     document.getElementById('results-card').style.display = '';
-    document.getElementById('result-count').textContent = (d.total||0).toLocaleString('pt-BR') + ' leads com Instagram';
+    const cotaInfo = d.cota ? ` · ${d.cota.restante} restantes hoje` : '';
+    document.getElementById('result-count').textContent = state.results.length + ' leads carregados' + cotaInfo;
     document.getElementById('result-count').style.display = '';
     document.getElementById('btn-export').disabled = false;
     const hint = document.getElementById('ativos-total-hint');
-    if (hint) { hint.style.display = ''; hint.textContent = `${(d.total||0).toLocaleString('pt-BR')} leads com Instagram · página ${page}/${d.pages||1}`; }
+    if (hint) { hint.style.display = ''; hint.textContent = d.cota ? `${d.cota.usado}/${d.cota.limite} leads usados hoje` : `${state.results.length} leads carregados`; }
     const igHint = document.getElementById('ig-total-hint');
-    if (igHint) igHint.textContent = `${(d.total||0).toLocaleString('pt-BR')} leads encontrados`;
+    if (igHint) igHint.textContent = d.cota ? `${d.cota.restante} leads restantes hoje` : `${state.results.length} leads`;
     renderPagIG(page, d.pages || 1, 'buscarAtivos');
     updateHeadersIG();
     addFeed('green', `Leads com Instagram: <b>${state.results.length}</b> carregados`);
@@ -1978,11 +1981,12 @@ async function buscarFrios(page = 1) {
     state.results = d.data || [];
     renderResults(state.results, 'instagram');
     document.getElementById('results-card').style.display = '';
-    document.getElementById('result-count').textContent = (d.total||0).toLocaleString('pt-BR') + ' leads frios';
+    const cotaInfoF = d.cota ? ` · ${d.cota.restante} restantes hoje` : '';
+    document.getElementById('result-count').textContent = state.results.length + ' leads frios carregados' + cotaInfoF;
     document.getElementById('result-count').style.display = '';
     document.getElementById('btn-export').disabled = false;
     const hint = document.getElementById('frios-total-hint');
-    if (hint) hint.textContent = `${(d.total||0).toLocaleString('pt-BR')} leads sem Instagram · página ${page}/${d.pages||1}`;
+    if (hint) hint.textContent = d.cota ? `${d.cota.usado}/${d.cota.limite} leads usados hoje` : `${state.results.length} leads`;
     renderPagIG(page, d.pages || 1, 'buscarFrios');
     updateHeadersIG();
     addFeed('amber', `Leads frios: <b>${state.results.length}</b> carregados`);

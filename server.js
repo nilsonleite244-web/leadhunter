@@ -57,13 +57,40 @@ app.use(rateLimit({ windowMs: 60000, max: 300, message: { error: "Muitas requisi
 process.on("uncaughtException",  e => console.error("[uncaughtException]",  e.message));
 process.on("unhandledRejection", e => console.error("[unhandledRejection]", e));
 
-const LIMITE_MENSAL_DIA = 150;
+// ── LIMITES POR PLANO ─────────────────────────────────────────────────────────
+const LIMITES_PLANO = { mensal: 150, trimestral: 300, vitalicio: 600 };
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 function paginate(req) {
   const page  = Math.max(1, parseInt(req.query.page)  || 1);
-  const limit = Math.min(500, Math.max(10, parseInt(req.query.limit) || 50));
+  const limit = Math.min(500, Math.max(1, parseInt(req.query.limit) || 50));
   return { page, limit, offset: (page - 1) * limit };
+}
+
+// Retorna limite diário do assinante (null = sem limite = admin)
+function getLimiteDiario(a) {
+  if (!a) return null;
+  return LIMITES_PLANO[a.plano] ?? null;
+}
+
+// Retorna quantos leads o assinante ainda pode ver hoje
+function getRestanteHoje(a) {
+  const limite = getLimiteDiario(a);
+  if (limite === null) return Infinity;
+  const hoje = new Date().toISOString().split("T")[0];
+  const usadoHoje = a.leads_data === hoje ? (a.leads_hoje || 0) : 0;
+  return Math.max(0, limite - usadoHoje);
+}
+
+// Incrementa contador do assinante no Firestore
+function incrementarCota(a, count) {
+  if (!a) return;
+  const limite = getLimiteDiario(a);
+  if (limite === null) return;
+  const hoje = new Date().toISOString().split("T")[0];
+  const usadoHoje = a.leads_data === hoje ? (a.leads_hoje || 0) : 0;
+  const novoTotal = Math.min(usadoHoje + count, limite);
+  assinantesCol().doc(a.id).update({ leads_hoje: novoTotal, leads_data: hoje }).catch(() => {});
 }
 
 const SOCIAL_DOMAINS = ["wa.me","whatsapp","instagram.com","facebook.com","linktr.ee","tiktok.com","youtube.com","bio.site","hotmart","kirvano"];
@@ -130,23 +157,27 @@ function authMiddleware(req, res, next) {
 
 async function verificarCota(req, res, count) {
   const a = req.assinante;
-  if (!a || a.plano !== "mensal") return true;
+  const limite = getLimiteDiario(a);
+  if (limite === null) return true; // admin — sem limite
 
   const hoje = new Date().toISOString().split("T")[0];
-  const ultimaData = a.leads_data || null;
-  const usadoHoje  = ultimaData === hoje ? (a.leads_hoje || 0) : 0;
+  const usadoHoje = a.leads_data === hoje ? (a.leads_hoje || 0) : 0;
 
-  if (usadoHoje >= LIMITE_MENSAL_DIA) {
+  if (usadoHoje >= limite) {
+    const msgs = {
+      mensal:      "Faça upgrade para o plano Trimestral (300/dia) ou Vitalício (600/dia).",
+      trimestral:  "Faça upgrade para o plano Vitalício para ter 600 leads/dia.",
+      vitalicio:   "Você atingiu o limite diário do seu plano.",
+    };
     res.status(429).json({
-      error: `Limite de ${LIMITE_MENSAL_DIA} leads/dia atingido no plano Mensal.`,
-      cota: { limite: LIMITE_MENSAL_DIA, usado: usadoHoje, restante: 0 },
-      upgrade: "Para acesso ilimitado, faça upgrade para o plano Trimestral ou Vitalício."
+      error: `Limite de ${limite} leads/dia atingido no plano ${a.plano}.`,
+      cota: { limite, usado: usadoHoje, restante: 0 },
+      upgrade: msgs[a.plano] || null,
     });
     return false;
   }
 
-  const novoTotal = Math.min(usadoHoje + count, LIMITE_MENSAL_DIA);
-  assinantesCol().doc(a.id).update({ leads_hoje: novoTotal, leads_data: hoje }).catch(() => {});
+  incrementarCota(a, count);
   return true;
 }
 
@@ -155,13 +186,9 @@ app.get("/version", (req, res) => res.json({ v: "2.1.0", db: "firebase+postgresq
 
 app.get("/health", async (req, res) => {
   try {
-    const [snapFb, pgRes] = await Promise.all([
-      leadsCol().count().get(),
-      pool ? pgQuery("SELECT COUNT(*) FROM leads").catch(() => null) : Promise.resolve(null)
-    ]);
-    const cnpjCount  = pgRes ? parseInt(pgRes.rows[0].count) : 0;
-    const extraCount = snapFb.data().count;
-    res.json({ status: "ok", leads_cnpj: cnpjCount, leads_instagram: extraCount, leads_ativos: cnpjCount + extraCount, timestamp: new Date().toISOString() });
+    // Verifica apenas conectividade — nunca expõe contagens reais (rota pública)
+    const pgOk = pool ? await pgQuery("SELECT 1").then(() => true).catch(() => false) : false;
+    res.json({ status: "ok", db: pgOk ? "connected" : "unavailable", timestamp: new Date().toISOString() });
   } catch(e) {
     res.status(500).json({ status: "erro", error: e.message });
   }
@@ -180,11 +207,39 @@ function adminMiddleware(req, res, next) {
 }
 app.use("/admin", adminMiddleware);
 
-// GET /leads/instagram — busca no Supabase leads_extra (2k+ com Instagram)
+// GET /leads/instagram — busca no Supabase leads_extra
 app.get("/leads/instagram", async (req, res) => {
   try {
     if (!pool) return res.status(503).json({ error: "Banco não configurado" });
-    const { page, limit, offset } = paginate(req);
+
+    const a       = req.assinante;
+    const isAdmin = !a; // admin usa x-api-key, não tem req.assinante
+    const limite  = getLimiteDiario(a);
+
+    // Bloqueia se já atingiu cota antes de qualquer query
+    if (limite !== null) {
+      const restante = getRestanteHoje(a);
+      if (restante <= 0) {
+        const msgs = {
+          mensal:     "Faça upgrade para o plano Trimestral (300/dia) ou Vitalício (600/dia).",
+          trimestral: "Faça upgrade para o plano Vitalício para ter 600 leads/dia.",
+          vitalicio:  "Você atingiu o limite diário do seu plano.",
+        };
+        return res.status(429).json({
+          error: `Limite de ${limite} leads/dia atingido no plano ${a.plano}.`,
+          cota: { limite, usado: limite, restante: 0 },
+          upgrade: msgs[a.plano] || null,
+        });
+      }
+    }
+
+    // Capeia o limit pelo restante da cota (assinantes não podem pedir mais do que têm)
+    const { page } = paginate(req);
+    const restante = limite !== null ? getRestanteHoje(a) : 500;
+    const reqLimit = Math.min(500, Math.max(1, parseInt(req.query.limit) || 100));
+    const effectiveLimit = Math.min(reqLimit, restante);
+    const offset = (page - 1) * effectiveLimit;
+
     const busca    = req.query.busca?.trim();
     const segmento = req.query.segmento?.trim();
     const cidade   = req.query.cidade?.trim();
@@ -203,16 +258,23 @@ app.get("/leads/instagram", async (req, res) => {
 
     const whereStr = where.length ? "WHERE " + where.join(" AND ") : "";
 
+    // Admin recebe contagem real; assinantes nunca veem o total do banco
     const [countRes, dataRes] = await Promise.all([
-      pgQuery(`SELECT COUNT(*) FROM leads_extra ${whereStr}`, params),
-      pgQuery(`SELECT id, nome, segmento, cidade, estado, instagram, whatsapp, website, funcionarios, receita FROM leads_extra ${whereStr} ORDER BY id LIMIT $${p} OFFSET $${p+1}`, [...params, limit, offset])
+      isAdmin
+        ? pgQuery(`SELECT COUNT(*) FROM leads_extra ${whereStr}`, params)
+        : Promise.resolve(null),
+      pgQuery(
+        `SELECT id, nome, segmento, cidade, estado, instagram, whatsapp, website, funcionarios, receita FROM leads_extra ${whereStr} ORDER BY id LIMIT $${p} OFFSET $${p+1}`,
+        [...params, effectiveLimit, offset]
+      ),
     ]);
 
-    const total = parseInt(countRes.rows[0].count);
     const rows = dataRes.rows.map(r => {
       const igRaw = r.instagram || "";
       const handleMatch = igRaw.match(/instagram\.com\/([A-Za-z0-9._]{2,40})/i);
-      const handle = handleMatch ? handleMatch[1] : (igRaw.startsWith("@") ? igRaw.slice(1) : (/^[A-Za-z0-9._]{2,40}$/.test(igRaw) ? igRaw : null));
+      const handle = handleMatch
+        ? handleMatch[1]
+        : (igRaw.startsWith("@") ? igRaw.slice(1) : (/^[A-Za-z0-9._]{2,40}$/.test(igRaw) ? igRaw : null));
       return {
         id:            String(r.id),
         razao_social:  r.nome,
@@ -225,32 +287,65 @@ app.get("/leads/instagram", async (req, res) => {
         website:       r.website,
         funcionarios:  r.funcionarios,
         receita:       r.receita,
-        email:         null, cnpj: null, telefone1: null, ddd_municipio: null,
+        email: null, cnpj: null, telefone1: null, ddd_municipio: null,
       };
     });
 
-    const ok = await verificarCota(req, res, rows.length);
-    if (!ok) return;
+    // Debita cota
+    incrementarCota(a, rows.length);
 
-    const a = req.assinante;
+    // Monta resposta — assinantes não recebem total real
     const hoje = new Date().toISOString().split("T")[0];
-    const usadoHoje = a?.leads_data === hoje ? (a?.leads_hoje || 0) : 0;
-    const cota = a?.plano === "mensal" ? {
-      limite: LIMITE_MENSAL_DIA, usado: Math.min(usadoHoje + rows.length, LIMITE_MENSAL_DIA),
-      restante: Math.max(0, LIMITE_MENSAL_DIA - usadoHoje - rows.length)
+    const usadoAntes = a?.leads_data === hoje ? (a?.leads_hoje || 0) : 0;
+    const cota = limite !== null ? {
+      limite,
+      usado:    Math.min(usadoAntes + rows.length, limite),
+      restante: Math.max(0, limite - usadoAntes - rows.length),
+      plano:    a.plano,
     } : null;
 
-    res.json({ total, page, limit, pages: Math.ceil(total / limit), data: rows, cota });
+    // total e pages: admin vê real, assinante vê apenas baseado na cota restante
+    const total = isAdmin ? parseInt(countRes.rows[0].count) : null;
+    const pages = isAdmin ? Math.ceil(total / effectiveLimit) : null;
+
+    res.json({ total, page, limit: effectiveLimit, pages, data: rows, cota });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// GET /leads/buscar — busca nos 200k leads de CNPJ (PostgreSQL)
+// GET /leads/buscar — busca nos leads de CNPJ (PostgreSQL)
 app.get("/leads/buscar", async (req, res) => {
   try {
     if (!pool) return res.status(503).json({ error: "Banco de CNPJ não configurado. Configure DATABASE_URL." });
-    const { page, limit, offset } = paginate(req);
+
+    const a       = req.assinante;
+    const isAdmin = !a;
+    const limite  = getLimiteDiario(a);
+
+    // Bloqueia se cota esgotada
+    if (limite !== null) {
+      const restante = getRestanteHoje(a);
+      if (restante <= 0) {
+        const msgs = {
+          mensal:     "Faça upgrade para o plano Trimestral (300/dia) ou Vitalício (600/dia).",
+          trimestral: "Faça upgrade para o plano Vitalício para ter 600 leads/dia.",
+          vitalicio:  "Você atingiu o limite diário do seu plano.",
+        };
+        return res.status(429).json({
+          error: `Limite de ${limite} leads/dia atingido no plano ${a.plano}.`,
+          cota: { limite, usado: limite, restante: 0 },
+          upgrade: msgs[a.plano] || null,
+        });
+      }
+    }
+
+    const { page } = paginate(req);
+    const restante = limite !== null ? getRestanteHoje(a) : 500;
+    const reqLimit = Math.min(500, Math.max(1, parseInt(req.query.limit) || 50));
+    const effectiveLimit = Math.min(reqLimit, restante);
+    const offset = (page - 1) * effectiveLimit;
+
     const { uf, segmento: seg, busca, ddd, porte, apenas_com_email, apenas_com_telefone } = req.query;
 
     const params = [];
@@ -259,53 +354,78 @@ app.get("/leads/buscar", async (req, res) => {
 
     where.push("situacao_cadastral = 2");
 
-    if (uf)    { where.push(`uf = $${p++}`);                          params.push(uf.toUpperCase()); }
-    if (seg)   { where.push(`cnae_descricao ILIKE $${p++}`);          params.push("%" + seg + "%"); }
+    if (uf)    { where.push(`uf = $${p++}`);                                                               params.push(uf.toUpperCase()); }
+    if (seg)   { where.push(`cnae_descricao ILIKE $${p++}`);                                               params.push("%" + seg + "%"); }
     if (busca) { where.push(`(razao_social ILIKE $${p} OR nome_fantasia ILIKE $${p+1})`); params.push("%" + busca + "%", "%" + busca + "%"); p += 2; }
-    if (ddd)   { where.push(`ddd_municipio = $${p++}`);               params.push(ddd); }
-    if (porte) { where.push(`porte = $${p++}`);                       params.push(porte.toUpperCase()); }
-    if (req.query.tem_telefone    === "true" || apenas_com_telefone === "true") where.push("telefone1 IS NOT NULL AND telefone1 != ''");
-    if (req.query.tem_email === "true" || apenas_com_email === "true") where.push("email IS NOT NULL AND email != ''");
+    if (ddd)   { where.push(`ddd_municipio = $${p++}`);                                                    params.push(ddd); }
+    if (porte) { where.push(`porte = $${p++}`);                                                            params.push(porte.toUpperCase()); }
+    if (req.query.tem_telefone   === "true" || apenas_com_telefone === "true") where.push("telefone1 IS NOT NULL AND telefone1 != ''");
+    if (req.query.tem_email      === "true" || apenas_com_email    === "true") where.push("email IS NOT NULL AND email != ''");
 
     const whereStr = where.length ? "WHERE " + where.join(" AND ") : "";
     const cols = "cnpj, razao_social, nome_fantasia, cnae_descricao, porte, email, telefone1, ddd_municipio, municipio_nome, uf, nome_socio, score_completude";
 
     const [countRes, dataRes] = await Promise.all([
-      pgQuery(`SELECT COUNT(*) FROM leads ${whereStr}`, params),
-      pgQuery(`SELECT ${cols} FROM leads ${whereStr} ORDER BY score_completude DESC LIMIT $${p++} OFFSET $${p++}`, [...params, limit, offset])
+      isAdmin
+        ? pgQuery(`SELECT COUNT(*) FROM leads ${whereStr}`, params)
+        : Promise.resolve(null),
+      pgQuery(`SELECT ${cols} FROM leads ${whereStr} ORDER BY score_completude DESC LIMIT $${p++} OFFSET $${p++}`, [...params, effectiveLimit, offset]),
     ]);
 
-    const total = parseInt(countRes.rows[0].count);
     const data = dataRes.rows.map(r => ({
-      id:            r.cnpj,
-      cnpj:          r.cnpj,
-      razao_social:  r.razao_social,
-      nome_fantasia: r.nome_fantasia,
-      cnae_descricao: r.cnae_descricao,
-      porte:         r.porte,
-      email:         r.email,
-      telefone1:     r.telefone1,
-      ddd_municipio: r.ddd_municipio,
-      municipio_nome: r.municipio_nome,
-      uf:            r.uf,
-      nome_socio:    r.nome_socio,
+      id: r.cnpj, cnpj: r.cnpj,
+      razao_social: r.razao_social, nome_fantasia: r.nome_fantasia,
+      cnae_descricao: r.cnae_descricao, porte: r.porte,
+      email: r.email, telefone1: r.telefone1,
+      ddd_municipio: r.ddd_municipio, municipio_nome: r.municipio_nome,
+      uf: r.uf, nome_socio: r.nome_socio,
     }));
 
-    res.json({ total, page, limit, pages: Math.ceil(total / limit), data });
+    incrementarCota(a, data.length);
+
+    const hoje = new Date().toISOString().split("T")[0];
+    const usadoAntes = a?.leads_data === hoje ? (a?.leads_hoje || 0) : 0;
+    const cota = limite !== null ? {
+      limite,
+      usado:    Math.min(usadoAntes + data.length, limite),
+      restante: Math.max(0, limite - usadoAntes - data.length),
+      plano:    a.plano,
+    } : null;
+
+    const total = isAdmin ? parseInt(countRes.rows[0].count) : null;
+    const pages = isAdmin ? Math.ceil(total / effectiveLimit) : null;
+
+    res.json({ total, page, limit: effectiveLimit, pages, data, cota });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// GET /leads/aleatorio — 50 CNPJs aleatórios com telefone (PostgreSQL)
+// GET /leads/aleatorio — CNPJs aleatórios com telefone (sujeito à cota do plano)
 app.get("/leads/aleatorio", async (req, res) => {
   try {
-    const limit = Math.min(100, parseInt(req.query.limit) || 50);
+    const a      = req.assinante;
+    const limite = getLimiteDiario(a);
+
+    if (limite !== null) {
+      const restante = getRestanteHoje(a);
+      if (restante <= 0) {
+        return res.status(429).json({
+          error: `Limite de ${limite} leads/dia atingido no plano ${a.plano}.`,
+          cota: { limite, usado: limite, restante: 0 },
+        });
+      }
+    }
+
+    const maxReq  = Math.min(100, parseInt(req.query.limit) || 50);
+    const restante = limite !== null ? getRestanteHoje(a) : 500;
+    const effectiveLimit = Math.min(maxReq, restante);
+
     if (pool) {
       const cols = "cnpj, razao_social, nome_fantasia, cnae_descricao, porte, email, telefone1, ddd_municipio, municipio_nome, uf, nome_socio, score_completude";
       const r = await pgQuery(
         `SELECT ${cols} FROM leads WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != '' ORDER BY RANDOM() LIMIT $1`,
-        [limit]
+        [effectiveLimit]
       );
       const data = r.rows.map(row => ({
         id: row.cnpj, cnpj: row.cnpj, razao_social: row.razao_social,
@@ -314,11 +434,19 @@ app.get("/leads/aleatorio", async (req, res) => {
         ddd_municipio: row.ddd_municipio, municipio_nome: row.municipio_nome,
         uf: row.uf, nome_socio: row.nome_socio,
       }));
-      return res.json({ total: data.length, data });
+      incrementarCota(a, data.length);
+      const hoje = new Date().toISOString().split("T")[0];
+      const usadoAntes = a?.leads_data === hoje ? (a?.leads_hoje || 0) : 0;
+      const cota = limite !== null ? {
+        limite, usado: Math.min(usadoAntes + data.length, limite),
+        restante: Math.max(0, limite - usadoAntes - data.length), plano: a.plano,
+      } : null;
+      return res.json({ total: data.length, data, cota });
     }
     // Fallback Firebase
-    const snap = await leadsCol().limit(limit).get();
+    const snap = await leadsCol().limit(effectiveLimit).get();
     const data = snap.docs.map(doc => docToLead(doc.id, doc.data()));
+    incrementarCota(a, data.length);
     res.json({ total: data.length, data });
   } catch(e) {
     res.status(500).json({ error: e.message });
@@ -349,10 +477,31 @@ app.get("/leads/:id", async (req, res) => {
 // ── STATS ────────────────────────────────────────────────────────────────────
 app.get("/stats/geral", async (req, res) => {
   try {
-    const fbPromises = [
-      leadsCol().count().get(),
-      leadsCol().where("has_instagram", "==", true).count().get(),
-    ];
+    const a       = req.assinante;
+    const isAdmin = !a;
+
+    if (!isAdmin) {
+      // Assinantes veem apenas info do próprio plano — NUNCA contagens do banco
+      const limite = getLimiteDiario(a);
+      const hoje   = new Date().toISOString().split("T")[0];
+      const usadoHoje = a.leads_data === hoje ? (a.leads_hoje || 0) : 0;
+      return res.json({
+        plano:           a.plano,
+        limite_diario:   limite,
+        leads_hoje:      usadoHoje,
+        restante_hoje:   limite !== null ? Math.max(0, limite - usadoHoje) : null,
+        // Campos de UI sem revelar base real
+        empresas_ativas: null,
+        leads_instagram: null,
+        com_email:       null,
+        com_telefone:    null,
+        total_cnpjs:     null,
+        por_porte:       [],
+        top_ufs:         [],
+      });
+    }
+
+    // Admin: retorna contagens completas
     const pgPromises = pool ? [
       pgQuery("SELECT COUNT(*) FROM leads WHERE situacao_cadastral=2"),
       pgQuery("SELECT COUNT(*) FROM leads WHERE situacao_cadastral=2 AND email IS NOT NULL AND email != ''"),
@@ -363,28 +512,17 @@ app.get("/stats/geral", async (req, res) => {
       pgQuery("SELECT COUNT(*) FROM leads_extra"),
     ] : [];
 
-    const [fbResults, pgResults] = await Promise.all([
-      Promise.all(fbPromises),
-      Promise.all(pgPromises).catch(() => [])
-    ]);
-
-    const cnpjCount  = pgResults[0] ? parseInt(pgResults[0].rows[0].count) : 0;
-    const emailCount = pgResults[1] ? parseInt(pgResults[1].rows[0].count) : 0;
-    const foneCount  = pgResults[2] ? parseInt(pgResults[2].rows[0].count) : 0;
-    const portes     = pgResults[3] ? pgResults[3].rows : [];
-    const ufs        = pgResults[4] ? pgResults[4].rows : [];
-    const igCount    = pgResults[5] ? parseInt(pgResults[5].rows[0].count) : 0;
-    const extraCount = pgResults[6] ? parseInt(pgResults[6].rows[0].count) : 0;
+    const pgResults = await Promise.all(pgPromises).catch(() => []);
 
     res.json({
-      total_cnpjs:     cnpjCount + extraCount,
-      empresas_ativas: cnpjCount,
-      leads_instagram: igCount,
-      com_email:       emailCount,
-      com_telefone:    foneCount,
-      leads_com_site:  extraCount,
-      por_porte:       portes,
-      top_ufs:         ufs
+      total_cnpjs:     (pgResults[0] ? parseInt(pgResults[0].rows[0].count) : 0) + (pgResults[6] ? parseInt(pgResults[6].rows[0].count) : 0),
+      empresas_ativas: pgResults[0] ? parseInt(pgResults[0].rows[0].count) : 0,
+      leads_instagram: pgResults[5] ? parseInt(pgResults[5].rows[0].count) : 0,
+      com_email:       pgResults[1] ? parseInt(pgResults[1].rows[0].count) : 0,
+      com_telefone:    pgResults[2] ? parseInt(pgResults[2].rows[0].count) : 0,
+      leads_com_site:  pgResults[6] ? parseInt(pgResults[6].rows[0].count) : 0,
+      por_porte:       pgResults[3] ? pgResults[3].rows : [],
+      top_ufs:         pgResults[4] ? pgResults[4].rows : [],
     });
   } catch(e) {
     res.status(500).json({ error: e.message });
