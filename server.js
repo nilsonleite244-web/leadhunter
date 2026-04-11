@@ -733,7 +733,14 @@ async function enviarEmailBoasVindas(email, nome, token, plano) {
 // Webhook Kirvano
 app.post("/webhook/kirvano", express.raw({ type: "*/*" }), async (req, res) => {
   try {
-    const payload = JSON.parse(typeof req.body === "string" ? req.body : req.body.toString("utf-8"));
+    let payload;
+    if (Buffer.isBuffer(req.body)) {
+      payload = JSON.parse(req.body.toString("utf-8"));
+    } else if (typeof req.body === "string") {
+      payload = JSON.parse(req.body);
+    } else {
+      payload = req.body; // já parseado pelo middleware global
+    }
     const evento  = (payload.event || payload.type || "").toLowerCase();
     const dados   = payload.data || payload;
     const email   = dados.customer?.email || dados.email || dados.buyer?.email;
@@ -765,7 +772,14 @@ app.post("/webhook/kirvano", express.raw({ type: "*/*" }), async (req, res) => {
 // Webhook Cakto
 async function handleCaktoWebhook(req, res) {
   try {
-    const payload = JSON.parse(typeof req.body === "string" ? req.body : req.body.toString("utf-8"));
+    let payload;
+    if (Buffer.isBuffer(req.body)) {
+      payload = JSON.parse(req.body.toString("utf-8"));
+    } else if (typeof req.body === "string") {
+      payload = JSON.parse(req.body);
+    } else {
+      payload = req.body;
+    }
     const evento  = (payload.event || payload.type || payload.status || "").toLowerCase();
     const dados   = payload.data || payload.checkout || payload;
     const email   = dados.customer?.email || dados.customer_email || dados.buyer?.email || dados.email;
