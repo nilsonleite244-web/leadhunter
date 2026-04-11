@@ -674,9 +674,8 @@ function detectarPlano(dados) {
 }
 
 function calcularExpiracao(plano) {
-  if (plano === "vitalicio") return null;
-  const dias = plano === "trimestral" ? 95 : 35;
-  return new Date(Date.now() + dias * 86400000);
+  // Todos os planos são mensais — renovam via webhook a cada pagamento
+  return new Date(Date.now() + 35 * 86400000);
 }
 
 async function processarPagamento(email, nome, txId, dados, plataforma) {
