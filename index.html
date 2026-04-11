@@ -439,6 +439,46 @@ select option{background:var(--s2)}textarea{resize:vertical}
 .chip-ig::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.2) 50%,transparent 70%);background-size:200% 100%;animation:ig-shimmer 3s linear infinite}
 .chip-ig:hover{border-color:rgba(168,85,247,.5);background:linear-gradient(135deg,rgba(131,58,180,.25),rgba(253,29,29,.15))}
 
+/* ══ LEAD ABORDADO ══ */
+@keyframes abordado-flash{0%{box-shadow:inset 0 0 0 2px rgba(46,216,164,.8);background:rgba(46,216,164,.13)}70%{box-shadow:inset 0 0 0 2px rgba(46,216,164,.1)}100%{background:rgba(46,216,164,.055)}}
+tr.abordado td{animation:abordado-flash .9s ease forwards}
+tr.abordado-persistent{background:rgba(46,216,164,.045)!important}
+tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
+.abordado-dot{display:inline-flex;width:6px;height:6px;border-radius:50%;background:var(--ok);margin-left:6px;flex-shrink:0;box-shadow:0 0 0 2px rgba(46,216,164,.2);vertical-align:middle}
+
+/* ══ GESTÃO FINANCEIRA ══ */
+.fin-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:900px){.fin-kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.fin-kpi{background:var(--s1);border:1px solid var(--bd);border-radius:var(--rl);padding:18px 20px;transition:border-color .2s,transform .15s;cursor:default}
+.fin-kpi:hover{border-color:var(--bd2);transform:translateY(-1px)}
+.fin-kpi-lbl{font-size:10.5px;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.fin-kpi-val{font-size:28px;font-weight:800;letter-spacing:-1.5px;line-height:1}
+.fin-kpi-sub{font-size:11.5px;color:var(--t3);margin-top:5px}
+/* ── Conversion Bar ── */
+.conv-wrap{background:var(--s1);border:1px solid var(--bd);border-radius:var(--rl);padding:20px 22px;margin-bottom:20px}
+.conv-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+.conv-title-txt{font-size:13px;font-weight:600}
+.conv-label{font-size:12.5px;font-weight:600;transition:color .4s}
+.conv-track{height:12px;background:var(--s4);border-radius:6px;overflow:hidden;margin-bottom:10px;position:relative}
+.conv-fill{height:100%;border-radius:6px;transition:width 1.2s cubic-bezier(.4,0,.2,1),background .6s ease;min-width:2px}
+.conv-ticks{display:flex;justify-content:space-between;font-size:10.5px;color:var(--t3)}
+/* ── Alerts ── */
+.fin-alert{display:flex;align-items:flex-start;gap:10px;padding:13px 16px;border-radius:var(--r);margin-bottom:16px;font-size:13px;line-height:1.55;border:1px solid transparent;transition:all .3s}
+.fin-alert-red{background:rgba(248,113,113,.07);border-color:rgba(248,113,113,.22);color:#fca5a5}
+.fin-alert-amber{background:rgba(245,166,35,.07);border-color:rgba(245,166,35,.22);color:var(--amber-l)}
+.fin-alert-green{background:rgba(46,216,164,.07);border-color:rgba(46,216,164,.22);color:#6ee7b7}
+/* ── Vendas Table ── */
+.vendas-table{width:100%;border-collapse:collapse}
+.vendas-table th{font-size:10.5px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.07em;padding:8px 14px;text-align:left;border-bottom:1px solid var(--bd)}
+.vendas-table td{padding:11px 14px;font-size:13px;border-bottom:1px solid var(--bd);vertical-align:middle}
+.vendas-table tr:last-child td{border-bottom:none}
+.vendas-table tbody tr:hover td{background:var(--s2)}
+.venda-valor{font-weight:700;color:var(--ok);font-size:15px}
+/* ── Add Sale Btn ── */
+.btn-venda{background:linear-gradient(135deg,rgba(46,216,164,.18),rgba(46,216,164,.08));color:var(--ok);border:1px solid rgba(46,216,164,.25);font-weight:600}
+.btn-venda:hover{background:linear-gradient(135deg,rgba(46,216,164,.28),rgba(46,216,164,.14));border-color:rgba(46,216,164,.45);transform:translateY(-1px)}
+.btn-venda svg{width:14px;height:14px}
+
 /* ══ HERO ══ */
 .hero{
   background:var(--s1);border:1px solid var(--bd);border-radius:var(--rx);
@@ -759,6 +799,12 @@ select option{background:var(--s2)}textarea{resize:vertical}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       Buscar Leads
       <span class="nav-badge dim" id="badge-leads">—</span>
+    </div>
+
+    <div class="nav-item" onclick="nav('financeiro',this)" id="nav-financeiro">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Gestão
+      <span class="nav-badge dim" id="badge-fin" style="background:rgba(46,216,164,.12);color:var(--ok);border:1px solid rgba(46,216,164,.2)">R$0</span>
     </div>
 
     <div class="nav-label">Envios</div>
@@ -1107,6 +1153,103 @@ select option{background:var(--s2)}textarea{resize:vertical}
         </div>
         <div class="pag" id="pag" style="display:none"></div>
       </div>
+    </div>
+
+    <!-- ══════ GESTÃO FINANCEIRA ══════ -->
+    <div class="page" id="page-financeiro">
+
+      <!-- Header -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:18px;font-weight:800;letter-spacing:-.5px;margin-bottom:3px">Gestão Financeira</div>
+          <div style="font-size:13px;color:var(--t2)">Abordagens, vendas e conversão — dados salvos no seu navegador</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-venda" onclick="abrirModalVenda()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Registrar Venda
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="resetarMesFin()" style="color:var(--t3)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.6"/></svg>
+            Resetar Mês
+          </button>
+        </div>
+      </div>
+
+      <!-- Alert -->
+      <div id="fin-alert" class="fin-alert" style="display:none"></div>
+
+      <!-- KPIs -->
+      <div class="fin-kpi-grid">
+        <div class="fin-kpi">
+          <div class="fin-kpi-lbl">Abordagens no Mês</div>
+          <div class="fin-kpi-val" id="fin-kpi-abordagens">0</div>
+          <div class="fin-kpi-sub" id="fin-kpi-abordagens-hoje">0 hoje</div>
+        </div>
+        <div class="fin-kpi">
+          <div class="fin-kpi-lbl">Vendas Fechadas</div>
+          <div class="fin-kpi-val" id="fin-kpi-vendas" style="color:var(--ok)">0</div>
+          <div class="fin-kpi-sub">no mês atual</div>
+        </div>
+        <div class="fin-kpi">
+          <div class="fin-kpi-lbl">Taxa de Conversão</div>
+          <div class="fin-kpi-val" id="fin-kpi-taxa">—</div>
+          <div class="fin-kpi-sub">abordagem → venda</div>
+        </div>
+        <div class="fin-kpi">
+          <div class="fin-kpi-lbl">Receita do Mês</div>
+          <div class="fin-kpi-val" id="fin-kpi-receita" style="color:var(--amber)">R$ 0,00</div>
+          <div class="fin-kpi-sub">total registrado</div>
+        </div>
+      </div>
+
+      <!-- Conversion Bar -->
+      <div class="conv-wrap">
+        <div class="conv-header">
+          <div class="conv-title-txt">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Barra de Conversão
+          </div>
+          <span class="conv-label" id="fin-conv-label" style="color:var(--t3)">0 abordagens · 0 vendas</span>
+        </div>
+        <div class="conv-track">
+          <div class="conv-fill" id="fin-conv-fill" style="width:0%;background:var(--s5)"></div>
+        </div>
+        <div class="conv-ticks">
+          <span>0% · Crítico</span>
+          <span>5% · Meta</span>
+          <span>10% · Bom</span>
+          <span>20%+ · Expert</span>
+        </div>
+      </div>
+
+      <!-- Sales Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            Histórico de Vendas
+          </div>
+          <span style="font-size:11px;color:var(--t3);font-weight:500">Mês atual</span>
+        </div>
+        <div class="tw">
+          <table class="vendas-table">
+            <thead>
+              <tr>
+                <th>Valor</th>
+                <th>Segmento</th>
+                <th>Observação</th>
+                <th>Data / Hora</th>
+                <th style="width:40px"></th>
+              </tr>
+            </thead>
+            <tbody id="fin-vendas-tbody">
+              <tr><td colspan="5"><div class="empty" style="padding:28px 0"><div class="empty-title">Nenhuma venda registrada</div><div class="empty-sub">Clique em "+ Registrar Venda" quando fechar um cliente</div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
     <!-- ══════ CAMPAIGNS ══════ -->
@@ -1484,6 +1627,45 @@ select option{background:var(--s2)}textarea{resize:vertical}
   </div>
 </div>
 
+<div class="overlay" id="overlay-addVenda" onclick="if(event.target===this)closeModal('addVenda')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" style="display:flex;align-items:center;gap:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--ok)"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Registrar Venda
+      </div>
+      <button class="close-btn" onclick="closeModal('addVenda')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="field mb-14">
+        <label>Valor da venda (R$) <span style="color:var(--err)">*</span></label>
+        <input id="fin-venda-valor" type="number" placeholder="297.00" min="0" step="0.01" style="font-size:18px;font-weight:700;color:var(--ok)" onkeydown="if(event.key==='Enter')salvarVenda()">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div class="field">
+          <label>Segmento / Nicho</label>
+          <input id="fin-venda-seg" placeholder="Ex: Barbearia, Clínica...">
+        </div>
+        <div class="field">
+          <label>Data e Horário</label>
+          <input id="fin-venda-hora" type="datetime-local">
+        </div>
+      </div>
+      <div class="field mb-4">
+        <label>Observação</label>
+        <input id="fin-venda-obs" placeholder="Ex: Cliente fechou plano mensal via WhatsApp" onkeydown="if(event.key==='Enter')salvarVenda()">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('addVenda')">Cancelar</button>
+      <button class="btn btn-venda" style="padding:8px 18px" onclick="salvarVenda()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg>
+        Confirmar Venda
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="toasts" id="toast-wrap"></div>
 
 <script>
@@ -1549,6 +1731,7 @@ function showErr(id, show, msg) {
 const titles = {
   dashboard:'Dashboard <span>/ Visão Geral</span>',
   leads:'Buscar Leads <span>/ Base CNPJ · Instagram</span>',
+  financeiro:'Gestão Financeira <span>/ Abordagens · Vendas · Conversão</span>',
   campaigns:'Campanhas <span>/ Disparos</span>',
   admin:'Assinantes <span>/ Gestão de Clientes</span>',
   import:'Importar Leads <span>/ Área Exclusiva do Admin</span>',
@@ -1560,10 +1743,11 @@ function nav(id, el) {
   document.getElementById('page-' + id).classList.add('active');
   if (el) el.classList.add('active');
   document.getElementById('page-title').innerHTML = titles[id] || id;
-  if (id === 'dashboard') loadDashboard();
-  if (id === 'settings')  { preencherConfiguracoes(); checkHealth(); loadSettings(); }
-  if (id === 'campaigns') loadCampaigns();
-  if (id === 'admin')     loadAdmin();
+  if (id === 'dashboard')  loadDashboard();
+  if (id === 'settings')   { preencherConfiguracoes(); checkHealth(); loadSettings(); }
+  if (id === 'campaigns')  loadCampaigns();
+  if (id === 'admin')      loadAdmin();
+  if (id === 'financeiro') renderFinanceiro();
   if (id === 'import')    initImportPage();
 }
 
@@ -1754,7 +1938,7 @@ async function buscarAtivos(page = 1) {
   const busca  = document.getElementById('ig-busca')?.value.trim() || '';
   const seg    = document.getElementById('ig-seg')?.value.trim() || '';
   const cidade = document.getElementById('ig-cidade')?.value.trim() || '';
-  const params = new URLSearchParams({ apenas_ig: 'true', limit: 100, page });
+  const params = new URLSearchParams({ limit: 100, page });
   if (busca)  params.set('busca', busca);
   if (seg)    params.set('segmento', seg);
   if (cidade) params.set('cidade', cidade);
@@ -1853,22 +2037,26 @@ function renderResults(rows, mode) {
       }
 
       const loc = [r.cidade||r.municipio_nome, r.estado||r.uf].filter(Boolean).join(' / ') || '—';
-      return `<tr>
+      const leadId = 'ig_' + (r.id || igLabel);
+      const leadNome = (r.razao_social||'').replace(/'/g,'\\x27');
+      return `<tr data-lead-id="${leadId}" data-lead-nome="${(r.razao_social||'').replace(/"/g,'&quot;')}">
         <td><input type="checkbox" style="width:13px;height:13px" data-id="${r.id||igLabel}" onchange="toggleLead(this,'${r.id||igLabel}')"></td>
         <td><b>${r.razao_social||'—'}</b><small>${loc}</small></td>
         <td><span class="badge b-purple" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;display:inline-block">${(r.cnae_descricao||'—').substring(0,24)}</span></td>
-        <td>${igUrl ? `<a href="${igUrl}" target="_blank" style="color:var(--purple);text-decoration:none;font-size:12px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>@${igLabel}</a>` : '—'}</td>
-        <td><div class="flex gap-8">${wppUrl ? `<a href="${wppUrl}" target="_blank" class="btn btn-green btn-sm" style="padding:3px 10px;font-size:11px;text-decoration:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WPP</a>` : '<span style="color:var(--t3);font-size:12px">—</span>'}</div></td>
+        <td>${igUrl ? `<a href="${igUrl}" target="_blank" onclick="registrarAbordagem(this)" style="color:var(--purple);text-decoration:none;font-size:12px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>@${igLabel}</a>` : '—'}</td>
+        <td><div class="flex gap-8">${wppUrl ? `<a href="${wppUrl}" target="_blank" onclick="registrarAbordagem(this)" class="btn btn-green btn-sm" style="padding:3px 10px;font-size:11px;text-decoration:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WPP</a>` : '<span style="color:var(--t3);font-size:12px">—</span>'}</div></td>
         <td><div class="td-act">
-          ${igUrl ? `<a href="${igUrl}" target="_blank" class="ib ig" title="Abrir Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>` : ''}
-          ${wppUrl ? `<a href="${wppUrl}" target="_blank" class="ib wpp" title="Abrir WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>` : ''}
+          ${igUrl ? `<a href="${igUrl}" target="_blank" onclick="registrarAbordagem(this)" class="ib ig" title="Abrir Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>` : ''}
+          ${wppUrl ? `<a href="${wppUrl}" target="_blank" onclick="registrarAbordagem(this)" class="ib wpp" title="Abrir WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>` : ''}
         </div></td>
       </tr>`;
     }).join('');
+    marcarAbordados();
   } else {
     tbody.innerHTML = rows.map(r => {
       const wppUrl = formatWpp(r.telefone1, r.ddd_municipio);
-      return `<tr>
+      const leadId = 'cnpj_' + (r.cnpj || r.id || '');
+      return `<tr data-lead-id="${leadId}" data-lead-nome="${(r.nome_fantasia||r.razao_social||'').replace(/"/g,'&quot;')}">
         <td><input type="checkbox" style="width:13px;height:13px" data-cnpj="${r.cnpj||''}" onchange="toggleLead(this,'${r.cnpj||''}')"></td>
         <td><b>${r.nome_fantasia||r.razao_social||'—'}</b><small>${fmtCNPJ(r.cnpj)}</small></td>
         <td><span class="badge b-amber" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;display:inline-block">${(r.cnae_descricao||'—').substring(0,22)}</span></td>
@@ -1876,7 +2064,7 @@ function renderResults(rows, mode) {
         <td>
           <div class="flex gap-8" style="align-items:center">
             <span style="font-size:12px;color:${r.telefone1?'var(--txt)':'var(--t3)'}">${r.telefone1||'—'}</span>
-            ${wppUrl ? `<a href="${wppUrl}" target="_blank" class="btn btn-green btn-sm" style="padding:3px 8px;font-size:11px;text-decoration:none;flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WPP</a>` : ''}
+            ${wppUrl ? `<a href="${wppUrl}" target="_blank" onclick="registrarAbordagem(this)" class="btn btn-green btn-sm" style="padding:3px 8px;font-size:11px;text-decoration:none;flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WPP</a>` : ''}
           </div>
         </td>
         <td style="color:${r.email?'var(--ok)':'var(--t3)'};font-size:12px">${r.email||'—'}</td>
@@ -1884,10 +2072,11 @@ function renderResults(rows, mode) {
         <td style="color:var(--amber);font-variant-numeric:tabular-nums">${r.score_completude||0}</td>
         <td><div class="td-act">
           <button class="ib" onclick="viewLead('${r.cnpj}')" title="Ver detalhes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-          ${wppUrl ? `<a href="${wppUrl}" target="_blank" class="ib wpp" title="Enviar WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>` : ''}
+          ${wppUrl ? `<a href="${wppUrl}" target="_blank" onclick="registrarAbordagem(this)" class="ib wpp" title="Enviar WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>` : ''}
         </div></td>
       </tr>`;
     }).join('');
+    marcarAbordados();
   }
 }
 
@@ -2029,6 +2218,195 @@ async function criarCampanha() {
     closeModal('newCampaign');
     loadCampaigns();
   } catch (e) { toast('Erro: ' + e.message, 'error'); }
+}
+
+// ══ GESTÃO FINANCEIRA ══
+const FIN_AB_KEY  = 'lh_fin_abordagens';
+const FIN_VD_KEY  = 'lh_fin_vendas';
+const FIN_SET_KEY = 'lh_fin_set';
+
+function finGetAbordagens() { return JSON.parse(localStorage.getItem(FIN_AB_KEY)  || '[]'); }
+function finGetVendas()     { return JSON.parse(localStorage.getItem(FIN_VD_KEY)  || '[]'); }
+function finGetSet()        { return JSON.parse(localStorage.getItem(FIN_SET_KEY) || '{}'); }
+
+function registrarAbordagem(el) {
+  const tr = el.closest('tr[data-lead-id]');
+  if (!tr) return;
+  const id   = tr.dataset.leadId;
+  const nome = tr.dataset.leadNome || 'Lead';
+
+  // Salva abordagem
+  const list = finGetAbordagens();
+  list.push({ id, nome, criado_em: new Date().toISOString() });
+  localStorage.setItem(FIN_AB_KEY, JSON.stringify(list));
+
+  // Salva no set de abordados (para highlight persistente)
+  const set = finGetSet();
+  set[id] = true;
+  localStorage.setItem(FIN_SET_KEY, JSON.stringify(set));
+
+  // Animação verde na linha
+  tr.classList.remove('abordado-persistent');
+  tr.classList.add('abordado');
+  setTimeout(() => {
+    tr.classList.remove('abordado');
+    tr.classList.add('abordado-persistent');
+  }, 900);
+
+  // Atualiza badge e painel se aberto
+  updateFinBadge();
+  if (document.getElementById('page-financeiro')?.classList.contains('active')) renderFinanceiro();
+}
+
+function marcarAbordados() {
+  const set = finGetSet();
+  document.querySelectorAll('#results-tbody tr[data-lead-id]').forEach(tr => {
+    if (set[tr.dataset.leadId]) tr.classList.add('abordado-persistent');
+  });
+}
+
+function updateFinBadge() {
+  const mesAtual = new Date().toISOString().substring(0, 7);
+  const receita = finGetVendas()
+    .filter(v => v.criado_em?.startsWith(mesAtual))
+    .reduce((s, v) => s + (v.valor || 0), 0);
+  const badge = document.getElementById('badge-fin');
+  if (badge) badge.textContent = 'R$' + receita.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+}
+
+const FIN_ALERTS = {
+  neutral: null,
+  noSales:  { cls: 'fin-alert-amber',  icon: '🎯', msg: 'Nenhuma venda ainda. Continue abordando — todo expert em vendas começa do zero!' },
+  danger:   { cls: 'fin-alert-red',    icon: '⚠️', msg: 'Taxa de conversão muito baixa. Você está fazendo muitas abordagens sem resultado — tente mudar sua copy, personalize mais a mensagem com o nome do negócio e o segmento!' },
+  warning:  { cls: 'fin-alert-amber',  icon: '📈', msg: 'Evoluindo! Identifique quais abordagens converteram e replique. Tente perguntar sobre a dor específica do segmento.' },
+  info:     { cls: 'fin-alert-amber',  icon: '✅', msg: 'Boa conversão! Você está no caminho certo. Continue testando e refinando sua copy para chegar aos dois dígitos.' },
+  good:     { cls: 'fin-alert-green',  icon: '🔥', msg: 'Excelente resultado! Você está acima da média do mercado. Documente o que está funcionando e escale para mais leads!' },
+  great:    { cls: 'fin-alert-green',  icon: '🏆', msg: 'Incrível! Taxa de conversão excepcional. Você é um expert em vendas — considere aumentar o volume de abordagens!' },
+};
+
+function finConvLevel(taxa, abordagens, vendas) {
+  if (abordagens === 0) return { level: 'neutral', cor: 'var(--s5)', pct: 0 };
+  if (vendas === 0)     return { level: 'noSales', cor: '#F87171', pct: Math.min(taxa * 5, 8) };
+  if (taxa < 3)  return { level: 'danger',  cor: '#F87171', pct: Math.min(taxa * 6, 18) };
+  if (taxa < 6)  return { level: 'warning', cor: '#F59E0B', pct: Math.min(taxa * 5.5, 35) };
+  if (taxa < 12) return { level: 'info',    cor: '#FABD52', pct: Math.min(taxa * 4.5, 55) };
+  if (taxa < 22) return { level: 'good',    cor: '#2ED8A4', pct: Math.min(taxa * 3.8, 85) };
+  return                 { level: 'great',  cor: '#10B981', pct: 100 };
+}
+
+function renderFinanceiro() {
+  const hoje     = new Date().toISOString().split('T')[0];
+  const mesAtual = hoje.substring(0, 7);
+  const abordTodos = finGetAbordagens();
+  const vendasTodos = finGetVendas();
+
+  const abordMes  = abordTodos.filter(a => a.criado_em?.startsWith(mesAtual));
+  const abordHoje = abordTodos.filter(a => a.criado_em?.startsWith(hoje));
+  const vendasMes = vendasTodos.filter(v => v.criado_em?.startsWith(mesAtual));
+  const receitaMes = vendasMes.reduce((s, v) => s + (v.valor || 0), 0);
+  const taxa = abordMes.length ? (vendasMes.length / abordMes.length) * 100 : 0;
+
+  // KPIs
+  document.getElementById('fin-kpi-abordagens').textContent = abordMes.length.toLocaleString('pt-BR');
+  document.getElementById('fin-kpi-abordagens-hoje').textContent = abordHoje.length + ' hoje';
+  document.getElementById('fin-kpi-vendas').textContent = vendasMes.length.toLocaleString('pt-BR');
+  const taxaEl = document.getElementById('fin-kpi-taxa');
+  taxaEl.textContent = abordMes.length ? taxa.toFixed(1) + '%' : '—';
+  document.getElementById('fin-kpi-receita').textContent = 'R$ ' + receitaMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+  // Barra de conversão
+  const { level, cor, pct } = finConvLevel(taxa, abordMes.length, vendasMes.length);
+  const fill  = document.getElementById('fin-conv-fill');
+  const label = document.getElementById('fin-conv-label');
+  fill.style.width      = pct + '%';
+  fill.style.background = `linear-gradient(90deg,${cor}88,${cor})`;
+  taxaEl.style.color = cor;
+  label.style.color  = cor;
+  label.textContent  = abordMes.length
+    ? `${taxa.toFixed(1)}% de conversão · ${vendasMes.length} venda${vendasMes.length!==1?'s':''} / ${abordMes.length} abordagem${abordMes.length!==1?'s':''}`
+    : 'Nenhuma abordagem registrada ainda';
+
+  // Alert
+  const alertEl = document.getElementById('fin-alert');
+  const alert   = FIN_ALERTS[level];
+  if (!alert) {
+    alertEl.style.display = 'none';
+  } else {
+    alertEl.className = 'fin-alert ' + alert.cls;
+    alertEl.style.display = 'flex';
+    alertEl.innerHTML = `<span style="font-size:18px;flex-shrink:0;line-height:1">${alert.icon}</span><span>${alert.msg}</span>`;
+  }
+
+  // Tabela de vendas
+  const tbody = document.getElementById('fin-vendas-tbody');
+  if (!vendasMes.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty" style="padding:28px 0"><div class="empty-title">Nenhuma venda registrada</div><div class="empty-sub">Clique em "+ Registrar Venda" quando fechar um cliente</div></div></td></tr>`;
+  } else {
+    tbody.innerHTML = [...vendasMes].reverse().map(v => {
+      const dt = new Date(v.criado_em);
+      const dtStr = dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      return `<tr>
+        <td><span class="venda-valor">R$ ${Number(v.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</span></td>
+        <td>${v.segmento ? `<span class="badge b-purple" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;display:inline-block">${v.segmento}</span>` : '<span style="color:var(--t3)">—</span>'}</td>
+        <td style="color:var(--t2);font-size:12px;max-width:220px">${v.obs || '<span style="color:var(--t3)">—</span>'}</td>
+        <td style="color:var(--t3);font-size:12px;white-space:nowrap">${dtStr}</td>
+        <td><button class="ib" style="color:var(--err)" onclick="deletarVenda('${v.id}')" title="Remover venda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  updateFinBadge();
+}
+
+function abrirModalVenda() {
+  document.getElementById('fin-venda-valor').value = '';
+  document.getElementById('fin-venda-seg').value   = '';
+  document.getElementById('fin-venda-obs').value   = '';
+  const now   = new Date();
+  const local = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  document.getElementById('fin-venda-hora').value = local;
+  showModal('addVenda');
+  setTimeout(() => document.getElementById('fin-venda-valor').focus(), 100);
+}
+
+function salvarVenda() {
+  const valorStr = document.getElementById('fin-venda-valor').value.replace(',', '.').trim();
+  const valor    = parseFloat(valorStr);
+  if (!valor || isNaN(valor) || valor <= 0) return toast('Digite um valor válido', 'error');
+  const seg  = document.getElementById('fin-venda-seg').value.trim();
+  const obs  = document.getElementById('fin-venda-obs').value.trim();
+  const hora = document.getElementById('fin-venda-hora').value;
+
+  const vendas = finGetVendas();
+  vendas.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+    valor,
+    segmento: seg,
+    obs,
+    criado_em: hora ? new Date(hora).toISOString() : new Date().toISOString(),
+  });
+  localStorage.setItem(FIN_VD_KEY, JSON.stringify(vendas));
+
+  closeModal('addVenda');
+  toast('Venda registrada! 🎉', 'success');
+  addFeed('green', `Venda de <b>R$&nbsp;${valor.toLocaleString('pt-BR',{minimumFractionDigits:2})}</b> registrada`);
+  renderFinanceiro();
+}
+
+function deletarVenda(id) {
+  if (!confirm('Remover esta venda?')) return;
+  localStorage.setItem(FIN_VD_KEY, JSON.stringify(finGetVendas().filter(v => v.id !== id)));
+  renderFinanceiro();
+  toast('Venda removida', 'success');
+}
+
+function resetarMesFin() {
+  if (!confirm('Limpar abordagens e vendas do mês atual? Esta ação não pode ser desfeita.')) return;
+  localStorage.removeItem(FIN_AB_KEY);
+  localStorage.removeItem(FIN_VD_KEY);
+  localStorage.removeItem(FIN_SET_KEY);
+  renderFinanceiro();
+  toast('Dados resetados!', 'success');
 }
 
 // ══ SETTINGS ══
@@ -2176,6 +2554,7 @@ function mostrarApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   atualizarBadgePlano();
+  updateFinBadge();
 }
 
 function atualizarBadgePlano() {
