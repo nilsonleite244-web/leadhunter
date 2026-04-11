@@ -1938,7 +1938,7 @@ async function buscarAtivos(page = 1) {
   const busca  = document.getElementById('ig-busca')?.value.trim() || '';
   const seg    = document.getElementById('ig-seg')?.value.trim() || '';
   const cidade = document.getElementById('ig-cidade')?.value.trim() || '';
-  const params = new URLSearchParams({ limit: 100, page });
+  const params = new URLSearchParams({ apenas_ig: 'true', limit: 100, page });
   if (busca)  params.set('busca', busca);
   if (seg)    params.set('segmento', seg);
   if (cidade) params.set('cidade', cidade);
