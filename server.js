@@ -273,7 +273,7 @@ app.get("/leads/instagram", async (req, res) => {
         ? pgQuery(`SELECT COUNT(*) FROM leads_extra ${whereStr}`, params)
         : Promise.resolve(null),
       pgQuery(
-        `SELECT id, nome, segmento, cidade, estado, instagram, whatsapp, website, funcionarios, receita FROM leads_extra ${whereStr} ORDER BY id LIMIT $${p} OFFSET $${p+1}`,
+        `SELECT id, nome, segmento, cidade, estado, instagram, whatsapp, website, funcionarios, receita FROM leads_extra ${whereStr} ORDER BY md5(id::text || current_date::text) LIMIT $${p} OFFSET $${p+1}`,
         [...params, effectiveLimit, offset]
       ),
     ]);
@@ -380,7 +380,7 @@ app.get("/leads/buscar", async (req, res) => {
       isAdmin
         ? pgQuery(`SELECT COUNT(*) FROM leads ${whereStr}`, params)
         : Promise.resolve(null),
-      pgQuery(`SELECT ${cols} FROM leads ${whereStr} ORDER BY score_completude DESC LIMIT $${p++} OFFSET $${p++}`, [...params, effectiveLimit, offset]),
+      pgQuery(`SELECT ${cols} FROM leads ${whereStr} ORDER BY ${isAdmin ? "score_completude DESC" : "md5(cnpj || current_date::text)"} LIMIT $${p++} OFFSET $${p++}`, [...params, effectiveLimit, offset]),
     ]);
 
     const data = dataRes.rows.map(r => ({
