@@ -6,7 +6,6 @@ const axios      = require("axios");
 const admin      = require("firebase-admin");
 const path       = require("path");
 const { Pool }   = require("pg");
-const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 // ── FIREBASE INIT (não bloqueia startup) ──────────────────────────────────────
@@ -684,30 +683,19 @@ async function processarPagamento(email, nome, txId, dados, plataforma) {
   return token;
 }
 
-const brevoTransporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.BREVO_USER,
-    pass: process.env.BREVO_PASS,
-  },
-});
-
 async function enviarEmailBoasVindas(email, nome, token, plano) {
   if (!token) return;
-  if (!process.env.BREVO_USER || !process.env.BREVO_PASS) {
-    console.warn("[Email] BREVO_USER ou BREVO_PASS não configurados");
-    return;
-  }
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) { console.warn("[Email] BREVO_API_KEY não configurada"); return; }
+
   const planosLabel = { mensal: "Básico — R$97/mês", trimestral: "Pro — R$147/mês", vitalicio: "Alpha Member — R$267/mês" };
   const limiteLabel = { mensal: "150 leads/dia", trimestral: "300 leads/dia", vitalicio: "600 leads/dia" }[plano] || "—";
 
-  await brevoTransporter.sendMail({
-    from: `"LeadHunter Pro" <${process.env.BREVO_USER}>`,
-    to: email,
+  await axios.post("https://api.brevo.com/v3/smtp/email", {
+    sender:  { name: "LeadHunter Pro", email: "nilsonleite244@gmail.com" },
+    to:      [{ email }],
     subject: "Seu acesso ao LeadHunter Pro está pronto!",
-    html: `<div style="font-family:Inter,sans-serif;max-width:500px;margin:0 auto;background:#08080f;color:#eeeef2;padding:32px;border-radius:16px">
+    htmlContent: `<div style="font-family:Inter,sans-serif;max-width:500px;margin:0 auto;background:#08080f;color:#eeeef2;padding:32px;border-radius:16px">
       <h2 style="color:#f09030;margin-bottom:4px">Bem-vindo ao LeadHunter Pro!</h2>
       <p style="color:#8888a0;margin-bottom:24px">Olá${nome ? " " + nome.split(" ")[0] : ""}! Seu pagamento foi confirmado.</p>
       <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.2);border-radius:10px;padding:16px;margin-bottom:20px">
@@ -720,9 +708,9 @@ async function enviarEmailBoasVindas(email, nome, token, plano) {
       <p style="color:#8888a0;font-size:12px;margin-top:12px">Cole em <b style="color:#eeeef2">Configurações → Token de Acesso</b></p>
       <a href="https://leadhunter-vert.vercel.app" style="display:inline-block;margin-top:20px;background:linear-gradient(135deg,#f09030,#e06818);color:#000;font-weight:700;padding:12px 24px;border-radius:9px;text-decoration:none">Acessar LeadHunter</a>
     </div>`,
-  })
+  }, { headers: { "api-key": apiKey } })
     .then(() => console.log(`[Email] Enviado para ${email}`))
-    .catch(e => console.error(`[Email] ERRO ao enviar para ${email}: ${e.message}`));
+    .catch(e => console.error(`[Email] ERRO: ${e.response?.data?.message || e.message}`));
 }
 
 // Webhook Kirvano
