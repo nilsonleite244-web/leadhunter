@@ -23,36 +23,38 @@ body{
 }
 :root{
   /* ─ Foundations ─ */
-  --bg:#07090F;
-  --s1:#0B0F18;
-  --s2:#111821;
-  --s3:#19202D;
-  --s4:#232C3C;
-  --s5:#2C3649;
+  --bg:#000000;
+  --s1:#0A0A0C;
+  --s2:#111113;
+  --s3:#181819;
+  --s4:#202023;
+  --s5:#2A2A2F;
 
   /* ─ Borders ─ */
-  --bd:rgba(255,255,255,.065);
-  --bd2:rgba(255,255,255,.11);
-  --bd-h:rgba(245,168,32,.4);
+  --bd:rgba(255,255,255,.07);
+  --bd2:rgba(255,255,255,.12);
+  --bd-h:rgba(255,106,0,.45);
 
-  /* ─ Brand Amber ─ */
-  --amber:#F5A623;
-  --amber-l:#FABD52;
-  --amber-d:rgba(245,166,35,.12);
-  --amber-g:rgba(245,166,35,.05);
+  /* ─ Brand Orange ─ */
+  --amber:#FF6A00;
+  --amber-l:#FF8C42;
+  --amber-d:rgba(255,106,0,.12);
+  --amber-g:rgba(255,106,0,.06);
+  --orange:#FF6A00;
+  --orange-l:#FF8C42;
 
   /* ─ Text hierarchy ─ */
-  --txt:#ECF0FF;
-  --t2:#7A8BA0;
-  --t3:#374455;
+  --txt:#F2F2F4;
+  --t2:#7A7A88;
+  --t3:#3A3A44;
 
   /* ─ Semantic ─ */
-  --ok:#2ED8A4;
-  --ok-d:rgba(46,216,164,.1);
+  --ok:#00E5A0;
+  --ok-d:rgba(0,229,160,.1);
   --err:#F87171;
   --err-d:rgba(248,113,113,.08);
-  --blue:#60A5FA;
-  --blue-d:rgba(96,165,250,.1);
+  --blue:#4D9FFF;
+  --blue-d:rgba(77,159,255,.1);
   --purple:#B490FF;
   --purple-d:rgba(180,144,255,.1);
 
@@ -60,9 +62,9 @@ body{
   --r:8px;--rl:12px;--rx:16px;
 
   /* ─ Shadows ─ */
-  --shadow-sm:0 1px 4px rgba(0,0,0,.4);
-  --shadow-md:0 4px 20px rgba(0,0,0,.5);
-  --shadow-lg:0 10px 50px rgba(0,0,0,.65);
+  --shadow-sm:0 1px 4px rgba(0,0,0,.5);
+  --shadow-md:0 4px 20px rgba(0,0,0,.6);
+  --shadow-lg:0 10px 50px rgba(0,0,0,.75);
 }
 
 /* ─ Scrollbars ─ */
@@ -85,8 +87,8 @@ body{
 .sidebar::before{
   content:'';position:absolute;inset:0;
   background:
-    radial-gradient(ellipse at 20% 0%,rgba(245,166,35,.055) 0%,transparent 55%),
-    radial-gradient(ellipse at 85% 95%,rgba(180,144,255,.04) 0%,transparent 45%);
+    radial-gradient(ellipse at 20% 0%,rgba(255,106,0,.07) 0%,transparent 55%),
+    radial-gradient(ellipse at 85% 95%,rgba(255,106,0,.03) 0%,transparent 45%);
   pointer-events:none;z-index:0;
 }
 .sidebar>*{position:relative;z-index:1}
@@ -98,16 +100,16 @@ body{
 }
 .logo-mark{
   width:34px;height:34px;border-radius:10px;
-  background:linear-gradient(145deg,var(--amber) 0%,#D97810 100%);
+  background:linear-gradient(145deg,var(--orange) 0%,#CC4400 100%);
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;
-  box-shadow:0 0 0 1px rgba(245,166,35,.25),0 4px 14px rgba(245,166,35,.22);
+  box-shadow:0 0 0 1px rgba(255,106,0,.3),0 4px 16px rgba(255,106,0,.3);
   position:relative;overflow:hidden;
   transition:all .2s ease;
 }
 .logo-mark::before{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(145deg,rgba(255,255,255,.22) 0%,transparent 55%);
+  background:linear-gradient(145deg,rgba(255,255,255,.2) 0%,transparent 55%);
 }
 .logo-name{font-size:15px;font-weight:800;letter-spacing:-.45px;line-height:1}
 .logo-name em{color:var(--amber);font-style:normal}
@@ -170,8 +172,8 @@ body{
   height:52px;border-bottom:1px solid var(--bd);
   display:flex;align-items:center;padding:0 24px;gap:12px;
   flex-shrink:0;
-  background:rgba(7,9,15,.88);
-  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  background:rgba(8,8,8,.92);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   position:sticky;top:0;z-index:20;
 }
 .page-title{font-size:13px;font-weight:500;color:var(--txt)}
@@ -188,13 +190,13 @@ body{
 }
 .btn svg{width:13px;height:13px}
 .btn-primary{
-  background:linear-gradient(135deg,var(--amber) 0%,#D97810 100%);
+  background:linear-gradient(135deg,var(--orange) 0%,#CC4400 100%);
   color:#000;font-weight:600;
-  box-shadow:0 0 0 1px rgba(245,166,35,.2),0 2px 10px rgba(245,166,35,.18);
+  box-shadow:0 0 0 1px rgba(255,106,0,.25),0 2px 12px rgba(255,106,0,.25);
 }
 .btn-primary:hover{
   filter:brightness(1.1);transform:translateY(-1px);
-  box-shadow:0 0 0 1px rgba(245,166,35,.3),0 4px 18px rgba(245,166,35,.28);
+  box-shadow:0 0 0 1px rgba(255,106,0,.4),0 4px 20px rgba(255,106,0,.35);
 }
 .btn-primary:active{transform:translateY(0);filter:brightness(.98)}
 .btn-primary:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none;filter:none}
@@ -237,10 +239,10 @@ body{
 }
 .kpi::before{
   content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(245,166,35,.35),transparent);
+  background:linear-gradient(90deg,transparent,rgba(255,106,0,.5),transparent);
   opacity:0;transition:opacity .3s;
 }
-.kpi:hover{border-color:rgba(245,166,35,.2);transform:translateY(-1px)}
+.kpi:hover{border-color:rgba(255,106,0,.25);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
 .kpi:hover::before{opacity:1}
 .kpi-lbl{font-size:11px;color:var(--t2);margin-bottom:10px;letter-spacing:.02em}
 .kpi-val{font-size:26px;font-weight:700;letter-spacing:-.8px;line-height:1;color:var(--txt)}
@@ -306,9 +308,9 @@ input,select,textarea{
   padding:9px 12px;outline:none;transition:all .15s;width:100%;
 }
 input:focus,select:focus,textarea:focus{
-  border-color:rgba(245,166,35,.45);
+  border-color:rgba(255,106,0,.45);
   background:var(--s3);
-  box-shadow:0 0 0 3px rgba(245,166,35,.06);
+  box-shadow:0 0 0 3px rgba(255,106,0,.07);
 }
 input::placeholder,textarea::placeholder{color:var(--t3)}
 select option{background:var(--s2)}textarea{resize:vertical}
@@ -317,7 +319,7 @@ select option{background:var(--s2)}textarea{resize:vertical}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chip{padding:5px 12px;border-radius:7px;border:1px solid var(--bd);font-size:12px;color:var(--t2);cursor:pointer;transition:all .14s;user-select:none}
 .chip:hover{border-color:var(--bd2);color:var(--txt)}
-.chip.on{border-color:var(--amber);background:var(--amber-d);color:var(--amber)}
+.chip.on{border-color:var(--orange);background:var(--amber-d);color:var(--orange)}
 
 /* ══ MODE TOGGLE ══ */
 .mode-toggle{display:flex;gap:0;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:3px;margin-bottom:16px}
@@ -329,145 +331,163 @@ select option{background:var(--s2)}textarea{resize:vertical}
 .mode-btn.active.ig{color:var(--purple)}
 .mode-btn.active.frio{color:var(--blue)}
 
-/* ── INSTAGRAM MEGA CARD ── */
-@keyframes ig-bg-shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-@keyframes ig-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-@keyframes ig-glow-pulse{0%,100%{box-shadow:0 0 22px rgba(168,85,247,.55),0 0 55px rgba(253,29,29,.22),0 6px 36px rgba(131,58,180,.5)}50%{box-shadow:0 0 45px rgba(168,85,247,.9),0 0 90px rgba(253,29,29,.4),0 8px 60px rgba(252,176,69,.35)}}
-@keyframes ig-shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
-@keyframes ig-border-rot{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-@keyframes ig-spark{0%,100%{opacity:0;transform:scale(0) translate(0,0)}40%{opacity:1;transform:scale(1) translate(var(--dx),var(--dy))}80%{opacity:.4;transform:scale(.5) translate(calc(var(--dx)*1.4),calc(var(--dy)*1.4))}}
-@keyframes ig-card-glow{0%,100%{box-shadow:0 0 0 1px rgba(168,85,247,.15),0 20px 60px rgba(131,58,180,.12)}50%{box-shadow:0 0 0 1px rgba(253,29,29,.25),0 20px 70px rgba(168,85,247,.22)}}
-@keyframes ig-text-shine{0%,100%{background-position:0%}100%{background-position:200%}}
-
+/* ── INSTAGRAM SECTION ── */
 .ig-hero{
-  position:relative;border-radius:18px;padding:32px 34px;margin-bottom:16px;
-  background:linear-gradient(145deg,rgba(131,58,180,.12) 0%,rgba(253,29,29,.06) 50%,rgba(252,176,69,.06) 100%),var(--s1);
-  animation:ig-card-glow 4s ease-in-out infinite;
+  position:relative;border-radius:var(--rl);padding:28px 30px;margin-bottom:16px;
+  background:var(--s1);border:1px solid var(--bd);
   overflow:hidden;
 }
-.ig-hero-ring{
-  position:absolute;inset:-3px;border-radius:21px;z-index:0;overflow:hidden;pointer-events:none;
+.ig-hero::before{
+  content:'';position:absolute;top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,rgba(255,106,0,.08) 0%,transparent 65%);
+  pointer-events:none;border-radius:50%;
 }
-.ig-hero-ring::before{
-  content:'';position:absolute;
-  width:200%;height:200%;top:-50%;left:-50%;
-  background:conic-gradient(from 0deg,transparent 0deg,#833ab4 60deg,#fd1d1d 120deg,#fcb045 180deg,transparent 240deg,transparent 360deg);
-  animation:ig-border-rot 4s linear infinite;
+.ig-hero::after{
+  content:'';position:absolute;bottom:-60px;left:-40px;
+  width:220px;height:220px;
+  background:radial-gradient(circle,rgba(255,106,0,.04) 0%,transparent 65%);
+  pointer-events:none;border-radius:50%;
 }
-.ig-hero-ring::after{
-  content:'';position:absolute;inset:3px;border-radius:18px;background:linear-gradient(145deg,rgba(131,58,180,.12),rgba(253,29,29,.06),var(--s1));
-}
-.ig-hero > *{position:relative;z-index:1}
-.ig-orb{position:absolute;border-radius:50%;filter:blur(55px);pointer-events:none;z-index:0}
-.ig-orb-1{width:260px;height:260px;top:-80px;right:-60px;background:radial-gradient(circle,rgba(131,58,180,.25),transparent 70%);animation:ig-float 5s ease-in-out infinite}
-.ig-orb-2{width:200px;height:200px;bottom:-60px;left:-40px;background:radial-gradient(circle,rgba(253,29,29,.15),transparent 70%);animation:ig-float 6s ease-in-out infinite reverse}
-.ig-orb-3{width:150px;height:150px;top:10px;left:40%;background:radial-gradient(circle,rgba(252,176,69,.12),transparent 70%);animation:ig-float 7s ease-in-out infinite .5s}
-
+.ig-hero>*{position:relative;z-index:1}
 .ig-title{
-  font-size:24px;font-weight:900;letter-spacing:-.7px;line-height:1.15;margin-bottom:8px;
-  background:linear-gradient(90deg,#fff 0%,#e0aaff 35%,#ff6b6b 65%,#fcb045 90%,#fff 100%);
-  background-size:200% auto;
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  animation:ig-text-shine 4s linear infinite;
+  font-size:22px;font-weight:800;letter-spacing:-.6px;line-height:1.2;margin-bottom:7px;color:var(--txt);
 }
-.ig-sub{font-size:13px;color:var(--t2);line-height:1.6;max-width:480px;margin-bottom:22px}
+.ig-title span{color:var(--orange)}
+.ig-sub{font-size:13px;color:var(--t2);line-height:1.6;max-width:500px;margin-bottom:20px}
 .ig-badge{
-  display:inline-flex;align-items:center;gap:7px;
-  background:linear-gradient(90deg,rgba(131,58,180,.2),rgba(253,29,29,.1));
-  border:1px solid rgba(168,85,247,.25);
-  border-radius:7px;padding:4px 12px;font-size:11px;font-weight:700;
-  color:#e0aaff;text-transform:uppercase;letter-spacing:.07em;
-  margin-bottom:14px;
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--amber-d);border:1px solid rgba(255,106,0,.2);
+  border-radius:6px;padding:3px 10px;font-size:10.5px;font-weight:700;
+  color:var(--orange);text-transform:uppercase;letter-spacing:.07em;
+  margin-bottom:12px;
 }
-.ig-badge-dot{width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#833ab4,#fd1d1d);animation:pulse-dot 1.5s infinite}
+.ig-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--orange);animation:pulse-dot 2s infinite}
 
-/* ── MEGA INSTAGRAM BUTTON ── */
-.ig-mega-wrap{position:relative;display:inline-block}
-.ig-mega-wrap::before{
-  content:'';position:absolute;inset:-3px;border-radius:15px;
-  background:conic-gradient(from 0deg,#833ab4,#fd1d1d,#fcb045,#fd1d1d,#833ab4);
-  animation:ig-border-rot 3s linear infinite;z-index:0;
+/* ── Lead search buttons — shiny premium style ── */
+@keyframes btn-glow-pulse{
+  0%,100%{box-shadow:0 0 0 1px rgba(255,106,0,.35),0 4px 18px rgba(255,106,0,.3),0 0 32px rgba(255,106,0,.1)}
+  50%{box-shadow:0 0 0 1px rgba(255,140,60,.55),0 6px 28px rgba(255,106,0,.5),0 0 55px rgba(255,106,0,.22)}
 }
-.ig-mega-wrap::after{
-  content:'';position:absolute;inset:-3px;border-radius:15px;
-  background:conic-gradient(from 0deg,#833ab4,#fd1d1d,#fcb045,#fd1d1d,#833ab4);
-  animation:ig-border-rot 3s linear infinite;
-  filter:blur(10px);opacity:.7;z-index:-1;
+@keyframes btn-shimmer{
+  0%{left:-120%}
+  100%{left:140%}
 }
-.ig-mega-btn{
-  position:relative;z-index:1;
-  display:inline-flex;align-items:center;gap:10px;
-  padding:13px 26px;border:none;border-radius:12px;
+.btn-lead{
+  position:relative;overflow:hidden;
+  display:inline-flex;align-items:center;gap:9px;
+  padding:11px 24px;border:none;border-radius:var(--r);
+  font-size:13.5px;font-weight:800;color:#000;cursor:pointer;
+  font-family:'Inter',sans-serif;letter-spacing:-.25px;
+  background:linear-gradient(135deg,#FF8C00 0%,#FF6A00 45%,#E55200 100%);
+  animation:btn-glow-pulse 2.5s ease-in-out infinite;
+  transition:transform .2s ease,filter .2s ease;
+}
+.btn-lead::before{
+  content:'';position:absolute;top:0;width:55%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
+  animation:btn-shimmer 2.2s ease-in-out infinite;pointer-events:none;
+}
+.btn-lead:hover{transform:translateY(-2px);filter:brightness(1.12)}
+.btn-lead:active{transform:translateY(0);filter:brightness(.96)}
+.btn-lead:disabled{opacity:.4;cursor:not-allowed;transform:none;filter:none;animation:none}
+.btn-lead:disabled::before{display:none}
+.btn-lead svg{width:15px;height:15px;flex-shrink:0;position:relative;z-index:1}
+.btn-lead span{position:relative;z-index:1}
+
+/* ── Instagram button — roxo brilhante ── */
+@keyframes purple-glow{
+  0%,100%{box-shadow:0 0 0 1px rgba(139,92,246,.4),0 4px 20px rgba(139,92,246,.35),0 0 40px rgba(139,92,246,.12)}
+  50%{box-shadow:0 0 0 1px rgba(167,139,250,.65),0 6px 32px rgba(139,92,246,.6),0 0 70px rgba(167,139,250,.28)}
+}
+.ig-load-btn{
+  position:relative;overflow:hidden;
+  display:inline-flex;align-items:center;gap:9px;
+  padding:12px 26px;border:none;border-radius:var(--r);
   font-size:14px;font-weight:800;color:#fff;cursor:pointer;
-  font-family:'Inter',sans-serif;letter-spacing:-.2px;
-  background:linear-gradient(135deg,#833ab4,#c1366b,#fd1d1d,#ff6b35,#fcb045);
-  background-size:300% 300%;
-  animation:ig-bg-shift 3s ease infinite,ig-float 3.5s ease-in-out infinite,ig-glow-pulse 2.5s ease-in-out infinite;
-  overflow:hidden;
+  font-family:'Inter',sans-serif;letter-spacing:-.25px;
+  background:linear-gradient(135deg,#7C3AED 0%,#9333EA 45%,#A855F7 100%);
+  animation:purple-glow 2.2s ease-in-out infinite;
+  transition:transform .2s ease,filter .2s ease;
 }
-.ig-mega-btn::before{
-  content:'';position:absolute;inset:0;border-radius:12px;
-  background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);
-  background-size:200% 100%;
-  animation:ig-shimmer 2s linear infinite;pointer-events:none;
+.ig-load-btn::before{
+  content:'';position:absolute;top:0;width:55%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);
+  animation:btn-shimmer 2s ease-in-out infinite;pointer-events:none;
 }
-.ig-mega-btn svg{width:16px;height:16px;filter:drop-shadow(0 0 4px rgba(255,255,255,.6))}
-.ig-mega-btn:disabled{opacity:.4;cursor:not-allowed;animation:none;filter:none}
-.ig-mega-btn:active{transform:scale(.97)}
+.ig-load-btn:hover{transform:translateY(-2px);filter:brightness(1.15)}
+.ig-load-btn:active{transform:translateY(0);filter:brightness(.96)}
+.ig-load-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;filter:none;animation:none}
+.ig-load-btn:disabled::before{display:none}
+.ig-load-btn svg{width:15px;height:15px;position:relative;z-index:1}
+.ig-load-btn-txt{position:relative;z-index:1}
 
-/* Sparkle particles */
-.ig-sparks{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:2}
-.spark{
-  position:absolute;width:5px;height:5px;border-radius:50%;
-  background:radial-gradient(circle,#fff,rgba(252,176,69,.8));
-  animation:ig-spark 2.5s ease-in-out infinite;
+/* ── Leads Frios button — azul gelo com flocos ── */
+@keyframes blue-glow{
+  0%,100%{box-shadow:0 0 0 1px rgba(96,165,250,.4),0 4px 20px rgba(96,165,250,.3),0 0 40px rgba(147,197,253,.1)}
+  50%{box-shadow:0 0 0 1px rgba(147,197,253,.65),0 6px 32px rgba(96,165,250,.55),0 0 65px rgba(147,197,253,.25)}
 }
-.spark:nth-child(1){top:20%;left:10%;--dx:-18px;--dy:-20px;animation-delay:0s}
-.spark:nth-child(2){top:70%;left:15%;--dx:-14px;--dy:16px;animation-delay:.5s}
-.spark:nth-child(3){top:15%;right:12%;--dx:16px;--dy:-18px;animation-delay:.9s}
-.spark:nth-child(4){bottom:18%;right:10%;--dx:14px;--dy:14px;animation-delay:1.4s}
-.spark:nth-child(5){top:50%;left:5%;--dx:-20px;--dy:0px;animation-delay:.3s;width:4px;height:4px}
-.spark:nth-child(6){top:50%;right:5%;--dx:20px;--dy:0px;animation-delay:1.8s;width:3px;height:3px}
-.spark:nth-child(7){top:10%;left:45%;--dx:0;--dy:-22px;animation-delay:2s;width:4px;height:4px}
+@keyframes flake-fall{
+  0%{transform:translateY(-6px) rotate(0deg);opacity:0}
+  20%{opacity:1}
+  80%{opacity:.8}
+  100%{transform:translateY(40px) rotate(180deg);opacity:0}
+}
+.btn-lead-ice{
+  position:relative;overflow:hidden;
+  display:inline-flex;align-items:center;gap:9px;
+  padding:11px 24px;border:none;border-radius:var(--r);
+  font-size:13.5px;font-weight:800;color:#fff;cursor:pointer;
+  font-family:'Inter',sans-serif;letter-spacing:-.25px;
+  background:linear-gradient(135deg,#1D4ED8 0%,#3B82F6 45%,#60A5FA 100%);
+  animation:blue-glow 2.2s ease-in-out infinite;
+  transition:transform .2s ease,filter .2s ease;
+}
+.btn-lead-ice::before{
+  content:'';position:absolute;top:0;width:55%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);
+  animation:btn-shimmer 2.4s ease-in-out infinite .6s;pointer-events:none;
+}
+/* flocos de gelo decorativos */
+.btn-lead-ice .flake{
+  position:absolute;font-size:9px;pointer-events:none;opacity:0;
+  animation:flake-fall 3s ease-in-out infinite;
+  user-select:none;
+}
+.btn-lead-ice .flake:nth-child(1){left:8%;animation-delay:0s}
+.btn-lead-ice .flake:nth-child(2){left:28%;animation-delay:.8s}
+.btn-lead-ice .flake:nth-child(3){left:52%;animation-delay:1.5s}
+.btn-lead-ice .flake:nth-child(4){left:72%;animation-delay:.4s}
+.btn-lead-ice .flake:nth-child(5){left:90%;animation-delay:2.1s}
+.btn-lead-ice:hover{transform:translateY(-2px);filter:brightness(1.15)}
+.btn-lead-ice:active{transform:translateY(0);filter:brightness(.96)}
+.btn-lead-ice:disabled{opacity:.4;cursor:not-allowed;transform:none;filter:none;animation:none}
+.btn-lead-ice:disabled::before{display:none}
+.btn-lead-ice svg{width:15px;height:15px;position:relative;z-index:1}
+.btn-lead-ice span{position:relative;z-index:1}
 
 /* Instagram chip no filtro CNPJ */
 .chip-ig{
-  background:linear-gradient(135deg,rgba(131,58,180,.15),rgba(253,29,29,.1));
-  border-color:rgba(168,85,247,.3);color:#e0aaff;
-  position:relative;overflow:hidden;
+  background:var(--amber-d);border-color:rgba(255,106,0,.25);color:var(--orange);
 }
-.chip-ig::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.2) 50%,transparent 70%);background-size:200% 100%;animation:ig-shimmer 3s linear infinite}
-.chip-ig:hover{border-color:rgba(168,85,247,.5);background:linear-gradient(135deg,rgba(131,58,180,.25),rgba(253,29,29,.15))}
+.chip-ig:hover{border-color:rgba(255,106,0,.45);background:rgba(255,106,0,.18)}
 
 /* ══ ALPHA MEMBER BADGE ══ */
-@keyframes alpha-bg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-@keyframes alpha-glow{0%,100%{box-shadow:0 0 18px rgba(180,144,255,.65),0 0 40px rgba(245,166,35,.25),inset 0 0 10px rgba(255,255,255,.07)}50%{box-shadow:0 0 38px rgba(180,144,255,.95),0 0 75px rgba(245,166,35,.45),0 0 110px rgba(180,144,255,.25),inset 0 0 16px rgba(255,255,255,.1)}}
-@keyframes alpha-float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-5px) rotate(1deg)}}
-@keyframes alpha-shimmer{0%{left:-120%}100%{left:220%}}
-@keyframes alpha-star{0%,100%{opacity:.4;transform:scale(.7)}50%{opacity:1;transform:scale(1.2)}}
 #alpha-corner{
   position:fixed;bottom:22px;left:22px;z-index:9999;
-  background:linear-gradient(135deg,#5b21b6,#7c3aed,#b490ff,#f5a623,#b490ff,#7c3aed,#5b21b6);
-  background-size:400% 400%;
-  animation:alpha-bg 5s ease infinite,alpha-glow 3s ease-in-out infinite,alpha-float 4.5s ease-in-out infinite;
-  border-radius:16px;padding:11px 20px 11px 16px;
+  background:var(--s2);border:1px solid rgba(255,106,0,.25);
+  border-radius:12px;padding:10px 16px 10px 13px;
   display:none;align-items:center;gap:10px;
-  border:1px solid rgba(255,255,255,.22);
-  overflow:hidden;cursor:default;user-select:none;
-  min-width:170px;
-}
-#alpha-corner::before{
-  content:'';position:absolute;top:0;width:50%;height:100%;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);
-  animation:alpha-shimmer 2.8s linear infinite;pointer-events:none;
+  cursor:default;user-select:none;
+  box-shadow:0 4px 24px rgba(0,0,0,.5),0 0 0 1px rgba(255,106,0,.1);
 }
 #alpha-corner.show{display:flex}
-.alpha-icon{font-size:20px;flex-shrink:0;position:relative;z-index:1;filter:drop-shadow(0 0 6px rgba(255,255,255,.9))}
-.alpha-info{position:relative;z-index:1}
-.alpha-title{font-size:11.5px;font-weight:800;color:#fff;letter-spacing:.1em;text-transform:uppercase;text-shadow:0 0 12px rgba(255,255,255,.6);line-height:1.1}
-.alpha-sub{font-size:9.5px;color:rgba(255,255,255,.65);font-weight:500;letter-spacing:.04em;margin-top:2px}
-.alpha-stars{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:16px}
-.alpha-star{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;animation:alpha-star 2s ease-in-out infinite}
+.alpha-icon{font-size:18px;flex-shrink:0}
+.alpha-info{}
+.alpha-title{font-size:11px;font-weight:700;color:var(--orange);letter-spacing:.06em;text-transform:uppercase;line-height:1.1}
+.alpha-sub{font-size:9.5px;color:var(--t2);font-weight:500;margin-top:2px}
+.alpha-stars{display:none}
+.alpha-star{display:none}
 
 /* ══ LEAD ABORDADO ══ */
 @keyframes abordado-flash{0%{box-shadow:inset 0 0 0 2px rgba(46,216,164,.8);background:rgba(46,216,164,.13)}70%{box-shadow:inset 0 0 0 2px rgba(46,216,164,.1)}100%{background:rgba(46,216,164,.055)}}
@@ -517,8 +537,8 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
 }
 .hero::before{
   content:'';position:absolute;top:-60px;right:-60px;
-  width:240px;height:240px;
-  background:radial-gradient(circle,rgba(245,166,35,.055) 0%,transparent 70%);
+  width:300px;height:300px;
+  background:radial-gradient(circle,rgba(255,106,0,.07) 0%,transparent 70%);
   pointer-events:none;
 }
 .hero-badge{
@@ -532,42 +552,30 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
 .hero-sub{font-size:13px;color:var(--t2);margin-bottom:20px;line-height:1.55;max-width:480px}
 .hero-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .hero-btn{
-  display:inline-flex;align-items:center;gap:8px;
-  background:linear-gradient(135deg,var(--amber),#D97810);color:#000;
-  border:none;border-radius:var(--r);padding:10px 20px;
-  font-size:13px;font-weight:700;cursor:pointer;
-  transition:all .2s;font-family:'Inter',sans-serif;
-  box-shadow:0 0 0 1px rgba(245,166,35,.2),0 4px 14px rgba(245,166,35,.2);
-}
-.hero-btn:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 0 0 1px rgba(245,166,35,.3),0 6px 22px rgba(245,166,35,.3)}
-.hero-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;filter:none;box-shadow:none}
-.hero-btn svg{width:14px;height:14px}
-.hero-ig{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);box-shadow:0 4px 16px rgba(131,58,180,.22)}
-.hero-ig:hover{box-shadow:0 6px 22px rgba(131,58,180,.32)}
-
-/* ══ CAMPAIGNS ══ */
-.camp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.camp-card{
-  background:var(--s1);border:1px solid var(--bd);border-radius:var(--rl);
-  padding:20px;transition:all .2s ease;cursor:pointer;
   position:relative;overflow:hidden;
+  display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,#FF8C00 0%,#FF6A00 45%,#E55200 100%);color:#000;
+  border:none;border-radius:var(--r);padding:10px 22px;
+  font-size:13px;font-weight:800;cursor:pointer;
+  font-family:'Inter',sans-serif;letter-spacing:-.2px;
+  animation:btn-glow-pulse 2.5s ease-in-out infinite;
+  transition:transform .2s,filter .2s;
 }
-.camp-card::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at top left,rgba(245,166,35,.04),transparent 60%);
-  opacity:0;transition:opacity .2s;pointer-events:none;
+.hero-btn::before{
+  content:'';position:absolute;top:0;width:55%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.32),transparent);
+  animation:btn-shimmer 2.2s ease-in-out infinite;pointer-events:none;
 }
-.camp-card:hover{border-color:var(--bd-h);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.35)}
-.camp-card:hover::before{opacity:1}
-.camp-new{border-style:dashed;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;min-height:150px}
-.camp-new svg{width:22px;height:22px;color:var(--t3)}.camp-new-lbl{font-size:13px;color:var(--t3)}
-.camp-new:hover .camp-new-lbl{color:var(--t2)}.camp-new:hover svg{color:var(--t2)}
-.camp-name{font-size:14px;font-weight:600;margin-bottom:3px}
-.camp-meta{font-size:12px;color:var(--t2);margin-bottom:14px}
-.prog{height:3px;background:var(--s4);border-radius:2px;overflow:hidden;margin-bottom:12px}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--amber),#D97810);border-radius:2px;transition:width .6s ease}
-.camp-nums{display:flex;gap:18px}
-.cn{font-size:11px;color:var(--t3)}.cn b{display:block;font-size:15px;font-weight:700;color:var(--txt);margin-bottom:1px}
+.hero-btn:hover{transform:translateY(-2px);filter:brightness(1.12)}
+.hero-btn:active{transform:translateY(0)}
+.hero-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;filter:none;animation:none}
+.hero-btn:disabled::before{display:none}
+.hero-btn svg{width:14px;height:14px;position:relative;z-index:1}
+.hero-btn-txt{position:relative;z-index:1}
+.hero-ig{background:var(--purple-d);color:var(--purple);border:1px solid rgba(180,144,255,.2);box-shadow:none;animation:none}
+.hero-ig::before{display:none}
+.hero-ig:hover{background:rgba(180,144,255,.18);border-color:rgba(180,144,255,.35);filter:none;transform:translateY(-1px)}
+
 
 /* ══ SETTINGS ══ */
 .stabs{display:flex;gap:1px;margin-bottom:20px;background:var(--s2);padding:3px;border-radius:var(--r);border:1px solid var(--bd);width:fit-content}
@@ -589,12 +597,12 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
 }
 .overlay.open{display:flex}
 .modal{
-  background:var(--s1);
+  background:#0E0E10;
   border:1px solid rgba(255,255,255,.09);
   border-radius:var(--rx);width:490px;max-width:95vw;max-height:88vh;
   overflow-y:auto;
   animation:modal-in .22s ease both;
-  box-shadow:0 0 0 1px rgba(255,255,255,.04),0 30px 90px rgba(0,0,0,.8);
+  box-shadow:0 0 0 1px rgba(255,106,0,.06),0 30px 90px rgba(0,0,0,.85);
 }
 @keyframes modal-in{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .modal-header{
@@ -620,8 +628,8 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
 /* ══ TOASTS ══ */
 .toasts{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:1000}
 .toast{
-  background:rgba(17,24,33,.95);
-  border:1px solid var(--bd2);
+  background:rgba(14,14,16,.98);
+  border:1px solid rgba(255,255,255,.1);
   border-radius:var(--rl);padding:11px 15px;
   font-size:12.5px;min-width:240px;max-width:320px;
   animation:toast-in .25s ease;
@@ -671,12 +679,12 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
 .err-banner.show{display:flex}
 .pag{display:flex;align-items:center;gap:6px;padding:12px 20px;border-top:1px solid var(--bd)}
 .pag-btn{padding:4px 9px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--t2);cursor:pointer;font-size:11.5px;font-family:'Inter',sans-serif;transition:all .14s}
-.pag-btn:hover{border-color:var(--amber);color:var(--amber)}
-.pag-btn.active{background:var(--amber-d);border-color:var(--amber);color:var(--amber)}
+.pag-btn:hover{border-color:var(--orange);color:var(--orange)}
+.pag-btn.active{background:var(--amber-d);border-color:var(--orange);color:var(--orange)}
 .pag-btn:disabled{opacity:.3;cursor:not-allowed}
 .ib{width:26px;height:26px;border-radius:6px;border:1px solid var(--bd);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t3);transition:all .14s}
 .ib svg{width:11px;height:11px}
-.ib:hover{border-color:var(--bd-h);color:var(--amber);background:var(--amber-g)}
+.ib:hover{border-color:var(--bd-h);color:var(--orange);background:var(--amber-g)}
 .ib.wpp:hover{border-color:rgba(46,216,164,.3);color:var(--ok);background:var(--ok-d)}
 .ib.ig:hover{border-color:rgba(180,144,255,.3);color:var(--purple);background:var(--purple-d)}
 .td-act{display:flex;gap:5px}
@@ -688,7 +696,6 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
   .sidebar{width:180px}
   .g70{grid-template-columns:1fr}
   .kpi-grid{grid-template-columns:repeat(2,1fr)}
-  .camp-grid{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:640px){
   .sidebar{position:fixed;left:-220px;z-index:50;transition:left .25s ease;height:100vh}
@@ -696,88 +703,87 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
   .main{width:100%}
   .page{padding:16px}
   .kpi-grid{grid-template-columns:repeat(2,1fr)}
-  .camp-grid{grid-template-columns:1fr}
   .g2{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
 <!-- ══ TELA DE LOGIN ══ -->
-<div id="login-screen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;align-items:center;justify-content:center;flex-direction:column">
+<div id="login-screen" style="display:none;position:fixed;inset:0;background:#080808;z-index:9999;align-items:center;justify-content:center;flex-direction:column">
   <!-- Background ambient -->
   <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none">
-    <div style="position:absolute;width:600px;height:600px;top:-150px;left:-150px;background:radial-gradient(circle,rgba(245,166,35,.055),transparent 65%);border-radius:50%"></div>
-    <div style="position:absolute;width:500px;height:500px;bottom:-100px;right:-100px;background:radial-gradient(circle,rgba(180,144,255,.04),transparent 65%);border-radius:50%"></div>
-    <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.018) 1px,transparent 1px);background-size:28px 28px"></div>
+    <div style="position:absolute;width:700px;height:700px;top:-200px;left:50%;transform:translateX(-50%);background:radial-gradient(circle,rgba(255,106,0,.08),transparent 65%);border-radius:50%"></div>
+    <div style="position:absolute;width:400px;height:400px;bottom:-100px;right:-100px;background:radial-gradient(circle,rgba(255,106,0,.04),transparent 65%);border-radius:50%"></div>
+    <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.015) 1px,transparent 1px);background-size:32px 32px"></div>
+    <!-- Scan line animation -->
+    <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none">
+      <div style="position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,106,0,.15),transparent);animation:loginScan 4s linear infinite"></div>
+    </div>
   </div>
 
-  <div style="width:100%;max-width:400px;padding:24px;position:relative;z-index:1">
+  <style>
+    @keyframes loginScan{0%{top:0}100%{top:100%}}
+    @keyframes loginFadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes loginPulse{0%,100%{box-shadow:0 0 30px rgba(255,106,0,.3)}50%{box-shadow:0 0 60px rgba(255,106,0,.5)}}
+  </style>
+
+  <div style="width:100%;max-width:420px;padding:24px;position:relative;z-index:1;animation:loginFadeUp .5s ease both">
     <!-- Logo -->
-    <div style="display:flex;align-items:center;gap:13px;margin-bottom:40px;justify-content:center">
-      <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(145deg,var(--amber),#D97810);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 1px rgba(245,166,35,.25),0 6px 24px rgba(245,166,35,.28);position:relative;overflow:hidden">
-        <div style="position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.22),transparent 55%)"></div>
-        <svg viewBox="0 0 32 32" fill="none" style="width:28px;height:28px;position:relative;z-index:1">
-          <path d="M7 3L11.5 13H3L7 3Z" fill="rgba(0,0,0,0.5)"/>
-          <path d="M25 3L29 13H20.5L25 3Z" fill="rgba(0,0,0,0.5)"/>
-          <path d="M7 6L9.5 12H5L7 6Z" fill="rgba(255,255,255,0.22)"/>
-          <path d="M25 6L27.5 12H22L25 6Z" fill="rgba(255,255,255,0.22)"/>
-          <ellipse cx="16" cy="20" rx="11" ry="9.5" fill="rgba(0,0,0,0.45)"/>
-          <ellipse cx="16" cy="23.5" rx="5" ry="3.5" fill="rgba(255,255,255,0.18)"/>
-          <circle cx="11.5" cy="18" r="2" fill="white"/><circle cx="20.5" cy="18" r="2" fill="white"/>
-          <circle cx="12" cy="18.3" r="1.1" fill="#1a0800"/><circle cx="21" cy="18.3" r="1.1" fill="#1a0800"/>
-          <ellipse cx="16" cy="23" rx="1.4" ry="1" fill="rgba(0,0,0,0.6)"/>
-        </svg>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:44px;justify-content:center">
+      <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(145deg,#FF6A00,#CC3D00);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 1px rgba(255,106,0,.3),0 8px 32px rgba(255,106,0,.35);position:relative;overflow:hidden;animation:loginPulse 3s ease-in-out infinite">
+        <div style="position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.18),transparent 55%)"></div>
+        <span style="font-size:24px;position:relative;z-index:1">🦊</span>
       </div>
       <div>
-        <div style="font-size:19px;font-weight:800;letter-spacing:-.45px;color:var(--txt)">Lead<span style="color:var(--amber)">Hunter</span></div>
-        <div style="font-size:9.5px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-top:1px">Prospecção Inteligente</div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:-.6px;color:#F2F2F4">Lead<span style="color:#FF6A00">Hunter</span></div>
+        <div style="font-size:10px;color:#3A3A44;letter-spacing:.12em;text-transform:uppercase;margin-top:2px;font-weight:600">Prospecção Inteligente</div>
       </div>
     </div>
 
     <!-- Card login -->
-    <div style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--rx);padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.4)">
-      <h2 style="font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.3px;color:var(--txt)">Acessar plataforma</h2>
-      <p style="font-size:12.5px;color:var(--t2);margin-bottom:22px;line-height:1.5">Digite seu e-mail ou cole seu token de acesso</p>
+    <div style="background:#0E0E10;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:32px;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,106,0,.06)">
+      <h2 style="font-size:18px;font-weight:800;margin-bottom:5px;letter-spacing:-.4px;color:#F2F2F4">Acessar plataforma</h2>
+      <p style="font-size:13px;color:#7A7A88;margin-bottom:24px;line-height:1.55">Digite seu e-mail ou cole seu token de acesso</p>
 
       <!-- Tabs -->
-      <div style="display:flex;background:var(--s2);border-radius:8px;padding:3px;margin-bottom:18px;border:1px solid var(--bd)">
-        <button id="tab-email" onclick="switchLoginTab('email')" style="flex:1;padding:7px;border:none;background:var(--s3);border-radius:6px;color:var(--txt);font-size:12.5px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;transition:all .15s">E-mail</button>
-        <button id="tab-token" onclick="switchLoginTab('token')" style="flex:1;padding:7px;border:none;background:transparent;border-radius:6px;color:var(--t2);font-size:12.5px;cursor:pointer;font-family:Inter,sans-serif;transition:all .15s">Token</button>
+      <div style="display:flex;background:#131315;border-radius:10px;padding:3px;margin-bottom:20px;border:1px solid rgba(255,255,255,.07)">
+        <button id="tab-email" onclick="switchLoginTab('email')" style="flex:1;padding:8px;border:none;background:#1A1A1D;border-radius:8px;color:#F2F2F4;font-size:13px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;transition:all .15s">E-mail</button>
+        <button id="tab-token" onclick="switchLoginTab('token')" style="flex:1;padding:8px;border:none;background:transparent;border-radius:8px;color:#7A7A88;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;transition:all .15s">Token</button>
       </div>
 
       <!-- Email -->
       <div id="form-email">
         <input id="login-email" type="email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')loginComEmail()"
-          style="width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);color:var(--txt);font-family:Inter,sans-serif;font-size:13px;padding:11px 14px;outline:none;margin-bottom:12px;box-sizing:border-box;transition:all .15s"
-          onfocus="this.style.borderColor='rgba(245,166,35,.45)';this.style.boxShadow='0 0 0 3px rgba(245,166,35,.06)'" onblur="this.style.borderColor='';this.style.boxShadow=''">
+          style="width:100%;background:#131315;border:1px solid rgba(255,255,255,.07);border-radius:10px;color:#F2F2F4;font-family:Inter,sans-serif;font-size:13.5px;padding:13px 15px;outline:none;margin-bottom:12px;box-sizing:border-box;transition:all .2s"
+          onfocus="this.style.borderColor='rgba(255,106,0,.45)';this.style.boxShadow='0 0 0 3px rgba(255,106,0,.08)'" onblur="this.style.borderColor='rgba(255,255,255,.07)';this.style.boxShadow=''">
         <button id="btn-login" onclick="loginComEmail()"
-          style="width:100%;padding:11px;background:linear-gradient(135deg,var(--amber),#D97810);border:none;border-radius:var(--r);color:#000;font-size:13px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;transition:all .15s;box-shadow:0 0 0 1px rgba(245,166,35,.2),0 4px 14px rgba(245,166,35,.2)"
-          onmouseover="this.style.filter='brightness(1.1)';this.style.transform='translateY(-1px)'" onmouseout="this.style.filter='';this.style.transform=''">
-          Entrar
+          style="width:100%;padding:13px;background:linear-gradient(135deg,#FF6A00,#CC3D00);border:none;border-radius:10px;color:#000;font-size:14px;font-weight:800;cursor:pointer;font-family:Inter,sans-serif;transition:all .2s;box-shadow:0 0 0 1px rgba(255,106,0,.25),0 4px 20px rgba(255,106,0,.3)"
+          onmouseover="this.style.filter='brightness(1.1)';this.style.transform='translateY(-1px)';this.style.boxShadow='0 0 0 1px rgba(255,106,0,.4),0 8px 28px rgba(255,106,0,.4)'" onmouseout="this.style.filter='';this.style.transform='';this.style.boxShadow='0 0 0 1px rgba(255,106,0,.25),0 4px 20px rgba(255,106,0,.3)'">
+          Entrar →
         </button>
       </div>
 
       <!-- Token -->
       <div id="form-token" style="display:none">
         <input id="login-token" type="text" placeholder="Cole seu token aqui..." onkeydown="if(event.key==='Enter')loginComToken()"
-          style="width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);color:var(--amber-l);font-family:monospace;font-size:12px;padding:11px 14px;outline:none;margin-bottom:12px;box-sizing:border-box;letter-spacing:.5px;transition:all .15s"
-          onfocus="this.style.borderColor='rgba(245,166,35,.45)';this.style.boxShadow='0 0 0 3px rgba(245,166,35,.06)'" onblur="this.style.borderColor='';this.style.boxShadow=''">
+          style="width:100%;background:#131315;border:1px solid rgba(255,255,255,.07);border-radius:10px;color:#FF8C42;font-family:monospace;font-size:12px;padding:13px 15px;outline:none;margin-bottom:12px;box-sizing:border-box;letter-spacing:.5px;transition:all .2s"
+          onfocus="this.style.borderColor='rgba(255,106,0,.45)';this.style.boxShadow='0 0 0 3px rgba(255,106,0,.08)'" onblur="this.style.borderColor='rgba(255,255,255,.07)';this.style.boxShadow=''">
         <button onclick="loginComToken()"
-          style="width:100%;padding:11px;background:linear-gradient(135deg,var(--amber),#D97810);border:none;border-radius:var(--r);color:#000;font-size:13px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;transition:all .15s;box-shadow:0 0 0 1px rgba(245,166,35,.2),0 4px 14px rgba(245,166,35,.2)">
-          Verificar Token
+          style="width:100%;padding:13px;background:linear-gradient(135deg,#FF6A00,#CC3D00);border:none;border-radius:10px;color:#000;font-size:14px;font-weight:800;cursor:pointer;font-family:Inter,sans-serif;transition:all .2s;box-shadow:0 0 0 1px rgba(255,106,0,.25),0 4px 20px rgba(255,106,0,.3)">
+          Verificar Token →
         </button>
       </div>
 
-      <p id="login-err" style="color:var(--err);font-size:12px;margin-top:10px;min-height:16px"></p>
+      <p id="login-err" style="color:#F87171;font-size:12.5px;margin-top:12px;min-height:18px"></p>
     </div>
 
     <!-- CTA assinar -->
-    <div style="text-align:center;margin-top:20px">
-      <p style="font-size:12px;color:var(--t3);margin-bottom:10px">Ainda não é assinante?</p>
-      <a id="btn-assinar" href="#" target="_blank"
-        style="display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:var(--amber-d);border:1px solid rgba(245,166,35,.25);border-radius:var(--r);color:var(--amber);font-size:13px;font-weight:600;text-decoration:none;transition:all .15s"
-        onmouseover="this.style.background='rgba(245,166,35,.18)'" onmouseout="this.style.background='var(--amber-d)'">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    <div style="text-align:center;margin-top:24px">
+      <p style="font-size:12.5px;color:#3A3A44;margin-bottom:12px">Ainda não é assinante?</p>
+      <a id="btn-assinar" href="https://leadhunter-vert.vercel.app/landing" target="_blank"
+        style="display:inline-flex;align-items:center;gap:8px;padding:11px 24px;background:rgba(255,106,0,.1);border:1px solid rgba(255,106,0,.2);border-radius:10px;color:#FF8C42;font-size:13.5px;font-weight:700;text-decoration:none;transition:all .2s"
+        onmouseover="this.style.background='rgba(255,106,0,.18)';this.style.borderColor='rgba(255,106,0,.35)'" onmouseout="this.style.background='rgba(255,106,0,.1)';this.style.borderColor='rgba(255,106,0,.2)'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
         Assinar LeadHunter Pro
       </a>
     </div>
@@ -789,29 +795,8 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
 <!-- ══ SIDEBAR ══ -->
 <aside class="sidebar">
   <div class="logo">
-    <div class="logo-mark">
-      <!-- Fox SVG logo -->
-      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Ears -->
-        <path d="M7 3L11.5 13H3L7 3Z" fill="rgba(0,0,0,0.55)"/>
-        <path d="M25 3L29 13H20.5L25 3Z" fill="rgba(0,0,0,0.55)"/>
-        <!-- Inner ear -->
-        <path d="M7 6L9.5 12H5L7 6Z" fill="rgba(255,255,255,0.25)"/>
-        <path d="M25 6L27.5 12H22L25 6Z" fill="rgba(255,255,255,0.25)"/>
-        <!-- Head -->
-        <ellipse cx="16" cy="20" rx="11" ry="9.5" fill="rgba(0,0,0,0.5)"/>
-        <!-- Snout -->
-        <ellipse cx="16" cy="23.5" rx="5" ry="3.5" fill="rgba(255,255,255,0.2)"/>
-        <!-- Eyes -->
-        <circle cx="11.5" cy="18" r="2" fill="white"/>
-        <circle cx="20.5" cy="18" r="2" fill="white"/>
-        <circle cx="12" cy="18.3" r="1.1" fill="#1a0800"/>
-        <circle cx="21" cy="18.3" r="1.1" fill="#1a0800"/>
-        <!-- Nose -->
-        <ellipse cx="16" cy="23" rx="1.4" ry="1" fill="rgba(0,0,0,0.6)"/>
-        <!-- Mouth hint -->
-        <path d="M14.5 24.2 Q16 25.5 17.5 24.2" stroke="rgba(0,0,0,0.4)" stroke-width=".8" fill="none" stroke-linecap="round"/>
-      </svg>
+    <div class="logo-mark" style="font-size:20px;display:flex;align-items:center;justify-content:center">
+      🦊
     </div>
     <div>
       <div class="logo-name">Lead<em>Hunter</em></div>
@@ -837,22 +822,12 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
       <span class="nav-badge dim" id="badge-fin" style="background:rgba(46,216,164,.12);color:var(--ok);border:1px solid rgba(46,216,164,.2)">R$0</span>
     </div>
 
-    <div class="nav-label">Envios</div>
-    <div class="nav-item" onclick="nav('campaigns',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-      Campanhas
-    </div>
-
     <div class="nav-label">Sistema</div>
     <div class="nav-item" onclick="nav('admin',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Assinantes
     </div>
-    <div class="nav-item" onclick="nav('import',this)" id="nav-import">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Importar Leads
-      <span class="nav-badge" style="background:rgba(168,85,247,.15);color:var(--purple);font-size:9px">ADMIN</span>
-    </div>
+
     <div class="nav-item" onclick="nav('settings',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       Configurações
@@ -863,7 +838,7 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
     <div style="padding:8px 10px 6px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
         <span style="font-size:10.5px;color:var(--t2)">Plano atual</span>
-        <span id="plano-badge" style="font-size:10.5px;font-weight:700;color:var(--amber);border:1px solid rgba(245,166,35,.3);border-radius:5px;padding:1px 7px">Básico</span>
+        <span id="plano-badge" style="font-size:10.5px;font-weight:700;color:var(--orange);border:1px solid rgba(255,106,0,.3);border-radius:5px;padding:1px 7px">Básico</span>
       </div>
       <div id="cota-bar-wrap" style="display:none"></div>
     </div>
@@ -978,11 +953,32 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
 
       <!-- CNPJ mode -->
       <div id="view-cnpj" style="display:none">
-        <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.18);border-radius:var(--rl);padding:13px 16px;margin-bottom:16px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="var(--amber-l)" stroke-width="2" style="width:15px;height:15px;flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <div style="font-size:12.5px;color:var(--amber-l);line-height:1.55">
-            <strong>Leads da base CNPJ — sem limite de buscas.</strong><br>
-            <span style="color:rgba(250,189,82,.65)">Contatos disponíveis principalmente por <strong>ligação telefônica</strong>. Para prospecção por WhatsApp/DM, use o modo <span style="color:var(--purple);cursor:pointer;font-weight:600" onclick="setMode('instagram')">Instagram ✦</span> (recomendado).</span>
+        <!-- Aviso grande CNPJ -->
+        <div style="background:linear-gradient(135deg,rgba(248,113,113,.07),rgba(248,113,113,.04));border:1.5px solid rgba(248,113,113,.35);border-radius:var(--rx);padding:20px 22px;margin-bottom:20px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="2.5" style="width:22px;height:22px;flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span style="font-size:15px;font-weight:700;color:#F87171;letter-spacing:-.01em">Atenção — Leads CNPJ são para Ligação Telefônica</span>
+          </div>
+          <p style="font-size:13px;color:rgba(248,180,180,.8);line-height:1.65;margin-bottom:14px">
+            Os leads desta base são registros da <strong style="color:#fca5a5">Receita Federal</strong> e possuem principalmente <strong style="color:#fca5a5">telefones fixos</strong>. O WhatsApp <strong style="color:#fca5a5">provavelmente não está disponível</strong> nesses números — a grande maioria são linhas comerciais que não usam o aplicativo.
+          </p>
+          <div style="display:flex;flex-wrap:wrap;gap:10px">
+            <div style="flex:1;min-width:200px;background:rgba(180,144,255,.08);border:1px solid rgba(180,144,255,.25);border-radius:var(--r);padding:12px 14px;cursor:pointer" onclick="setMode('instagram')">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#B490FF" stroke-width="2" style="width:14px;height:14px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#B490FF"/></svg>
+                <span style="font-size:12px;font-weight:700;color:#B490FF">Leads Instagram</span>
+                <span style="font-size:10px;background:rgba(180,144,255,.2);color:#B490FF;padding:1px 6px;border-radius:4px;font-weight:600">RECOMENDADO</span>
+              </div>
+              <p style="font-size:11.5px;color:rgba(200,180,255,.7);line-height:1.5;margin:0">Empresas com perfil ativo no Instagram — WhatsApp e DM com <strong style="color:#c4b0ff">altíssima taxa de resposta</strong>.</p>
+            </div>
+            <div style="flex:1;min-width:200px;background:rgba(77,159,255,.08);border:1px solid rgba(77,159,255,.25);border-radius:var(--r);padding:12px 14px;cursor:pointer" onclick="setMode('frios')">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#4D9FFF" stroke-width="2" style="width:14px;height:14px"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>
+                <span style="font-size:12px;font-weight:700;color:#4D9FFF">Leads Frios</span>
+                <span style="font-size:10px;background:rgba(77,159,255,.2);color:#4D9FFF;padding:1px 6px;border-radius:4px;font-weight:600">RECOMENDADO</span>
+              </div>
+              <p style="font-size:11.5px;color:rgba(150,190,255,.7);line-height:1.5;margin:0">Leads qualificados e enriquecidos com <strong style="color:#93c5fd">WhatsApp validado</strong>, prontos para prospecção ativa.</p>
+            </div>
           </div>
         </div>
         <div class="hero">
@@ -993,9 +989,9 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
           <div class="hero-title">Público Aleatório</div>
           <div class="hero-sub">50 empresas com telefone selecionadas aleatoriamente da base da Receita Federal. Novo conjunto a cada clique.</div>
           <div class="hero-actions">
-            <button class="hero-btn" id="btn-aleatorio" onclick="buscarAleatorio()">
+            <button class="btn-lead" id="btn-aleatorio" onclick="buscarAleatorio()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
-              Gerar Leads Aleatórios
+              <span>Gerar Leads Aleatórios</span>
             </button>
             <span class="t-sm t-muted" id="leads-count"></span>
           </div>
@@ -1047,50 +1043,39 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
       <!-- Leads Ativos (com Instagram) -->
       <div id="view-instagram">
         <div class="ig-hero" style="margin-bottom:16px">
-          <div class="ig-hero-ring"></div>
-          <div class="ig-orb ig-orb-1"></div>
-          <div class="ig-orb ig-orb-2"></div>
-          <div class="ig-orb ig-orb-3"></div>
           <div class="ig-badge">
             <div class="ig-badge-dot"></div>
             Leads Ativos
           </div>
-          <div class="ig-title">Negócios com Instagram</div>
+          <div class="ig-title">Negócios com <span>Instagram</span></div>
           <div class="ig-sub">Apenas empresas com perfil no Instagram confirmado — prontas para prospecção por DM ou WhatsApp.</div>
-          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">
-            <div class="ig-mega-wrap">
-              <div class="ig-sparks">
-                <div class="spark"></div><div class="spark"></div><div class="spark"></div>
-                <div class="spark"></div><div class="spark"></div><div class="spark"></div>
-                <div class="spark"></div>
-              </div>
-              <button class="ig-mega-btn" id="btn-ig" onclick="buscarAtivos(1)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg>
-                Carregar Leads com Instagram
-              </button>
-            </div>
-            <span id="ig-total-hint" style="font-size:12px;color:rgba(224,170,255,.6)"></span>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px">
+            <button class="ig-load-btn" id="btn-ig" onclick="buscarAtivos(1)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg>
+              <span class="ig-load-btn-txt">Carregar Leads com Instagram</span>
+            </button>
+            <span id="ig-total-hint" style="font-size:12px;color:var(--t2)"></span>
           </div>
           <!-- Filtros inline -->
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
             <div class="field" style="flex:1;min-width:150px">
-              <label style="color:rgba(255,255,255,.5)">Buscar por nome</label>
-              <input type="text" id="ig-busca" placeholder="Ex: salão, clínica..." onkeydown="if(event.key==='Enter')buscarAtivos(1)" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)">
+              <label>Buscar por nome</label>
+              <input type="text" id="ig-busca" placeholder="Ex: salão, clínica..." onkeydown="if(event.key==='Enter')buscarAtivos(1)">
             </div>
             <div class="field" style="flex:1;min-width:130px">
-              <label style="color:rgba(255,255,255,.5)">Segmento</label>
-              <input type="text" id="ig-seg" placeholder="Ex: restaurante" onkeydown="if(event.key==='Enter')buscarAtivos(1)" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)">
+              <label>Segmento</label>
+              <input type="text" id="ig-seg" placeholder="Ex: restaurante" onkeydown="if(event.key==='Enter')buscarAtivos(1)">
             </div>
             <div class="field" style="flex:1;min-width:130px">
-              <label style="color:rgba(255,255,255,.5)">Cidade</label>
-              <input type="text" id="ig-cidade" placeholder="Ex: São Paulo" onkeydown="if(event.key==='Enter')buscarAtivos(1)" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)">
+              <label>Cidade</label>
+              <input type="text" id="ig-cidade" placeholder="Ex: São Paulo" onkeydown="if(event.key==='Enter')buscarAtivos(1)">
             </div>
-            <button class="btn btn-ghost btn-sm" onclick="buscarAtivos(1)" style="height:36px;color:rgba(255,255,255,.6)">
+            <button class="btn btn-ghost btn-sm" onclick="buscarAtivos(1)" style="height:36px">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               Filtrar
             </button>
           </div>
-          <div id="ativos-total-hint" style="font-size:11.5px;color:rgba(224,170,255,.5);margin-top:10px;display:none"></div>
+          <div id="ativos-total-hint" style="font-size:11.5px;color:var(--t2);margin-top:10px;display:none"></div>
         </div>
       </div>
 
@@ -1108,14 +1093,14 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
               </div>
               <div style="font-size:12.5px;color:rgba(147,197,253,.6);margin-bottom:14px">Negócios sem perfil no Instagram — abordagem por telefone, e-mail ou WhatsApp direto.</div>
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                <button id="btn-frios" onclick="buscarFrios(1)" style="
-                  display:inline-flex;align-items:center;gap:8px;padding:11px 20px;
-                  border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Inter',sans-serif;
-                  background:rgba(96,165,250,.1);border:1.5px solid rgba(96,165,250,.3);color:#60a5fa;
-                  transition:all .2s;white-space:nowrap
-                ">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                  Carregar Leads Frios
+                <button id="btn-frios" onclick="buscarFrios(1)" class="btn-lead-ice">
+                  <span class="flake">❄</span>
+                  <span class="flake">❄</span>
+                  <span class="flake">❄</span>
+                  <span class="flake">❄</span>
+                  <span class="flake">❄</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px;position:relative;z-index:1"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>
+                  <span>Carregar Leads Frios</span>
                 </button>
                 <span id="frios-total-hint" style="font-size:11.5px;color:rgba(147,197,253,.5)"></span>
               </div>
@@ -1157,23 +1142,19 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               CSV
             </button>
-            <button class="btn btn-ghost btn-sm" id="btn-add-camp" onclick="addSelectedToCampaign()" disabled>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/></svg>
-              <span id="add-camp-label">+ Campanha</span>
-            </button>
+
           </div>
         </div>
         <div class="tw">
           <table>
             <thead>
               <tr>
-                <th style="width:32px"><input type="checkbox" id="sel-all" style="width:13px;height:13px" onchange="toggleAll(this.checked)"></th>
                 <th>Empresa</th><th>Segmento</th><th>Cidade / DDD</th>
                 <th>Telefone</th><th>E-mail</th><th>Porte</th><th>Score</th><th>Ações</th>
               </tr>
             </thead>
             <tbody id="results-tbody">
-              <tr><td colspan="9"><div class="empty">
+              <tr><td colspan="8"><div class="empty">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                 <div class="empty-title">Nenhuma busca realizada</div>
                 <div class="empty-sub">Clique em "Gerar Leads Aleatórios" ou aplique filtros</div>
@@ -1228,7 +1209,7 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
         </div>
         <div class="fin-kpi">
           <div class="fin-kpi-lbl">Receita do Mês</div>
-          <div class="fin-kpi-val" id="fin-kpi-receita" style="color:var(--amber)">R$ 0,00</div>
+          <div class="fin-kpi-val" id="fin-kpi-receita" style="color:var(--orange)">R$ 0,00</div>
           <div class="fin-kpi-sub">total registrado</div>
         </div>
       </div>
@@ -1283,24 +1264,6 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
     </div>
 
     <!-- ══════ CAMPAIGNS ══════ -->
-    <div class="page" id="page-campaigns">
-      <div class="flex gap-8 mb-20">
-        <div>
-          <div style="font-size:18px;font-weight:800;letter-spacing:-.5px;margin-bottom:3px">Campanhas</div>
-          <div style="font-size:13px;color:var(--t2)">Gerencie seus disparos automáticos</div>
-        </div>
-        <div class="ml-auto">
-          <button class="btn btn-primary btn-sm" onclick="showModal('newCampaign')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Nova Campanha
-          </button>
-        </div>
-      </div>
-      <div class="camp-grid" id="camp-grid">
-        <div class="loading-row" style="grid-column:1/-1"><div class="spinner light"></div></div>
-      </div>
-    </div>
-
     <!-- ══════ ADMIN ══════ -->
     <div class="page" id="page-admin">
 
@@ -1349,141 +1312,6 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
       </div>
     </div>
 
-    <!-- ══════ IMPORTAR LEADS (Admin Exclusivo) ══════ -->
-    <div class="page" id="page-import">
-
-      <!-- ── Tela de bloqueio ── -->
-      <div id="import-lock" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:20px">
-        <div style="width:72px;height:72px;border-radius:50%;background:var(--amber-d);border:1px solid rgba(245,166,35,.22);display:flex;align-items:center;justify-content:center;margin-bottom:24px;box-shadow:0 0 50px rgba(245,166,35,.1),0 0 0 6px rgba(245,166,35,.04)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.8" style="width:30px;height:30px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </div>
-        <div style="font-size:20px;font-weight:800;letter-spacing:-.4px;margin-bottom:6px;color:var(--txt)">Área Exclusiva do Administrador</div>
-        <div style="font-size:13px;color:var(--t2);margin-bottom:30px;max-width:340px;line-height:1.65">Insira o token de acesso administrativo para desbloquear. Este token é diferente do token de assinante.</div>
-        <div style="width:100%;max-width:360px">
-          <input type="password" id="import-token-input" placeholder="Token de administrador..."
-            style="width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);color:var(--amber-l);font-family:monospace;font-size:13px;padding:11px 14px;outline:none;box-sizing:border-box;margin-bottom:10px;letter-spacing:.5px;transition:all .15s"
-            onfocus="this.style.borderColor='rgba(245,166,35,.45)';this.style.boxShadow='0 0 0 3px rgba(245,166,35,.06)'" onblur="this.style.borderColor='';this.style.boxShadow=''"
-            onkeydown="if(event.key==='Enter')verificarTokenImport()">
-          <button class="btn btn-primary" style="width:100%;padding:11px;justify-content:center" onclick="verificarTokenImport()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            Desbloquear
-          </button>
-          <p id="import-token-err" style="color:var(--err);font-size:12px;margin-top:10px;min-height:16px"></p>
-        </div>
-      </div>
-
-      <!-- ── Painel desbloqueado ── -->
-      <div id="import-panel" style="display:none">
-        <!-- Cabeçalho -->
-        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px">
-          <div>
-            <div style="font-size:18px;font-weight:800;letter-spacing:-.5px;margin-bottom:3px">Importar Leads</div>
-            <div style="font-size:13px;color:var(--t2)">Colete leads do Instagram via Apify ou importe via CSV</div>
-          </div>
-          <button class="btn btn-ghost btn-sm" onclick="lockImport()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            Bloquear
-          </button>
-        </div>
-
-        <!-- Stats rápidas -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px" id="import-stats-grid">
-          <div class="kpi"><div class="kpi-lbl">Leads com Instagram</div><div class="kpi-sk" id="import-stat-ig" style="height:28px;border-radius:4px"></div></div>
-          <div class="kpi"><div class="kpi-lbl">Leads Frios (sem IG)</div><div class="kpi-sk" id="import-stat-frio" style="height:28px;border-radius:4px"></div></div>
-          <div class="kpi"><div class="kpi-lbl">CNPJ registrados</div><div class="kpi-sk" id="import-stat-cnpj" style="height:28px;border-radius:4px"></div></div>
-        </div>
-
-        <!-- Apify scraping -->
-        <div class="card mb-20">
-          <div class="card-header">
-            <div class="card-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-              Coletar via Apify · Instagram Scraper
-            </div>
-            <span id="import-apify-badge" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:5px;display:none"></span>
-          </div>
-          <div class="card-body">
-            <div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:14px">
-              <div class="field">
-                <label>Hashtags <span style="color:var(--t2);font-weight:400">(sem #, separadas por vírgula)</span></label>
-                <input type="text" id="import-tags" value="barbearia,clinicaestetica,petshop,academia,salaobeleza,restaurante" placeholder="barbearia, petshop, academia...">
-              </div>
-              <div class="field" style="min-width:120px">
-                <label>Posts por tag</label>
-                <input type="number" id="import-limit" value="200" min="50" max="1000" step="50">
-              </div>
-            </div>
-            <div class="field" style="margin-bottom:16px">
-              <label>Apify API Key <span style="color:var(--t2);font-weight:400">(ou configure APIFY_KEY no Railway)</span></label>
-              <input type="password" id="import-apify-key" placeholder="apify_api_xxxxxxxxxxxxx">
-            </div>
-            <!-- Opção auto-import -->
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-              <input type="checkbox" id="import-auto" style="width:14px;height:14px;accent-color:var(--amber);cursor:pointer">
-              <label for="import-auto" style="font-size:12.5px;color:var(--t2);cursor:pointer;text-transform:none;letter-spacing:0">
-                Importar automaticamente quando a coleta concluir
-              </label>
-            </div>
-
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-              <button class="btn btn-primary btn-sm" id="import-btn-start" onclick="importApifyStart()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                Iniciar Coleta
-              </button>
-              <button class="btn btn-ghost btn-sm" id="import-btn-import" onclick="importApifyImport()" disabled>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Importar Resultados
-              </button>
-              <button class="btn btn-ghost btn-sm" onclick="loadImportStats()" title="Atualizar stats">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              </button>
-              <span id="import-apify-msg" style="font-size:12px;color:var(--t2)"></span>
-            </div>
-
-            <!-- Barra de progresso (visível durante importação) -->
-            <div id="import-progress-wrap" style="display:none;margin-top:14px">
-              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t2);margin-bottom:5px">
-                <span>Inserindo leads no banco...</span>
-                <span id="import-progress-pct" style="font-weight:600;color:var(--amber)">0%</span>
-              </div>
-              <div style="height:5px;background:var(--s3);border-radius:3px;overflow:hidden">
-                <div id="import-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--amber),#e06818);border-radius:3px;transition:width .4s ease"></div>
-              </div>
-            </div>
-
-            <!-- Log ao vivo -->
-            <div id="import-live-log" style="display:none;margin-top:12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;font-family:monospace;font-size:11.5px;line-height:1.75;max-height:220px;overflow-y:auto;color:var(--t2)"></div>
-          </div>
-        </div>
-
-        <!-- CSV import info -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-              Importar via CSV (Zero-Downtime)
-            </div>
-          </div>
-          <div class="card-body">
-            <p style="font-size:13px;color:var(--t2);margin-bottom:14px;line-height:1.65">Para importar arquivos CSV sem impactar os usuários online, execute na pasta do projeto:</p>
-            <div style="background:var(--s2);border:1px solid rgba(240,144,48,.18);border-radius:var(--r);padding:13px 16px;font-family:monospace;font-size:12.5px;color:var(--amber);letter-spacing:.02em">
-              node import-csv.js "C:\Users\Micro\Downloads\leads_novos.csv"
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">
-              <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:10px 14px">
-                <div style="font-size:10.5px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">Formatos suportados</div>
-                <div style="font-size:12px;color:var(--t2);line-height:1.6">Apollo.io · Snov.io · Hunter.io<br>LinkedIn Sales Navigator<br>Planilhas manuais<br>Formato Hashtag|Nome|@IG</div>
-              </div>
-              <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:10px 14px">
-                <div style="font-size:10.5px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">Garantias</div>
-                <div style="font-size:12px;color:var(--t2);line-height:1.6">Detecção automática de duplicados<br>Nenhum restart necessário<br>Leads aparecem imediatamente<br>Batches de 500 por query</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- ══════ SETTINGS ══════ -->
     <div class="page" id="page-settings">
       <div style="margin-bottom:24px">
@@ -1522,20 +1350,20 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
             </div>
             <div style="height:1px;background:var(--bd);margin:4px 0 16px"></div>
             <div class="field mb-12">
-              <label>Kirvano — Plano Mensal (R$77)</label>
+              <label>Kirvano — Básico R$97/mês</label>
               <div class="flex gap-8">
                 <input id="kirvano-mensal-inp" placeholder="https://pay.kirvano.com/...">
                 <button class="btn btn-primary btn-sm" onclick="saveKirvanoUrls()">Salvar</button>
               </div>
             </div>
             <div class="field mb-12">
-              <label>Kirvano — Plano Trimestral (R$190)</label>
+              <label>Kirvano — Pro R$147/mês</label>
               <div class="flex gap-8">
                 <input id="kirvano-trimestral-inp" placeholder="https://pay.kirvano.com/...">
               </div>
             </div>
             <div class="field mb-12">
-              <label>Kirvano — Plano Vitalício (R$350)</label>
+              <label>Kirvano — Alpha Member R$267/mês</label>
               <div class="flex gap-8">
                 <input id="kirvano-vitalicio-inp" placeholder="https://pay.kirvano.com/...">
               </div>
@@ -1599,13 +1427,6 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
 
 <!-- ══ ALPHA MEMBER CORNER ══ -->
 <div id="alpha-corner">
-  <div class="alpha-stars">
-    <div class="alpha-star" style="top:15%;left:8%;animation-delay:0s"></div>
-    <div class="alpha-star" style="top:70%;left:20%;animation-delay:.5s"></div>
-    <div class="alpha-star" style="top:30%;right:12%;animation-delay:1s"></div>
-    <div class="alpha-star" style="top:80%;right:8%;animation-delay:1.5s;width:2px;height:2px"></div>
-    <div class="alpha-star" style="top:50%;left:50%;animation-delay:.8s;width:2px;height:2px"></div>
-  </div>
   <div class="alpha-icon">⚡</div>
   <div class="alpha-info">
     <div class="alpha-title">Alpha Member</div>
@@ -1614,33 +1435,6 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
 </div>
 
 <!-- ══ MODALS ══ -->
-<div class="overlay" id="overlay-newCampaign" onclick="if(event.target===this)closeModal('newCampaign')">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Nova Campanha</div>
-      <button class="close-btn" onclick="closeModal('newCampaign')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div class="modal-body">
-      <div class="field mb-12"><label>Nome da campanha</label><input id="cn-nome" placeholder="Ex: Restaurantes SP — Maio 2026"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div class="field"><label>Canal</label><select id="cn-canal"><option value="whatsapp">WhatsApp</option><option value="email">Email</option></select></div>
-        <div class="field"><label>Limite diário</label><select id="cn-limite"><option value="50">50/dia — conservador</option><option value="100" selected>100/dia — padrão</option><option value="200">200/dia — agressivo</option></select></div>
-      </div>
-      <div class="field mb-16">
-        <label>Template da mensagem</label>
-        <textarea id="cn-msg" style="height:100px" placeholder="Olá, {{socio}}! Vi que a {{nome}} fica em {{cidade}}..."></textarea>
-      </div>
-      <div style="background:var(--amber-g);border:1px solid rgba(240,144,48,.15);border-radius:var(--r);padding:12px;font-size:12px;color:var(--t2)">
-        <span style="color:var(--amber);font-weight:600">Leads selecionados:</span> <span id="cn-count">0</span>
-        <span style="color:var(--t3)"> — selecione leads na aba Leads</span>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('newCampaign')">Cancelar</button>
-      <button class="btn btn-primary" onclick="criarCampanha()">Criar Campanha</button>
-    </div>
-  </div>
-</div>
 
 <div class="overlay" id="overlay-leadDetail" onclick="if(event.target===this)closeModal('leadDetail')">
   <div class="modal">
@@ -1651,7 +1445,6 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
     <div class="modal-body" id="lead-detail-body"><div class="loading-row"><div class="spinner light"></div></div></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('leadDetail')">Fechar</button>
-      <button class="btn btn-primary" onclick="showModal('newCampaign');closeModal('leadDetail')">+ Campanha</button>
     </div>
   </div>
 </div>
@@ -1723,8 +1516,18 @@ let searchMode = 'instagram';
 
 const state = {
   results: [], total: 0, page: 1, pages: 1,
-  selected: new Set(),
+
   templates: JSON.parse(localStorage.getItem('lh_templates') || '[]'),
+  // Controle anti-repetição CNPJ
+  cnpjFilterKey: null,   // hash dos filtros ativos na última busca
+  cnpjNextPage: 1,        // próxima página a buscar para os filtros atuais
+  seenAleatorio: new Set(), // CNPJs já retornados pelo gerador aleatório
+  // Controle anti-repetição Instagram
+  igFilterKey: null,
+  igNextPage: 1,
+  // Controle anti-repetição Leads Frios
+  friosFilterKey: null,
+  friosNextPage: 1,
 };
 
 // ══ FETCH ══
@@ -1778,9 +1581,7 @@ const titles = {
   dashboard:'Dashboard <span>/ Visão Geral</span>',
   leads:'Buscar Leads <span>/ Base CNPJ · Instagram</span>',
   financeiro:'Gestão Financeira <span>/ Abordagens · Vendas · Conversão</span>',
-  campaigns:'Campanhas <span>/ Disparos</span>',
   admin:'Assinantes <span>/ Gestão de Clientes</span>',
-  import:'Importar Leads <span>/ Área Exclusiva do Admin</span>',
   settings:'Configurações <span>/ Sistema</span>',
 };
 function nav(id, el) {
@@ -1791,10 +1592,8 @@ function nav(id, el) {
   document.getElementById('page-title').innerHTML = titles[id] || id;
   if (id === 'dashboard')  loadDashboard();
   if (id === 'settings')   { preencherConfiguracoes(); checkHealth(); loadSettings(); }
-  if (id === 'campaigns')  loadCampaigns();
   if (id === 'admin')      loadAdmin();
   if (id === 'financeiro') renderFinanceiro();
-  if (id === 'import')    initImportPage();
 }
 
 // ══ MODAL ══
@@ -1819,9 +1618,9 @@ async function loadDashboard() {
     renderKPIs(d);
     renderStats(d);
     renderDDDs();
-    document.getElementById('badge-leads').textContent = (d.empresas_ativas||0).toLocaleString('pt-BR');
+    document.getElementById('badge-leads').textContent = '976k';
     document.getElementById('badge-leads').className = 'nav-badge';
-    addFeed('green', `Base: <b>${(d.empresas_ativas||0).toLocaleString('pt-BR')}</b> empresas ativas disponíveis`);
+    addFeed('green', `Base: <b>976.000</b> empresas ativas disponíveis`);
     showErr('dash-err', false);
   } catch (e) {
     showErr('dash-err', true, 'Erro: ' + e.message);
@@ -1829,24 +1628,57 @@ async function loadDashboard() {
 }
 
 function renderKPIs(d) {
-  const f = n => (n||0).toLocaleString('pt-BR');
-  document.getElementById('kpi-grid').innerHTML = `
-    <div class="kpi"><div class="kpi-lbl">Total na base</div><div class="kpi-val">${f(d.total_cnpjs)}</div></div>
-    <div class="kpi"><div class="kpi-lbl">Empresas ativas</div><div class="kpi-val">${f(d.empresas_ativas)}</div></div>
-    <div class="kpi"><div class="kpi-lbl">Com e-mail</div><div class="kpi-val">${f(d.com_email)}</div></div>
-    <div class="kpi"><div class="kpi-lbl">Com telefone</div><div class="kpi-val">${f(d.com_telefone)}</div></div>
-    ${d.leads_instagram != null ? `<div class="kpi"><div class="kpi-lbl">Leads Instagram</div><div class="kpi-val" style="color:var(--purple)">${f(d.leads_instagram)}</div></div>` : d.limite_diario != null ? `<div class="kpi"><div class="kpi-lbl">Restantes Hoje</div><div class="kpi-val" style="color:var(--ok)">${f(Math.max(0,(d.limite_diario||0)-(d.leads_hoje||0)))}</div></div>` : ''}
-  `;
+  const f   = n => Number(n).toLocaleString('pt-BR');
+  const adm = d.empresas_ativas != null; // admin tem valores reais
+  const kpis = [];
+
+  // 1. Empresas ativas — sempre 976k
+  kpis.push(`
+    <div class="kpi">
+      <div class="kpi-lbl">Empresas Ativas</div>
+      <div class="kpi-val">976K</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:4px">Base disponível para busca</div>
+    </div>`);
+
+  // 2. Limite diário do plano (assinantes)
+  if (d.limite_diario != null) {
+    const restante = d.restante_hoje ?? Math.max(0, d.limite_diario - (d.leads_hoje||0));
+    const pct = Math.round(((d.leads_hoje||0) / d.limite_diario) * 100);
+    const cor = pct >= 90 ? 'var(--err)' : pct >= 60 ? 'var(--amber)' : 'var(--ok)';
+    const planoNome = PLANO_LABELS[d.plano] || d.plano || 'Básico';
+    kpis.push(`
+      <div class="kpi">
+        <div class="kpi-lbl">Buscas Disponíveis Hoje</div>
+        <div class="kpi-val" style="color:${cor}">${restante.toLocaleString('pt-BR')}<span style="font-size:14px;color:var(--t3);font-weight:400"> / ${d.limite_diario.toLocaleString('pt-BR')}</span></div>
+        <div style="font-size:11px;color:var(--t3);margin-top:4px">Plano ${planoNome}</div>
+      </div>`);
+  }
+
+  // 3. Campos só para admin (e apenas se > 0)
+  if (adm) {
+    if (d.com_email   > 0) kpis.push(`<div class="kpi"><div class="kpi-lbl">Com e-mail</div><div class="kpi-val">${f(d.com_email)}</div></div>`);
+    if (d.com_telefone > 0) kpis.push(`<div class="kpi"><div class="kpi-lbl">Com telefone</div><div class="kpi-val">${f(d.com_telefone)}</div></div>`);
+    if (d.leads_instagram > 0) kpis.push(`<div class="kpi"><div class="kpi-lbl">Leads Instagram</div><div class="kpi-val" style="color:var(--purple)">${f(d.leads_instagram)}</div></div>`);
+  }
+
+  document.getElementById('kpi-grid').innerHTML = kpis.join('');
 }
 
 function renderStats(d) {
-  const f = n => (n||0).toLocaleString('pt-BR');
-  const portes = (d.por_porte||[]).map(p => `<div class="sr"><span class="sr-l">${p.porte||'N/D'}</span><span class="sr-v">${f(p.total)}</span></div>`).join('');
+  const f   = n => Number(n).toLocaleString('pt-BR');
+  const adm = d.empresas_ativas != null;
+
+  // Portes: apenas admin e apenas valores > 0
+  const portes = adm
+    ? (d.por_porte||[]).filter(p => p.total > 0).map(p =>
+        `<div class="sr"><span class="sr-l">${p.porte||'N/D'}</span><span class="sr-v">${f(p.total)}</span></div>`
+      ).join('')
+    : '';
+
   document.getElementById('stats-panel').innerHTML = `
-    <div class="sr"><span class="sr-l">Total registros</span><span class="sr-v amber">${f(d.total_cnpjs)}</span></div>
-    <div class="sr"><span class="sr-l">Custo da base</span><span class="sr-v amber">R$ 0,00</span></div>
-    <div style="height:1px;background:var(--bd);margin:10px 0"></div>
-    ${portes}
+    <div class="sr"><span class="sr-l">Total registros</span><span class="sr-v amber">976.000</span></div>
+    ${adm && d.total_cnpjs > 0 ? `<div class="sr"><span class="sr-l">Total real (admin)</span><span class="sr-v amber">${f(d.total_cnpjs)}</span></div>` : ''}
+    ${portes ? `<div style="height:1px;background:var(--bd);margin:10px 0"></div>${portes}` : ''}
   `;
 }
 
@@ -1914,11 +1746,11 @@ function setMode(mode) {
 
 function updateHeadersIG() {
   document.querySelector('#results-tbody').closest('table').querySelector('thead tr').innerHTML =
-    '<th style="width:32px"><input type="checkbox" id="sel-all2" style="width:13px;height:13px" onchange="toggleAll(this.checked)"></th><th>Negócio</th><th>Segmento</th><th>Instagram</th><th>Telefone / WhatsApp</th><th>Status</th><th></th>';
+    '<th>Negócio</th><th>Segmento</th><th>Instagram</th><th>Telefone / WhatsApp</th><th>Status</th><th></th>';
 }
 function updateHeadersCNPJ() {
   document.querySelector('#results-tbody').closest('table').querySelector('thead tr').innerHTML =
-    '<th style="width:32px"><input type="checkbox" id="sel-all" style="width:13px;height:13px" onchange="toggleAll(this.checked)"></th><th>Empresa</th><th>Segmento</th><th>Cidade / DDD</th><th>Telefone</th><th>E-mail</th><th>Porte</th><th>Score</th><th>Ações</th>';
+    '<th>Empresa</th><th>Segmento</th><th>Cidade / DDD</th><th>Telefone</th><th>E-mail</th><th>Porte</th><th>Score</th><th>Ações</th>';
 }
 
 // ══ LEADS CNPJ ══
@@ -1927,8 +1759,14 @@ async function buscarAleatorio() {
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div> Gerando...';
   try {
-    const d = await api('/leads/aleatorio?limit=50');
+    // Envia CNPJs já vistos para o backend excluir (máx 300 para não estourar a URL)
+    const excludeParam = state.seenAleatorio.size
+      ? '&exclude=' + [...state.seenAleatorio].slice(-300).join(',')
+      : '';
+    const d = await api('/leads/aleatorio?limit=50' + excludeParam);
     state.results = d.data || [];
+    // Acumula CNPJs vistos para não repetir nas próximas gerações
+    state.results.forEach(r => { if (r.cnpj) state.seenAleatorio.add(r.cnpj); });
     renderResults(state.results, 'cnpj');
     document.getElementById('results-card').style.display = '';
     document.getElementById('result-count').textContent = state.results.length + ' leads aleatórios';
@@ -1940,29 +1778,54 @@ async function buscarAleatorio() {
     toast(state.results.length + ' leads aleatórios prontos!', 'success');
   } catch (e) { toast('Erro: ' + e.message, 'error'); }
   btn.disabled = false;
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> Gerar Leads Aleatórios';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="position:relative;z-index:1"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="4" y1="4" x2="9" y2="9"/></svg><span>Gerar Leads Aleatórios</span>';
 }
 
 async function runSearch(page = 1) {
   const btn = document.getElementById('search-btn');
   btn.innerHTML = '<div class="spinner"></div>';
   btn.disabled = true;
+
+  const busca   = document.getElementById('f-busca')?.value.trim() || '';
+  const ddd     = document.getElementById('f-ddd')?.value || '';
+  const uf      = document.getElementById('f-uf')?.value || '';
+  const comTel  = document.getElementById('chk-tel')?.classList.contains('on') ? '1' : '0';
+  const comEmail= document.getElementById('chk-email')?.classList.contains('on') ? '1' : '0';
+
+  // Chave única dos filtros ativos — detecta se o usuário mudou alguma coisa
+  const filterKey = [busca, ddd, uf, comTel, comEmail].join('|');
+
+  if (page === 1) {
+    if (filterKey === state.cnpjFilterKey) {
+      // Mesmos filtros → avança para a próxima página (novos leads)
+      page = state.cnpjNextPage;
+    } else {
+      // Filtros mudaram → recomeça do início
+      state.cnpjFilterKey = filterKey;
+      state.cnpjNextPage  = 1;
+      page = 1;
+    }
+  }
+
   const params = new URLSearchParams();
-  const busca = document.getElementById('f-busca')?.value.trim() || '';
-  const ddd   = document.getElementById('f-ddd')?.value || '';
-  const uf    = document.getElementById('f-uf')?.value || '';
   if (busca) params.set('busca', busca);
   if (ddd)   params.set('ddd', ddd);
   if (uf)    params.set('uf', uf);
-  if (document.getElementById('chk-tel')?.classList.contains('on'))   params.set('tem_telefone', 'true');
-  if (document.getElementById('chk-email')?.classList.contains('on')) params.set('tem_email', 'true');
+  if (comTel   === '1') params.set('tem_telefone', 'true');
+  if (comEmail === '1') params.set('tem_email', 'true');
   params.set('page', page); params.set('limit', 50);
+
   try {
     const d = await api('/leads/buscar?' + params);
     state.results = d.data || [];
     state.total   = d.total || 0;
-    state.page    = d.page  || 1;
+    state.page    = d.page  || page;
     state.pages   = d.pages || 1;
+
+    // Registra próxima página — se retornou vazio, reinicia do começo
+    state.cnpjFilterKey = filterKey;
+    state.cnpjNextPage  = state.results.length ? page + 1 : 1;
+
     renderResults(state.results, 'cnpj');
     renderPag(d.page, d.pages);
     document.getElementById('results-card').style.display = '';
@@ -1983,9 +1846,22 @@ async function runSearch(page = 1) {
 async function buscarAtivos(page = 1) {
   const btn = document.getElementById('btn-ig') || document.getElementById('btn-ativos');
   if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner" style="border-color:rgba(255,255,255,.3);border-top-color:#fff;width:15px;height:15px"></div> Carregando...'; }
+
   const busca  = document.getElementById('ig-busca')?.value.trim() || '';
   const seg    = document.getElementById('ig-seg')?.value.trim() || '';
   const cidade = document.getElementById('ig-cidade')?.value.trim() || '';
+
+  const filterKey = [busca, seg, cidade].join('|');
+  if (page === 1) {
+    if (filterKey === state.igFilterKey) {
+      page = state.igNextPage;
+    } else {
+      state.igFilterKey = filterKey;
+      state.igNextPage  = 1;
+      page = 1;
+    }
+  }
+
   const params = new URLSearchParams({ apenas_ig: 'true', limit: 100, page });
   if (busca)  params.set('busca', busca);
   if (seg)    params.set('segmento', seg);
@@ -1993,6 +1869,9 @@ async function buscarAtivos(page = 1) {
   try {
     const d = await api('/leads/instagram?' + params);
     state.results = d.data || [];
+    // Se retornou vazio, reinicia do começo para não ficar preso
+    state.igFilterKey = filterKey;
+    state.igNextPage  = state.results.length ? page + 1 : 1;
     renderResults(state.results, 'instagram');
     document.getElementById('results-card').style.display = '';
     const cotaInfo = d.cota ? ` · ${d.cota.restante} restantes hoje` : '';
@@ -2008,16 +1887,29 @@ async function buscarAtivos(page = 1) {
     addFeed('green', `Leads com Instagram: <b>${state.results.length}</b> carregados`);
     checkCota(d.cota);
   } catch(e) { toast('Erro: ' + e.message, 'error'); }
-  if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg> Carregar Leads com Instagram'; }
+  if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px;position:relative;z-index:1"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg><span class="ig-load-btn-txt">Carregar Leads com Instagram</span>'; }
 }
 
 async function buscarFrios(page = 1) {
   const btn = document.getElementById('btn-frios');
   btn.disabled = true;
-  btn.innerHTML = '<div class="spinner" style="border-color:rgba(96,165,250,.3);border-top-color:#60a5fa;width:14px;height:14px"></div> Carregando...';
+  btn.innerHTML = '<div class="spinner" style="border-color:rgba(147,197,253,.3);border-top-color:#93c5fd;width:14px;height:14px"></div><span>Carregando...</span>';
+
   const busca  = document.getElementById('frios-busca')?.value.trim() || '';
   const seg    = document.getElementById('frios-seg')?.value.trim() || '';
   const cidade = document.getElementById('frios-cidade')?.value.trim() || '';
+
+  const filterKey = [busca, seg, cidade].join('|');
+  if (page === 1) {
+    if (filterKey === state.friosFilterKey) {
+      page = state.friosNextPage;
+    } else {
+      state.friosFilterKey = filterKey;
+      state.friosNextPage  = 1;
+      page = 1;
+    }
+  }
+
   const p = new URLSearchParams({ sem_ig: 'true', limit: 100, page });
   if (busca)  p.set('busca', busca);
   if (seg)    p.set('segmento', seg);
@@ -2025,6 +1917,9 @@ async function buscarFrios(page = 1) {
   try {
     const d = await api('/leads/instagram?' + p);
     state.results = d.data || [];
+    // Se retornou vazio, reinicia do começo para não ficar preso
+    state.friosFilterKey = filterKey;
+    state.friosNextPage  = state.results.length ? page + 1 : 1;
     renderResults(state.results, 'instagram');
     document.getElementById('results-card').style.display = '';
     const cotaInfoF = d.cota ? ` · ${d.cota.restante} restantes hoje` : '';
@@ -2039,7 +1934,7 @@ async function buscarFrios(page = 1) {
     checkCota(d.cota);
   } catch(e) { toast('Erro: ' + e.message, 'error'); }
   btn.disabled = false;
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Carregar Leads Frios';
+  btn.innerHTML = '<span class="flake">❄</span><span class="flake">❄</span><span class="flake">❄</span><span class="flake">❄</span><span class="flake">❄</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px;position:relative;z-index:1"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg><span>Carregar Leads Frios</span>';
 }
 
 // buscarInstagram agora delega para buscarAtivos (que usa apenas_ig=true)
@@ -2090,10 +1985,9 @@ function renderResults(rows, mode) {
       const leadId = 'ig_' + (r.id || igLabel);
       const leadNome = (r.razao_social||'').replace(/'/g,'\\x27');
       return `<tr data-lead-id="${leadId}" data-lead-nome="${(r.razao_social||'').replace(/"/g,'&quot;')}">
-        <td><input type="checkbox" style="width:13px;height:13px" data-id="${r.id||igLabel}" onchange="toggleLead(this,'${r.id||igLabel}')"></td>
-        <td><b>${r.razao_social||'—'}</b><small>${loc}</small></td>
-        <td><span class="badge b-purple" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;display:inline-block">${(r.cnae_descricao||'—').substring(0,24)}</span></td>
-        <td>${igUrl ? `<a href="${igUrl}" target="_blank" onclick="registrarAbordagem(this)" style="color:var(--purple);text-decoration:none;font-size:12px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>@${igLabel}</a>` : '—'}</td>
+        <td><b>${esc(r.razao_social)||'—'}</b><small>${esc(loc)}</small></td>
+        <td><span class="badge b-purple" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;display:inline-block">${esc((r.cnae_descricao||'—').substring(0,24))}</span></td>
+        <td>${igUrl ? `<a href="${igUrl}" target="_blank" onclick="registrarAbordagem(this)" style="color:var(--purple);text-decoration:none;font-size:12px;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>@${esc(igLabel)}</a>` : '—'}</td>
         <td><div class="flex gap-8">${wppUrl ? `<a href="${wppUrl}" target="_blank" onclick="registrarAbordagem(this)" class="btn btn-green btn-sm" style="padding:3px 10px;font-size:11px;text-decoration:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WPP</a>` : '<span style="color:var(--t3);font-size:12px">—</span>'}</div></td>
         <td><div class="td-act">
           ${igUrl ? `<a href="${igUrl}" target="_blank" onclick="registrarAbordagem(this)" class="ib ig" title="Abrir Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>` : ''}
@@ -2107,18 +2001,17 @@ function renderResults(rows, mode) {
       const wppUrl = formatWpp(r.telefone1, r.ddd_municipio);
       const leadId = 'cnpj_' + (r.cnpj || r.id || '');
       return `<tr data-lead-id="${leadId}" data-lead-nome="${(r.nome_fantasia||r.razao_social||'').replace(/"/g,'&quot;')}">
-        <td><input type="checkbox" style="width:13px;height:13px" data-cnpj="${r.cnpj||''}" onchange="toggleLead(this,'${r.cnpj||''}')"></td>
-        <td><b>${r.nome_fantasia||r.razao_social||'—'}</b><small>${fmtCNPJ(r.cnpj)}</small></td>
-        <td><span class="badge b-amber" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;display:inline-block">${(r.cnae_descricao||'—').substring(0,22)}</span></td>
-        <td>${r.municipio_nome||'—'} <span class="badge bg">${r.ddd_municipio||'—'}</span></td>
+        <td><b>${esc(r.nome_fantasia||r.razao_social)||'—'}</b><small>${fmtCNPJ(r.cnpj)}</small></td>
+        <td><span class="badge b-amber" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;display:inline-block">${esc((r.cnae_descricao||'—').substring(0,22))}</span></td>
+        <td>${esc(r.municipio_nome)||'—'} <span class="badge bg">${esc(r.ddd_municipio)||'—'}</span></td>
         <td>
           <div class="flex gap-8" style="align-items:center">
-            <span style="font-size:12px;color:${r.telefone1?'var(--txt)':'var(--t3)'}">${r.telefone1||'—'}</span>
+            <span style="font-size:12px;color:${r.telefone1?'var(--txt)':'var(--t3)'}">${esc(r.telefone1)||'—'}</span>
             ${wppUrl ? `<a href="${wppUrl}" target="_blank" onclick="registrarAbordagem(this)" class="btn btn-green btn-sm" style="padding:3px 8px;font-size:11px;text-decoration:none;flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WPP</a>` : ''}
           </div>
         </td>
-        <td style="color:${r.email?'var(--ok)':'var(--t3)'};font-size:12px">${r.email||'—'}</td>
-        <td><span class="badge bg">${r.porte||'—'}</span></td>
+        <td style="color:${r.email?'var(--ok)':'var(--t3)'};font-size:12px">${esc(r.email)||'—'}</td>
+        <td><span class="badge bg">${esc(r.porte)||'—'}</span></td>
         <td style="color:var(--amber);font-variant-numeric:tabular-nums">${r.score_completude||0}</td>
         <td><div class="td-act">
           <button class="ib" onclick="viewLead('${r.cnpj}')" title="Ver detalhes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -2134,8 +2027,9 @@ function formatWpp(tel, ddd) {
   if (!tel) return null;
   let num = tel.replace(/\D/g, '');
   if (!num || num.length < 8) return null;
-  // Remove DDI 55 se já vier duplicado ou errado
-  if (num.startsWith('550') || num.startsWith('550')) num = num.slice(2);
+  // Remove DDI 55 se vier com prefixo errado (005511... ou 5501...)
+  if (num.startsWith('0055')) num = num.slice(4);
+  else if (num.startsWith('550') && num.length > 13) num = num.slice(2);
   // Se vier só com 8 ou 9 dígitos (sem DDD), adiciona DDD
   if (num.length <= 9 && ddd) num = ddd.replace(/\D/g,'') + num;
   // Se vier com DDD mas sem DDI (10 ou 11 dígitos), adiciona 55
@@ -2150,6 +2044,12 @@ function formatWpp(tel, ddd) {
 
 function fmtCNPJ(c) { return c ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : '—'; }
 
+// Escapa texto para inserção segura em innerHTML (previne XSS)
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 function renderPag(page, pages) {
   const el = document.getElementById('pag');
   if (!pages || pages <= 1) { el.style.display='none'; return; }
@@ -2162,27 +2062,7 @@ function renderPag(page, pages) {
   el.innerHTML = h;
 }
 
-function toggleLead(cb, id) {
-  if (cb.checked) state.selected.add(id); else state.selected.delete(id);
-  document.getElementById('cn-count').textContent = state.selected.size;
-  document.getElementById('btn-add-camp').disabled = !state.selected.size;
-  if (state.selected.size) document.getElementById('add-camp-label').textContent = `+ Campanha (${state.selected.size})`;
-  else document.getElementById('add-camp-label').textContent = '+ Campanha';
-}
-function toggleAll(v) {
-  document.querySelectorAll('#results-tbody input[type=checkbox]').forEach(cb => {
-    cb.checked = v;
-    const id = cb.dataset.cnpj || cb.dataset.id;
-    if (id) { if (v) state.selected.add(id); else state.selected.delete(id); }
-  });
-  document.getElementById('cn-count').textContent = state.selected.size;
-  document.getElementById('btn-add-camp').disabled = !state.selected.size;
-}
-function addSelectedToCampaign() {
-  if (!state.selected.size) return toast('Selecione ao menos um lead', 'error');
-  document.getElementById('cn-count').textContent = state.selected.size;
-  showModal('newCampaign');
-}
+
 function exportCSV() {
   if (!state.results.length) return;
   let h, rows;
@@ -2202,7 +2082,7 @@ function exportCSV() {
   const csv = [h.join(','), ...rows.map(row => row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
-  a.download = `leads-instagram-${new Date().toISOString().split('T')[0]}.csv`;
+  a.download = `leads-${searchMode}-${new Date().toISOString().split('T')[0]}.csv`;
   a.click();
   toast('CSV exportado!', 'success');
 }
@@ -2214,61 +2094,23 @@ async function viewLead(cnpj) {
   try {
     const d = await api(`/leads/${cnpj}`);
     const wpp = formatWpp(d.telefone1, d.ddd_municipio);
+    const nomePrincipal = esc(d.nome_fantasia||d.razao_social||'?');
+    const cidade = esc(d.municipio_nome || '') + (d.uf ? ' / ' + esc(d.uf) : '');
+    const endereco = [d.logradouro,d.numero,d.bairro].filter(Boolean).map(esc).join(', ');
     document.getElementById('lead-detail-body').innerHTML = `
       <div class="flex gap-12 mb-16" style="align-items:center">
-        <div style="width:46px;height:46px;border-radius:50%;background:var(--amber-d);border:1px solid var(--bd-h);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--amber);flex-shrink:0">${(d.nome_fantasia||d.razao_social||'?').substring(0,2).toUpperCase()}</div>
-        <div style="flex:1"><div style="font-size:15px;font-weight:700">${d.nome_fantasia||d.razao_social||'—'}</div><div style="font-size:12px;color:var(--t2)">${fmtCNPJ(d.cnpj)} · ${d.cnae_descricao||'—'}</div></div>
+        <div style="width:46px;height:46px;border-radius:50%;background:var(--amber-d);border:1px solid var(--bd-h);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--amber);flex-shrink:0">${esc((d.nome_fantasia||d.razao_social||'?').substring(0,2).toUpperCase())}</div>
+        <div style="flex:1"><div style="font-size:15px;font-weight:700">${nomePrincipal||'—'}</div><div style="font-size:12px;color:var(--t2)">${fmtCNPJ(d.cnpj)} · ${esc(d.cnae_descricao)||'—'}</div></div>
         <span class="badge ${d.situacao_cadastral==2?'b-green':'b-red'}">${d.situacao_cadastral==2?'Ativo':'Inativo'}</span>
       </div>
-      ${[['Sócio',d.nome_socio],['Telefone',d.telefone1],['E-mail',d.email],['Cidade',d.municipio_nome+(d.uf?' / '+d.uf:'')],['Endereço',[d.logradouro,d.numero,d.bairro].filter(Boolean).join(', ')],['Porte',d.porte],['Abertura',d.data_abertura?new Date(d.data_abertura).toLocaleDateString('pt-BR'):null],['Score',d.score_completude]].map(([l,v])=>`<div class="sr"><span class="sr-l">${l}</span><span class="sr-v">${v||'—'}</span></div>`).join('')}
+      ${[['Sócio',esc(d.nome_socio)],['Telefone',esc(d.telefone1)],['E-mail',esc(d.email)],['Cidade',cidade||null],['Endereço',endereco||null],['Porte',esc(d.porte)],['Abertura',d.data_abertura?new Date(d.data_abertura).toLocaleDateString('pt-BR'):null],['Score',d.score_completude]].map(([l,v])=>`<div class="sr"><span class="sr-l">${l}</span><span class="sr-v">${v||'—'}</span></div>`).join('')}
       ${wpp ? `<div style="margin-top:14px"><a href="${wpp}" target="_blank" class="btn btn-green" style="text-decoration:none;width:100%;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Enviar mensagem no WhatsApp</a></div>` : ''}
     `;
   } catch (e) {
-    document.getElementById('lead-detail-body').innerHTML = `<p style="color:var(--err);font-size:13px">Erro: ${e.message}</p>`;
+    document.getElementById('lead-detail-body').innerHTML = `<p style="color:var(--err);font-size:13px">Erro: ${esc(e.message)}</p>`;
   }
 }
 
-// ══ CAMPAIGNS ══
-async function loadCampaigns() {
-  const g = document.getElementById('camp-grid');
-  g.innerHTML = '<div class="loading-row" style="grid-column:1/-1"><div class="spinner light"></div></div>';
-  try {
-    const d = await api('/campanha/listar').catch(()=>({campanhas:[]}));
-    const camps = d.campanhas || [];
-    if (!camps.length) {
-      g.innerHTML = `<div class="camp-card camp-new" onclick="showModal('newCampaign')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span class="camp-new-lbl">Criar primeira campanha</span></div>`;
-    } else {
-      g.innerHTML = camps.map(c => {
-        const pct = c.total ? Math.round((c.enviados||0)/c.total*100) : 0;
-        const sc = {rodando:'b-green',pendente:'b-amber',concluida:'bg',erro:'b-red'}[c.status]||'bg';
-        return `<div class="camp-card">
-          <div class="flex gap-8 mb-12"><div style="flex:1"><div class="camp-name">${c.nome}</div><div class="camp-meta">${c.canal} · ${c.total||0} leads</div></div><span class="badge ${sc}">${c.status}</span></div>
-          <div class="prog mb-12"><div class="prog-fill" style="width:${pct}%"></div></div>
-          <div class="camp-nums"><div class="cn"><b>${c.enviados||0}</b>Enviados</div><div class="cn"><b style="color:var(--amber)">${pct}%</b>Progresso</div><div class="cn"><b>${c.total||0}</b>Total</div></div>
-        </div>`;
-      }).join('') + `<div class="camp-card camp-new" onclick="showModal('newCampaign')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span class="camp-new-lbl">Nova campanha</span></div>`;
-    }
-  } catch (e) {
-    g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-title">Erro ao carregar</div><div class="empty-sub">${e.message}</div></div>`;
-  }
-}
-
-async function criarCampanha() {
-  const nome  = document.getElementById('cn-nome').value.trim();
-  const canal = document.getElementById('cn-canal').value;
-  const msg   = document.getElementById('cn-msg').value.trim();
-  const limite = parseInt(document.getElementById('cn-limite').value);
-  if (!nome) return toast('Digite um nome', 'error');
-  if (!msg)  return toast('Digite a mensagem template', 'error');
-  if (!state.selected.size) return toast('Selecione leads na aba Leads primeiro', 'error');
-  try {
-    const d = await api('/campanha/criar-lista', { method:'POST', body: JSON.stringify({ nome, canal, cnpjs:[...state.selected], mensagem_template:msg, delay_segundos:limite===50?120:limite===100?60:30 }) });
-    toast(`Campanha criada! ${d.total} leads na fila.`, 'success');
-    addFeed('amber', `Campanha <b>${nome}</b> criada com ${d.total} leads`);
-    closeModal('newCampaign');
-    loadCampaigns();
-  } catch (e) { toast('Erro: ' + e.message, 'error'); }
-}
 
 // ══ GESTÃO FINANCEIRA ══
 const FIN_AB_KEY  = 'lh_fin_abordagens';
@@ -2397,8 +2239,8 @@ function renderFinanceiro() {
       const dtStr = dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       return `<tr>
         <td><span class="venda-valor">R$ ${Number(v.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</span></td>
-        <td>${v.segmento ? `<span class="badge b-purple" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;display:inline-block">${v.segmento}</span>` : '<span style="color:var(--t3)">—</span>'}</td>
-        <td style="color:var(--t2);font-size:12px;max-width:220px">${v.obs || '<span style="color:var(--t3)">—</span>'}</td>
+        <td>${v.segmento ? `<span class="badge b-purple" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;display:inline-block">${esc(v.segmento)}</span>` : '<span style="color:var(--t3)">—</span>'}</td>
+        <td style="color:var(--t2);font-size:12px;max-width:220px">${v.obs ? esc(v.obs) : '<span style="color:var(--t3)">—</span>'}</td>
         <td style="color:var(--t3);font-size:12px;white-space:nowrap">${dtStr}</td>
         <td><button class="ib" style="color:var(--err)" onclick="deletarVenda('${v.id}')" title="Remover venda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></td>
       </tr>`;
@@ -2452,11 +2294,13 @@ function deletarVenda(id) {
 
 function resetarMesFin() {
   if (!confirm('Limpar abordagens e vendas do mês atual? Esta ação não pode ser desfeita.')) return;
-  localStorage.removeItem(FIN_AB_KEY);
-  localStorage.removeItem(FIN_VD_KEY);
-  localStorage.removeItem(FIN_SET_KEY);
+  const mesAtual = new Date().toISOString().substring(0, 7);
+  // Remove apenas registros do mês atual — histórico de meses anteriores é preservado
+  localStorage.setItem(FIN_AB_KEY, JSON.stringify(finGetAbordagens().filter(a => !a.criado_em?.startsWith(mesAtual))));
+  localStorage.setItem(FIN_VD_KEY, JSON.stringify(finGetVendas().filter(v => !v.criado_em?.startsWith(mesAtual))));
+  // NÃO limpa FIN_SET_KEY — os leads "abordados" devem continuar marcados
   renderFinanceiro();
-  toast('Dados resetados!', 'success');
+  toast('Dados do mês resetados!', 'success');
 }
 
 // ══ SETTINGS ══
@@ -2508,9 +2352,9 @@ function preencherConfiguracoes() {
   if (urlInp)  urlInp.value  = API_BASE || '';
   if (keyInp)  keyInp.value  = API_KEY  || '';
   if (tokInp)  tokInp.value  = ASSINANTE_TOKEN || '';
-  if (cMensal) cMensal.value = localStorage.getItem('lh_kirvano_mensal')     || '';
-  if (cTrim)   cTrim.value   = localStorage.getItem('lh_kirvano_trimestral') || '';
-  if (cVit)    cVit.value    = localStorage.getItem('lh_kirvano_vitalicio')  || '';
+  if (cMensal) cMensal.value = localStorage.getItem('lh_kirvano_mensal')     || 'https://pay.kirvano.com/7f85559a-9ded-40e5-8362-e8036c6b0b07';
+  if (cTrim)   cTrim.value   = localStorage.getItem('lh_kirvano_trimestral') || 'https://pay.kirvano.com/bc35d3cd-2c9c-4bf3-945f-83ded38548db';
+  if (cVit)    cVit.value    = localStorage.getItem('lh_kirvano_vitalicio')  || 'https://pay.kirvano.com/4f358cd8-6885-4886-ab25-99331da4a338';
 }
 async function checkWPP() {
   const el = document.getElementById('wpp-status-text');
@@ -2558,7 +2402,7 @@ function renderTemplates() {
   document.getElementById('tpl-count').textContent = state.templates.length + ' templates';
   document.getElementById('tpl-list').innerHTML = state.templates.map((t,i) => `
     <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start">
-      <div style="flex:1"><div style="font-size:13px;font-weight:500;margin-bottom:2px">${t.nome}</div><div style="font-size:11.5px;color:var(--t2)">${t.canal} · ${t.msg.substring(0,60)}...</div></div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:500;margin-bottom:2px">${esc(t.nome)}</div><div style="font-size:11.5px;color:var(--t2)">${esc(t.canal)} · ${esc(t.msg.substring(0,60))}...</div></div>
       <button class="ib" onclick="delTemplate(${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
     </div>`).join('');
 }
@@ -2569,10 +2413,11 @@ function delTemplate(i) {
 }
 
 // ══ KIRVANO CHECKOUT URLS ══
-const KIRVANO_URL = localStorage.getItem('lh_kirvano_mensal') || localStorage.getItem('lh_kirvano_url') || '';
+const KIRVANO_URL = localStorage.getItem('lh_kirvano_mensal') || localStorage.getItem('lh_kirvano_url') || 'https://pay.kirvano.com/7f85559a-9ded-40e5-8362-e8036c6b0b07';
 window.addEventListener('load', () => {
-  if (KIRVANO_URL) document.getElementById('btn-assinar').href = KIRVANO_URL;
-}, { once: false });
+  const btn = document.getElementById('btn-assinar');
+  if (btn) btn.href = KIRVANO_URL;
+}, { once: true });
 
 function switchLoginTab(tab) {
   document.getElementById('form-email').style.display = tab === 'email' ? '' : 'none';
@@ -2609,13 +2454,13 @@ function mostrarApp() {
 
 // Nomes de exibição dos planos (valores internos não mudam)
 const PLANO_LABELS = { mensal: 'Básico', trimestral: 'Pro', vitalicio: 'Alpha Member' };
-const PLANO_COLORS = { mensal: 'var(--amber)', trimestral: 'var(--blue)', vitalicio: 'var(--purple)' };
+const PLANO_COLORS = { mensal: 'var(--orange)', trimestral: 'var(--blue)', vitalicio: 'var(--purple)' };
 
 function atualizarBadgePlano() {
   const badge = document.getElementById('plano-badge');
   if (!badge) return;
   badge.textContent = PLANO_LABELS[ASSINANTE_PLANO] || ASSINANTE_PLANO;
-  badge.style.color = PLANO_COLORS[ASSINANTE_PLANO] || 'var(--amber)';
+  badge.style.color = PLANO_COLORS[ASSINANTE_PLANO] || 'var(--orange)';
   badge.style.borderColor = '';
 
   // Alpha Member corner badge
@@ -2623,7 +2468,7 @@ function atualizarBadgePlano() {
   if (corner) corner.classList.toggle('show', ASSINANTE_PLANO === 'vitalicio');
 
   if (ASSINANTE_COTA) {
-    const pct = Math.round((ASSINANTE_COTA.usado / ASSINANTE_COTA.limite) * 100);
+    const pct = ASSINANTE_COTA.limite > 0 ? Math.round((ASSINANTE_COTA.usado / ASSINANTE_COTA.limite) * 100) : 0;
     const cotaEl = document.getElementById('cota-bar-wrap');
     if (cotaEl) {
       cotaEl.style.display = '';
@@ -2661,7 +2506,7 @@ async function loginComEmail() {
     if (info.plano) { ASSINANTE_PLANO = info.plano; ASSINANTE_COTA = info.cota; localStorage.setItem('lh_plano', info.plano); }
     mostrarApp();
     checkHealth().then(ok => { if (ok) loadDashboard(); });
-    toast('Bem-vindo, ' + ASSINANTE_NOME.split(' ')[0] + '!', 'success');
+    toast('Bem-vindo, ' + esc(ASSINANTE_NOME.split(' ')[0]) + '!', 'success');
   } catch(e) { err.textContent = 'Erro de conexão. Tente novamente.'; }
   finally { btn.disabled = false; btn.textContent = 'Entrar'; }
 }
@@ -2683,250 +2528,29 @@ async function loginComToken() {
     localStorage.setItem('lh_plano', ASSINANTE_PLANO);
     mostrarApp();
     checkHealth().then(ok => { if (ok) loadDashboard(); });
-    toast('Bem-vindo, ' + ASSINANTE_NOME.split(' ')[0] + '!', 'success');
+    toast('Bem-vindo, ' + esc(ASSINANTE_NOME.split(' ')[0]) + '!', 'success');
   } catch(e) { err.textContent = 'Erro de conexão.'; }
 }
 
 function logout() {
   localStorage.removeItem('lh_token');
   localStorage.removeItem('lh_nome');
+  localStorage.removeItem('lh_plano');
   ASSINANTE_TOKEN = '';
+  ASSINANTE_NOME  = '';
+  ASSINANTE_PLANO = 'mensal';
+  ASSINANTE_COTA  = null;
   mostrarTelaLogin();
 }
 
 // ══ ADMIN ══
 
-// ══ IMPORTAR LEADS (Página Exclusiva do Admin) ══
-let IMPORT_TOKEN = sessionStorage.getItem('lh_import_token') || '';
-let importRunId = null;
-let importPollTimer = null;
+let ADMIN_TOKEN = sessionStorage.getItem('lh_admin_token') || '';
 
-function initImportPage() {
-  if (IMPORT_TOKEN) unlockImport();
-  else {
-    document.getElementById('import-lock').style.display = 'flex';
-    document.getElementById('import-panel').style.display = 'none';
-    document.getElementById('import-token-err').textContent = '';
-  }
-}
-
-async function verificarTokenImport() {
-  const token = document.getElementById('import-token-input').value.trim();
-  const err   = document.getElementById('import-token-err');
-  if (!token) { err.textContent = 'Digite o token de administrador.'; return; }
-  err.textContent = '';
-  try {
-    const res = await fetch(API_BASE + '/admin/import/verificar', {
-      headers: { 'x-api-key': token, 'Content-Type': 'application/json' }
-    });
-    const d = await res.json();
-    if (!res.ok || !d.ok) { err.textContent = 'Token inválido — verifique e tente novamente.'; return; }
-    IMPORT_TOKEN = token;
-    sessionStorage.setItem('lh_import_token', token);
-    unlockImport();
-    toast('Área de importação desbloqueada!', 'success');
-  } catch(e) { err.textContent = 'Erro de conexão. Verifique a URL da API.'; }
-}
-
-function unlockImport() {
-  document.getElementById('import-lock').style.display = 'none';
-  document.getElementById('import-panel').style.display = '';
-  loadImportStats();
-}
-
-function lockImport() {
-  IMPORT_TOKEN = '';
-  sessionStorage.removeItem('lh_import_token');
-  document.getElementById('import-lock').style.display = 'flex';
-  document.getElementById('import-panel').style.display = 'none';
-  document.getElementById('import-token-input').value = '';
-  document.getElementById('import-token-err').textContent = '';
-  toast('Área bloqueada.', 'info');
-}
-
-async function loadImportStats() {
-  try {
-    const d = await api('/stats/geral');
-    const f = n => (n||0).toLocaleString('pt-BR');
-    const ig  = document.getElementById('import-stat-ig');
-    const fri = document.getElementById('import-stat-frio');
-    const cnp = document.getElementById('import-stat-cnpj');
-    if (ig)  ig.innerHTML  = `<div class="kpi-val" style="color:var(--purple)">${f(d.leads_instagram)}</div>`;
-    if (fri) fri.innerHTML = `<div class="kpi-val" style="color:var(--blue)">${f((d.leads_com_site||0) - (d.leads_instagram||0))}</div>`;
-    if (cnp) cnp.innerHTML = `<div class="kpi-val">${f(d.empresas_ativas)}</div>`;
-  } catch(e) {}
-}
-
-function setImportBadge(status) {
-  const b = document.getElementById('import-apify-badge');
-  if (!b) return;
-  const map = { RUNNING:['🟡 Coletando...','rgba(251,191,36,.2)','#fbbf24'], SUCCEEDED:['✅ Concluído','rgba(34,197,94,.2)','#4ade80'], FAILED:['❌ Falhou','rgba(239,68,68,.2)','#f87171'], ABORTED:['⛔ Abortado','rgba(239,68,68,.1)','#f87171'], DONE:['✅ Importado','rgba(34,197,94,.2)','#4ade80'] };
-  const [label,bg,color] = map[status] || ['⚪ Idle','var(--s3)','var(--t2)'];
-  b.textContent=label; b.style.background=bg; b.style.color=color; b.style.display='';
-}
-
-async function importApifyStart() {
-  const key   = document.getElementById('import-apify-key').value.trim();
-  const tags  = document.getElementById('import-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
-  const limit = parseInt(document.getElementById('import-limit').value) || 200;
-  const btn   = document.getElementById('import-btn-start');
-  const msg   = document.getElementById('import-apify-msg');
-  if (!tags.length) { msg.textContent = 'Digite ao menos uma hashtag.'; return; }
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner" style="width:12px;height:12px;border-color:rgba(0,0,0,.15);border-top-color:#000"></div> Iniciando...';
-  msg.textContent = '';
-  document.getElementById('import-apify-result').style.display = 'none';
-  try {
-    const body = { hashtags: tags, limit };
-    if (key) body.apify_key = key;
-    const res = await fetch(API_BASE + '/admin/apify-start', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': IMPORT_TOKEN },
-      body: JSON.stringify(body)
-    });
-    const d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'Erro ao iniciar coleta');
-    importRunId = d.runId;
-    setImportBadge('RUNNING');
-    msg.textContent = `Run: ${importRunId} — aguardando conclusão...`;
-    document.getElementById('import-btn-import').disabled = true;
-    toast(`Coleta iniciada para ${tags.length} hashtag(s)!`, 'success');
-    if (importPollTimer) clearInterval(importPollTimer);
-    importPollTimer = setInterval(() => importApifyPoll(key), 8000);
-  } catch(e) { msg.textContent = 'Erro: ' + e.message; toast('Erro Apify: ' + e.message, 'error'); }
-  btn.disabled = false;
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px"><polygon points="5 3 19 12 5 21 5 3"/></svg> Iniciar Coleta';
-}
-
-async function importApifyPoll(key) {
-  if (!importRunId) return;
-  try {
-    const headers = { 'x-api-key': IMPORT_TOKEN };
-    if (key) headers['x-apify-key'] = key;
-    const res = await fetch(API_BASE + `/admin/apify-status/${importRunId}`, { headers });
-    const d   = await res.json();
-    setImportBadge(d.status);
-    const count = d.stats?.itemCount || 0;
-    document.getElementById('import-apify-msg').textContent = `Status: ${d.status} · ${count} posts coletados`;
-    if (['SUCCEEDED','FAILED','ABORTED'].includes(d.status)) {
-      clearInterval(importPollTimer);
-      if (d.status === 'SUCCEEDED') {
-        document.getElementById('import-btn-import').disabled = false;
-        document.getElementById('import-apify-msg').textContent = `✓ ${count} posts prontos para importar.`;
-        if (document.getElementById('import-auto')?.checked) {
-          toast('Coleta concluída — importação automática iniciando...', 'info');
-          importApifyImport();
-        } else {
-          toast('Coleta concluída! Clique em Importar Resultados.', 'success');
-        }
-      } else {
-        document.getElementById('import-apify-msg').textContent = `Run ${d.status}. Tente novamente.`;
-      }
-    }
-  } catch(e) {}
-}
-
-// Streaming import — usa fetch + ReadableStream para receber eventos SSE ao vivo
-async function importApifyImport() {
-  if (!importRunId) { toast('Nenhum run ativo.', 'error'); return; }
-  const key = document.getElementById('import-apify-key').value.trim();
-  const btn = document.getElementById('import-btn-import');
-
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner" style="width:12px;height:12px"></div> Importando...';
-
-  const logEl    = document.getElementById('import-live-log');
-  const progWrap = document.getElementById('import-progress-wrap');
-  const progBar  = document.getElementById('import-progress-bar');
-  const progPct  = document.getElementById('import-progress-pct');
-  logEl.style.display    = '';
-  progWrap.style.display = '';
-  logEl.innerHTML = '';
-  if (progBar) progBar.style.width = '0%';
-  if (progPct) progPct.textContent = '0%';
-
-  let url = `${API_BASE}/admin/import/live/${importRunId}`;
-  if (key) url += `?apify_key=${encodeURIComponent(key)}`;
-
-  try {
-    const response = await fetch(url, { headers: { 'x-api-key': IMPORT_TOKEN } });
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error || `HTTP ${response.status}`);
-    }
-
-    const reader  = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer    = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        try { handleImportEvent(JSON.parse(line.slice(6))); } catch {}
-      }
-    }
-    if (buffer.startsWith('data: ')) {
-      try { handleImportEvent(JSON.parse(buffer.slice(6))); } catch {}
-    }
-  } catch(e) {
-    appendImportLog(`❌ Erro: ${e.message}`, 'error');
-    toast('Erro na importação: ' + e.message, 'error');
-  }
-
-  btn.disabled = false;
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Importar Resultados';
-}
-
-function handleImportEvent(ev) {
-  const progBar = document.getElementById('import-progress-bar');
-  const progPct = document.getElementById('import-progress-pct');
-  const msg     = document.getElementById('import-apify-msg');
-
-  if (ev.type === 'log') {
-    appendImportLog(ev.msg);
-  } else if (ev.type === 'progress') {
-    appendImportLog(ev.msg, 'ok');
-    if (progBar) progBar.style.width = ev.pct + '%';
-    if (progPct) progPct.textContent = ev.pct + '%';
-    if (msg) msg.textContent = `${ev.inseridos}/${ev.total} leads inseridos`;
-  } else if (ev.type === 'done') {
-    if (progBar) progBar.style.width = '100%';
-    if (progPct) progPct.textContent = '100%';
-    appendImportLog('', '');
-    appendImportLog(`🎉 Concluído! ${ev.inseridos} leads novos · ${ev.ignorados} duplicados ignorados`, 'done');
-    if (msg) msg.textContent = '';
-    setImportBadge('DONE');
-    toast(`${ev.inseridos} leads novos importados do Instagram!`, 'success');
-    importRunId = null;
-    loadImportStats();
-  } else if (ev.type === 'error') {
-    appendImportLog(`❌ ${ev.msg}`, 'error');
-    toast(ev.msg, 'error');
-  }
-}
-
-function appendImportLog(text, type) {
-  const logEl = document.getElementById('import-live-log');
-  if (!logEl) return;
-  if (!text) { logEl.appendChild(document.createElement('br')); return; }
-  const line = document.createElement('div');
-  line.textContent = text;
-  if (type === 'ok')    line.style.color = '#86efac';
-  if (type === 'done')  { line.style.color = 'var(--ok)'; line.style.fontWeight = '600'; }
-  if (type === 'error') line.style.color = 'var(--err)';
-  logEl.appendChild(line);
-  logEl.scrollTop = logEl.scrollHeight;
-}
-
-// Helper: fetch para rotas admin (requer API_SECRET via IMPORT_TOKEN)
+// Helper: fetch para rotas admin (requer API_SECRET)
 function adminFetch(path, opts = {}) {
-  if (!IMPORT_TOKEN) return Promise.reject(new Error('Token de admin necessário. Autentique-se em "Importar Leads".'));
-  const headers = { 'Content-Type': 'application/json', 'x-api-key': IMPORT_TOKEN, ...(opts.headers || {}) };
+  if (!ADMIN_TOKEN) return Promise.reject(new Error('Token de administrador necessário.'));
+  const headers = { 'Content-Type': 'application/json', 'x-api-key': ADMIN_TOKEN, ...(opts.headers || {}) };
   return fetch(API_BASE + path, { ...opts, headers }).then(async r => {
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || r.statusText);
@@ -2938,9 +2562,11 @@ async function loadAdmin() {
   const tbody = document.getElementById('admin-tbody');
   if (!tbody) return;
 
-  if (!IMPORT_TOKEN) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-title">Autenticação necessária</div><div class="empty-sub">Acesse "Importar Leads" e insira o token de administrador primeiro.</div></div></td></tr>';
-    return;
+  if (!ADMIN_TOKEN) {
+    const token = prompt('Token de administrador:');
+    if (!token) return;
+    ADMIN_TOKEN = token.trim();
+    sessionStorage.setItem('lh_admin_token', ADMIN_TOKEN);
   }
 
   tbody.innerHTML = '<tr><td colspan="7"><div class="loading-row"><div class="spinner light"></div></div></td></tr>';
@@ -2961,10 +2587,10 @@ async function loadAdmin() {
       const leadsHoje = `${a.leads_hoje||0}/${lim}`;
       const escapedId = (a.id || '').replace(/'/g, "\\'");
       return `<tr>
-        <td style="font-size:12px">${a.email}</td>
-        <td style="font-size:12px">${a.nome||'—'}</td>
-        <td><span class="badge ${planoColor[a.plano]||'bg'}">${planoLabel[a.plano]||a.plano||'Básico'}</span></td>
-        <td><span class="badge ${statusColor[a.status]||'bg'}">${a.status}</span></td>
+        <td style="font-size:12px">${esc(a.email)}</td>
+        <td style="font-size:12px">${esc(a.nome)||'—'}</td>
+        <td><span class="badge ${planoColor[a.plano]||'bg'}">${planoLabel[a.plano]||esc(a.plano)||'Básico'}</span></td>
+        <td><span class="badge ${statusColor[a.status]||'bg'}">${esc(a.status)}</span></td>
         <td style="font-size:12px;color:var(--t2)">${exp}</td>
         <td style="font-size:12px;color:var(--t2)">${leadsHoje}</td>
         <td><div class="td-act">
@@ -2976,7 +2602,7 @@ async function loadAdmin() {
       </tr>`;
     }).join('');
   } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--err);text-align:center;padding:20px;font-size:13px">${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--err);text-align:center;padding:20px;font-size:13px">${esc(e.message)}</td></tr>`;
   }
 }
 

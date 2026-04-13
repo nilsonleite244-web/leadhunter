@@ -31,8 +31,6 @@ const db = admin.firestore();
 
 const leadsCol      = () => db.collection("leads_extra");
 const assinantesCol = () => db.collection("assinantes");
-const campanhasCol  = () => db.collection("campanhas");
-const destinatariosCol = () => db.collection("campanha_destinatarios");
 
 // ── POSTGRESQL (Supabase) — CNPJ leads ───────────────────────────────────────
 let pool = null;
@@ -58,7 +56,8 @@ process.on("uncaughtException",  e => console.error("[uncaughtException]",  e.me
 process.on("unhandledRejection", e => console.error("[unhandledRejection]", e));
 
 // ── LIMITES POR PLANO ─────────────────────────────────────────────────────────
-const LIMITES_PLANO = { mensal: 150, trimestral: 300, vitalicio: 600 };
+const LIMITES_PLANO  = { mensal: 150, trimestral: 300, vitalicio: 600 };
+const PLANOS_LABEL   = { mensal: "Básico", trimestral: "Pro", vitalicio: "Alpha Member" };
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 function paginate(req) {
@@ -165,12 +164,12 @@ async function verificarCota(req, res, count) {
 
   if (usadoHoje >= limite) {
     const msgs = {
-      mensal:      "Faça upgrade para o plano Trimestral (300/dia) ou Vitalício (600/dia).",
-      trimestral:  "Faça upgrade para o plano Vitalício para ter 600 leads/dia.",
-      vitalicio:   "Você atingiu o limite diário do seu plano.",
+      mensal:      "Faça upgrade para o plano Pro (300/dia) ou Alpha Member (600/dia).",
+      trimestral:  "Faça upgrade para o plano Alpha Member para ter 600 leads/dia.",
+      vitalicio:   "Você atingiu o limite diário do plano Alpha Member.",
     };
     res.status(429).json({
-      error: `Limite de ${limite} leads/dia atingido no plano ${a.plano}.`,
+      error: `Limite de ${limite} leads/dia atingido no plano ${PLANOS_LABEL[a.plano] || a.plano}.`,
       cota: { limite, usado: usadoHoje, restante: 0 },
       upgrade: msgs[a.plano] || null,
     });
@@ -195,7 +194,7 @@ app.get("/health", async (req, res) => {
 });
 
 // ── LEADS (protegidos) ────────────────────────────────────────────────────────
-app.use(["/leads", "/stats", "/campanha", "/whatsapp"], authMiddleware);
+app.use(["/leads", "/stats", "/whatsapp"], authMiddleware);
 
 // Rotas admin — exigem API_SECRET (somente o dono do sistema)
 function adminMiddleware(req, res, next) {
@@ -221,12 +220,12 @@ app.get("/leads/instagram", async (req, res) => {
       const restante = getRestanteHoje(a);
       if (restante <= 0) {
         const msgs = {
-          mensal:     "Faça upgrade para o plano Trimestral (300/dia) ou Vitalício (600/dia).",
-          trimestral: "Faça upgrade para o plano Vitalício para ter 600 leads/dia.",
-          vitalicio:  "Você atingiu o limite diário do seu plano.",
+          mensal:     "Faça upgrade para o plano Pro (300/dia) ou Alpha Member (600/dia).",
+          trimestral: "Faça upgrade para o plano Alpha Member para ter 600 leads/dia.",
+          vitalicio:  "Você atingiu o limite diário do plano Alpha Member.",
         };
         return res.status(429).json({
-          error: `Limite de ${limite} leads/dia atingido no plano ${a.plano}.`,
+          error: `Limite de ${limite} leads/dia atingido no plano ${PLANOS_LABEL[a.plano] || a.plano}.`,
           cota: { limite, usado: limite, restante: 0 },
           upgrade: msgs[a.plano] || null,
         });
@@ -238,7 +237,7 @@ app.get("/leads/instagram", async (req, res) => {
     const restante = limite !== null ? getRestanteHoje(a) : 500;
     const reqLimit = Math.min(500, Math.max(1, parseInt(req.query.limit) || 100));
     const effectiveLimit = Math.min(reqLimit, restante);
-    const offset = (page - 1) * effectiveLimit;
+    const offset = (page - 1) * reqLimit;
 
     const busca    = req.query.busca?.trim();
     const segmento = req.query.segmento?.trim();
@@ -328,12 +327,12 @@ app.get("/leads/buscar", async (req, res) => {
       const restante = getRestanteHoje(a);
       if (restante <= 0) {
         const msgs = {
-          mensal:     "Faça upgrade para o plano Trimestral (300/dia) ou Vitalício (600/dia).",
-          trimestral: "Faça upgrade para o plano Vitalício para ter 600 leads/dia.",
-          vitalicio:  "Você atingiu o limite diário do seu plano.",
+          mensal:     "Faça upgrade para o plano Pro (300/dia) ou Alpha Member (600/dia).",
+          trimestral: "Faça upgrade para o plano Alpha Member para ter 600 leads/dia.",
+          vitalicio:  "Você atingiu o limite diário do plano Alpha Member.",
         };
         return res.status(429).json({
-          error: `Limite de ${limite} leads/dia atingido no plano ${a.plano}.`,
+          error: `Limite de ${limite} leads/dia atingido no plano ${PLANOS_LABEL[a.plano] || a.plano}.`,
           cota: { limite, usado: limite, restante: 0 },
           upgrade: msgs[a.plano] || null,
         });
@@ -344,7 +343,9 @@ app.get("/leads/buscar", async (req, res) => {
     const restante = limite !== null ? getRestanteHoje(a) : 500;
     const reqLimit = Math.min(500, Math.max(1, parseInt(req.query.limit) || 50));
     const effectiveLimit = Math.min(reqLimit, restante);
-    const offset = (page - 1) * effectiveLimit;
+    // Offset usa reqLimit (não effectiveLimit) para que a paginação não sobreponha
+    // resultados quando a cota está prestes a se esgotar
+    const offset = (page - 1) * reqLimit;
 
     const { uf, segmento: seg, busca, ddd, porte, apenas_com_email, apenas_com_telefone } = req.query;
 
@@ -379,6 +380,7 @@ app.get("/leads/buscar", async (req, res) => {
       email: r.email, telefone1: r.telefone1,
       ddd_municipio: r.ddd_municipio, municipio_nome: r.municipio_nome,
       uf: r.uf, nome_socio: r.nome_socio,
+      score_completude: r.score_completude,
     }));
 
     incrementarCota(a, data.length);
@@ -411,7 +413,7 @@ app.get("/leads/aleatorio", async (req, res) => {
       const restante = getRestanteHoje(a);
       if (restante <= 0) {
         return res.status(429).json({
-          error: `Limite de ${limite} leads/dia atingido no plano ${a.plano}.`,
+          error: `Limite de ${limite} leads/dia atingido no plano ${PLANOS_LABEL[a.plano] || a.plano}.`,
           cota: { limite, usado: limite, restante: 0 },
         });
       }
@@ -423,9 +425,22 @@ app.get("/leads/aleatorio", async (req, res) => {
 
     if (pool) {
       const cols = "cnpj, razao_social, nome_fantasia, cnae_descricao, porte, email, telefone1, ddd_municipio, municipio_nome, uf, nome_socio, score_completude";
+
+      // CNPJs já vistos nesta sessão (enviados pelo frontend para excluir)
+      const excludeRaw = (req.query.exclude || "").split(",").map(c => c.replace(/\D/g,"")).filter(c => c.length >= 11 && c.length <= 14);
+      const excludeList = excludeRaw.slice(0, 500); // limite de segurança
+
+      const qParams = [effectiveLimit];
+      let whereExtra = "";
+      if (excludeList.length) {
+        const ph = excludeList.map((_, i) => `$${i + 2}`).join(",");
+        whereExtra = ` AND cnpj NOT IN (${ph})`;
+        qParams.push(...excludeList);
+      }
+
       const r = await pgQuery(
-        `SELECT ${cols} FROM leads WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != '' ORDER BY RANDOM() LIMIT $1`,
-        [effectiveLimit]
+        `SELECT ${cols} FROM leads WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != ''${whereExtra} ORDER BY RANDOM() LIMIT $1`,
+        qParams
       );
       const data = r.rows.map(row => ({
         id: row.cnpj, cnpj: row.cnpj, razao_social: row.razao_social,
@@ -515,7 +530,7 @@ app.get("/stats/geral", async (req, res) => {
     const pgResults = await Promise.all(pgPromises).catch(() => []);
 
     res.json({
-      total_cnpjs:     (pgResults[0] ? parseInt(pgResults[0].rows[0].count) : 0) + (pgResults[6] ? parseInt(pgResults[6].rows[0].count) : 0),
+      total_cnpjs:     pgResults[0] ? parseInt(pgResults[0].rows[0].count) : 0,
       empresas_ativas: pgResults[0] ? parseInt(pgResults[0].rows[0].count) : 0,
       leads_instagram: pgResults[5] ? parseInt(pgResults[5].rows[0].count) : 0,
       com_email:       pgResults[1] ? parseInt(pgResults[1].rows[0].count) : 0,
@@ -568,74 +583,6 @@ app.get("/stats/ddd/:ddd", async (req, res) => {
   }
 });
 
-// ── CAMPANHAS ────────────────────────────────────────────────────────────────
-app.get("/campanha/listar", async (req, res) => {
-  try {
-    const snap = await campanhasCol().orderBy("created_at", "desc").limit(50).get();
-    const campanhas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    res.json({ campanhas });
-  } catch(e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.post("/campanha/criar-lista", async (req, res) => {
-  try {
-    const { nome, canal, cnpjs, mensagem_template, delay_segundos = 60 } = req.body;
-    if (!nome || !canal || !cnpjs?.length) return res.status(400).json({ error: "Dados incompletos" });
-
-    const campRef = await campanhasCol().add({
-      nome, canal, total: cnpjs.length, enviados: 0, status: "pendente",
-      mensagem_template: mensagem_template || null,
-      delay_segundos, created_at: admin.firestore.FieldValue.serverTimestamp(),
-      iniciado_at: null, concluido_at: null
-    });
-
-    // Batch insert destinatários
-    const BATCH_SIZE = 400;
-    for (let i = 0; i < cnpjs.length; i += BATCH_SIZE) {
-      const batch = db.batch();
-      cnpjs.slice(i, i + BATCH_SIZE).forEach(cnpj => {
-        batch.set(destinatariosCol().doc(), {
-          campanha_id: campRef.id, cnpj, status: "pendente", enviado_at: null, erro: null
-        });
-      });
-      await batch.commit();
-    }
-
-    res.json({ campanha_id: campRef.id, total: cnpjs.length, status: "pendente" });
-  } catch(e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.get("/campanha/:id/status", async (req, res) => {
-  try {
-    const doc = await campanhasCol().doc(req.params.id).get();
-    if (!doc.exists) return res.status(404).json({ error: "Campanha não encontrada" });
-
-    const statsSnap = await destinatariosCol()
-      .where("campanha_id", "==", req.params.id).get();
-    const contagem = {};
-    statsSnap.docs.forEach(d => {
-      const s = d.data().status;
-      contagem[s] = (contagem[s] || 0) + 1;
-    });
-    const camp = { id: doc.id, ...doc.data() };
-    res.json({ ...camp, contagem, progresso_pct: camp.total ? Math.round(((contagem.enviado || 0) / camp.total) * 100) : 0 });
-  } catch(e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.patch("/campanha/:id/status", async (req, res) => {
-  try {
-    await campanhasCol().doc(req.params.id).update({ status: req.body.status });
-    res.json({ ok: true, id: req.params.id, status: req.body.status });
-  } catch(e) {
-    res.status(500).json({ error: e.message });
-  }
-});
 
 // ── WHATSAPP / EVOLUTION API ──────────────────────────────────────────────────
 app.get("/whatsapp/qr", async (req, res) => {
@@ -668,8 +615,12 @@ function gerarToken() {
 
 function detectarPlano(dados) {
   const txt = JSON.stringify(dados).toLowerCase();
-  if (txt.includes("vitalicio") || txt.includes("vitalício") || txt.includes("lifetime")) return "vitalicio";
-  if (txt.includes("trimestral") || txt.includes("quarterly") || txt.includes("3 meses")) return "trimestral";
+  // vitalicio = Alpha Member R$267/mês (detecta por nome, keyword ou UUID do produto Kirvano)
+  if (txt.includes("vitalicio") || txt.includes("vitalício") || txt.includes("lifetime")
+    || txt.includes("alpha") || txt.includes("4f358cd8")) return "vitalicio";
+  // trimestral = Pro R$147/mês
+  if (txt.includes("trimestral") || txt.includes("quarterly") || txt.includes("3 meses")
+    || txt.includes("bc35d3cd")) return "trimestral";
   return "mensal";
 }
 
@@ -844,9 +795,11 @@ app.get("/auth/verificar", async (req, res) => {
     }
     const hoje = new Date().toISOString().split("T")[0];
     const usadoHoje = a.leads_data === hoje ? (a.leads_hoje || 0) : 0;
+    const plano  = a.plano || "mensal";
+    const limite = LIMITES_PLANO[plano] ?? 150;
     res.json({
-      ok: true, nome: a.nome, email: a.email, plano: a.plano || "mensal", expira_em: a.expira_em,
-      cota: { limite: getLimiteDiario(a), usado: usadoHoje, restante: Math.max(0, getLimiteDiario(a) - usadoHoje) }
+      ok: true, nome: a.nome, email: a.email, plano, expira_em: a.expira_em,
+      cota: { limite, usado: usadoHoje, restante: Math.max(0, limite - usadoHoje) }
     });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -892,249 +845,6 @@ app.patch("/admin/assinante/:id/status", async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── ADMIN: APIFY SCRAPING ────────────────────────────────────────────────────
-
-// POST /admin/apify-start — inicia scraping de hashtags no Instagram
-app.post("/admin/apify-start", async (req, res) => {
-  const key = process.env.APIFY_KEY || req.headers["x-apify-key"] || req.body?.apify_key;
-  if (!key) return res.status(400).json({ error: "Configure APIFY_KEY nas variáveis de ambiente." });
-
-  // Aceita hashtags do body ou usa defaults
-  const hashtags = Array.isArray(req.body?.hashtags) && req.body.hashtags.length
-    ? req.body.hashtags.map(h => h.replace(/^#/, "").trim().toLowerCase()).filter(Boolean)
-    : ["barbearia","clinicaestetica","petshop","academia","salaobeleza","restaurante","pizzaria","clinicaodontologica"];
-
-  const resultsLimit = Math.min(parseInt(req.body?.limit) || 200, 1000);
-
-  try {
-    const r = await axios.post(
-      `https://api.apify.com/v2/acts/apify~instagram-scraper/runs?token=${key}`,
-      {
-        directUrls: hashtags.map(h => `https://www.instagram.com/explore/tags/${h}/`),
-        resultsType: "posts",
-        resultsLimit,
-        proxy: { useApifyProxy: true },
-      }
-    );
-    const runId = r.data.data.id;
-    res.json({ ok: true, runId, hashtags, resultsLimit, status: "RUNNING" });
-  } catch(e) {
-    res.status(500).json({ error: e.response?.data?.error?.message || e.message });
-  }
-});
-
-// GET /admin/apify-status/:runId — checa status do run
-app.get("/admin/apify-status/:runId", async (req, res) => {
-  const key = process.env.APIFY_KEY || req.headers["x-apify-key"] || req.query.apify_key;
-  if (!key) return res.status(400).json({ error: "APIFY_KEY necessária" });
-  try {
-    const r = await axios.get(`https://api.apify.com/v2/actor-runs/${req.params.runId}?token=${key}`);
-    const d = r.data.data;
-    res.json({ status: d.status, stats: d.stats || {}, datasetId: d.defaultDatasetId });
-  } catch(e) {
-    res.status(500).json({ error: e.response?.data?.error?.message || e.message });
-  }
-});
-
-// POST /admin/apify-import/:runId — importa resultados do run para Supabase
-app.post("/admin/apify-import/:runId", async (req, res) => {
-  const key = process.env.APIFY_KEY || req.headers["x-apify-key"] || req.body?.apify_key;
-  if (!key) return res.status(400).json({ error: "APIFY_KEY necessária" });
-  if (!pool) return res.status(503).json({ error: "DATABASE_URL não configurado" });
-
-  try {
-    // Verifica status
-    const statusRes = await axios.get(`https://api.apify.com/v2/actor-runs/${req.params.runId}?token=${key}`);
-    const runData = statusRes.data.data;
-    if (runData.status !== "SUCCEEDED")
-      return res.json({ ok: false, status: runData.status, msg: `Run ainda em andamento: ${runData.status}` });
-
-    // Busca itens
-    const itemsRes = await axios.get(
-      `https://api.apify.com/v2/datasets/${runData.defaultDatasetId}/items?token=${key}&limit=5000`
-    );
-    const items = Array.isArray(itemsRes.data) ? itemsRes.data : [];
-    if (!items.length) return res.json({ ok: true, inseridos: 0, ignorados: 0, msg: "Nenhum resultado encontrado" });
-
-    // Carrega handles existentes para checagem de duplicados
-    const existingRes = await pgQuery("SELECT instagram FROM leads_extra WHERE instagram IS NOT NULL");
-    const existingHandles = new Set(existingRes.rows.map(r => {
-      const m = (r.instagram||"").match(/instagram\.com\/([A-Za-z0-9._]+)/i);
-      return m ? m[1].toLowerCase() : r.instagram.toLowerCase();
-    }));
-
-    const toInsert = [];
-    const seen = new Set();
-    let ignorados = 0;
-
-    for (const item of items) {
-      const handle = item.ownerUsername || item.username;
-      if (!handle || seen.has(handle.toLowerCase())) { ignorados++; continue; }
-      seen.add(handle.toLowerCase());
-      if (existingHandles.has(handle.toLowerCase())) { ignorados++; continue; }
-
-      const nome     = item.ownerFullName || item.fullName || handle;
-      const website  = item.externalUrl || null;
-      const inputUrl = (item.inputUrl || "").toLowerCase();
-      const hashTag  = (inputUrl.match(/tags\/([^/]+)\//)||[])[1] || "";
-      const segmento = hashTag || "instagram";
-      const instagram = `https://instagram.com/${handle}`;
-      const descricao = item.biography || item.caption || null;
-      const cidade   = item.locationCity || item.locationName || null;
-      const estado   = item.locationState || null;
-
-      toInsert.push([nome, website, segmento, cidade, estado, "Brasil", null, null, instagram, null, descricao]);
-    }
-
-    // Insere em batches de 500
-    const BATCH = 500;
-    let inseridos = 0;
-    for (let i = 0; i < toInsert.length; i += BATCH) {
-      const batch = toInsert.slice(i, i + BATCH);
-      const values = batch.map((_, idx) => {
-        const b = idx * 11;
-        return `($${b+1},$${b+2},$${b+3},$${b+4},$${b+5},$${b+6},$${b+7},$${b+8},$${b+9},$${b+10},$${b+11},NOW())`;
-      }).join(",");
-      await pgQuery(
-        `INSERT INTO leads_extra (nome,website,segmento,cidade,estado,pais,funcionarios,receita,instagram,whatsapp,descricao,created_at) VALUES ${values}`,
-        batch.flat()
-      );
-      inseridos += batch.length;
-    }
-
-    res.json({ ok: true, total_coletados: items.length, inseridos, ignorados_duplicados: ignorados });
-  } catch(e) {
-    res.status(500).json({ error: e.response?.data?.error?.message || e.message });
-  }
-});
-
-// ── ADMIN: VERIFICAR TOKEN DE IMPORTAÇÃO ─────────────────────────────────────
-app.get("/admin/import/verificar", (req, res) => {
-  res.json({ ok: true, msg: "Token de importação válido" });
-});
-
-// ── ADMIN: IMPORTAR COM STREAMING SSE (log ao vivo) ──────────────────────────
-// GET /admin/import/live/:runId — streama eventos SSE durante a importação
-// Usa fetch com x-api-key no header (não EventSource nativo, que não suporta headers)
-app.get("/admin/import/live/:runId", async (req, res) => {
-  const apifyKey = process.env.APIFY_KEY || req.query.apify_key;
-  if (!apifyKey) {
-    return res.status(400).json({ error: "Apify API Key necessária (configure APIFY_KEY no Railway ou informe no campo)" });
-  }
-  if (!pool) return res.status(503).json({ error: "DATABASE_URL não configurado" });
-
-  res.writeHead(200, {
-    "Content-Type":  "text/event-stream",
-    "Cache-Control": "no-cache",
-    "Connection":    "keep-alive",
-  });
-
-  const send = (data) => { try { res.write(`data: ${JSON.stringify(data)}\n\n`); } catch {} };
-
-  try {
-    send({ type: "log", msg: "🔍 Verificando status do run Apify..." });
-
-    const statusRes = await axios.get(
-      `https://api.apify.com/v2/actor-runs/${req.params.runId}?token=${apifyKey}`
-    );
-    const runData = statusRes.data.data;
-
-    const terminalStatus = ["SUCCEEDED","FAILED","ABORTED","TIMED-OUT"];
-    if (!terminalStatus.includes(runData.status)) {
-      send({ type: "error", msg: `Run ainda em andamento: ${runData.status}. Aguarde e tente novamente.` });
-      return res.end();
-    }
-    if (runData.status !== "SUCCEEDED") {
-      send({ type: "log", msg: `⚠️  Run ${runData.status} — importando dados parciais coletados...` });
-    }
-
-    send({ type: "log", msg: "✓ Run concluído. Baixando resultados do Apify..." });
-
-    const itemsRes = await axios.get(
-      `https://api.apify.com/v2/datasets/${runData.defaultDatasetId}/items?token=${apifyKey}&limit=5000`
-    );
-    const items = Array.isArray(itemsRes.data) ? itemsRes.data : [];
-
-    send({ type: "log", msg: `📦 ${items.length} posts baixados. Verificando duplicados no banco...` });
-
-    const existingRes = await pgQuery("SELECT instagram FROM leads_extra WHERE instagram IS NOT NULL");
-    const existingHandles = new Set(existingRes.rows.map(r => {
-      const m = (r.instagram || "").match(/instagram\.com\/([A-Za-z0-9._]+)/i);
-      return m ? m[1].toLowerCase() : (r.instagram || "").toLowerCase();
-    }));
-
-    const toInsert = [];
-    const seen     = new Set();
-    let ignorados  = 0;
-
-    for (const item of items) {
-      const handle = item.ownerUsername || item.username;
-      if (!handle || seen.has(handle.toLowerCase())) { ignorados++; continue; }
-      seen.add(handle.toLowerCase());
-      if (existingHandles.has(handle.toLowerCase())) { ignorados++; continue; }
-
-      const nome      = item.ownerFullName || item.fullName || handle;
-      const website   = item.externalUrl  || null;
-      const inputUrl  = (item.inputUrl    || "").toLowerCase();
-      const hashTag   = (inputUrl.match(/tags\/([^/]+)\//)||[])[1] || "";
-      const segmento  = hashTag || "instagram";
-      const instagram = `https://instagram.com/${handle}`;
-      const descricao = item.biography || item.caption || null;
-      const cidade    = item.locationCity  || item.locationName || null;
-      const estado    = item.locationState || null;
-
-      toInsert.push({
-        row: [nome, website, segmento, cidade, estado, "Brasil", null, null, instagram, null, descricao],
-        nome,
-        handle,
-        segmento,
-      });
-    }
-
-    send({ type: "log", msg: `🎯 ${toInsert.length} leads novos para inserir · ${ignorados} duplicados/ignorados` });
-
-    if (toInsert.length === 0) {
-      send({ type: "done", inseridos: 0, ignorados, total: items.length });
-      return res.end();
-    }
-
-    const BATCH  = 100;
-    let inseridos = 0;
-
-    for (let i = 0; i < toInsert.length; i += BATCH) {
-      const batch  = toInsert.slice(i, i + BATCH);
-      const rows   = batch.map(b => b.row);
-      const values = rows.map((_, idx) => {
-        const b = idx * 11;
-        return `($${b+1},$${b+2},$${b+3},$${b+4},$${b+5},$${b+6},$${b+7},$${b+8},$${b+9},$${b+10},$${b+11},NOW())`;
-      }).join(",");
-
-      await pgQuery(
-        `INSERT INTO leads_extra (nome,website,segmento,cidade,estado,pais,funcionarios,receita,instagram,whatsapp,descricao,created_at) VALUES ${values}`,
-        rows.flat()
-      );
-
-      inseridos += batch.length;
-      const pct    = Math.round((inseridos / toInsert.length) * 100);
-      const sample = batch.slice(0, 3).map(b => `@${b.handle}`).join(" · ");
-
-      send({
-        type:     "progress",
-        inseridos,
-        total:    toInsert.length,
-        pct,
-        sample,
-        msg:      `✓ ${inseridos}/${toInsert.length} inseridos (${pct}%) — ${sample}`,
-      });
-    }
-
-    send({ type: "done", inseridos, ignorados, total: items.length });
-  } catch(e) {
-    send({ type: "error", msg: e.response?.data?.error?.message || e.message });
-  }
-
-  res.end();
-});
 
 // ── FRONTEND ──────────────────────────────────────────────────────────────────
 app.get("/",        (req, res) => res.sendFile(path.join(__dirname, "index.html")));
