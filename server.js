@@ -6,7 +6,6 @@ const axios      = require("axios");
 const admin      = require("firebase-admin");
 const path       = require("path");
 const { Pool }   = require("pg");
-const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 // ── FIREBASE INIT (não bloqueia startup) ──────────────────────────────────────
@@ -686,38 +685,67 @@ async function processarPagamento(email, nome, txId, dados, plataforma) {
 
 async function enviarEmailBoasVindas(email, nome, token, plano) {
   if (!token) return;
-  const gmailUser = process.env.GMAIL_USER || process.env.EMAIL_FROM;
-  const gmailPass = process.env.GMAIL_PASS;
-  if (!gmailUser || !gmailPass) {
-    console.warn("[Email] GMAIL_USER ou GMAIL_PASS não configurados — email não enviado");
-    return;
-  }
+  const resendKey = process.env.RESEND_API_KEY;
+  const ownerEmail = "nilsonleite244@gmail.com";
   const planosLabel = { mensal: "Básico — R$97/mês", trimestral: "Pro — R$147/mês", vitalicio: "Alpha Member — R$267/mês" };
   const limiteLabel = { mensal: "150 leads/dia", trimestral: "300 leads/dia", vitalicio: "600 leads/dia" }[plano] || "—";
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: { user: gmailUser, pass: gmailPass },
-  });
-  await transporter.sendMail({
-    from: `"LeadHunter Pro" <${gmailUser}>`,
-    to: email,
-    subject: "Seu acesso ao LeadHunter Pro está pronto!",
-    html: `<div style="font-family:Inter,sans-serif;max-width:500px;margin:0 auto;background:#08080f;color:#eeeef2;padding:32px;border-radius:16px">
-      <h2 style="color:#f09030;margin-bottom:4px">Bem-vindo ao LeadHunter Pro!</h2>
-      <p style="color:#8888a0;margin-bottom:24px">Olá${nome ? " " + nome.split(" ")[0] : ""}! Seu pagamento foi confirmado.</p>
-      <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.2);border-radius:10px;padding:16px;margin-bottom:20px">
-        <div style="font-size:12px;color:#8888a0;margin-bottom:4px">Plano ativo</div>
-        <div style="font-size:16px;font-weight:700;color:#f09030">${planosLabel[plano] || plano}</div>
-        <div style="font-size:12px;color:#8888a0;margin-top:4px">Leads: ${limiteLabel}</div>
-      </div>
-      <p style="margin-bottom:8px;font-size:14px">Seu token de acesso:</p>
-      <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.3);border-radius:10px;padding:16px;font-family:monospace;font-size:13px;word-break:break-all;color:#f5b455">${token}</div>
-      <p style="color:#8888a0;font-size:12px;margin-top:12px">Cole em <b style="color:#eeeef2">Configurações → Token de Acesso</b></p>
-      <a href="https://leadhunter-vert.vercel.app" style="display:inline-block;margin-top:20px;background:linear-gradient(135deg,#f09030,#e06818);color:#000;font-weight:700;padding:12px 24px;border-radius:9px;text-decoration:none">Acessar LeadHunter</a>
+
+  // Envia boas-vindas ao cliente
+  const htmlCliente = `<div style="font-family:Inter,sans-serif;max-width:500px;margin:0 auto;background:#08080f;color:#eeeef2;padding:32px;border-radius:16px">
+    <h2 style="color:#f09030;margin-bottom:4px">Bem-vindo ao LeadHunter Pro!</h2>
+    <p style="color:#8888a0;margin-bottom:24px">Ola${nome ? " " + nome.split(" ")[0] : ""}! Seu pagamento foi confirmado.</p>
+    <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.2);border-radius:10px;padding:16px;margin-bottom:20px">
+      <div style="font-size:12px;color:#8888a0;margin-bottom:4px">Plano ativo</div>
+      <div style="font-size:16px;font-weight:700;color:#f09030">${planosLabel[plano] || plano}</div>
+      <div style="font-size:12px;color:#8888a0;margin-top:4px">Leads: ${limiteLabel}</div>
+    </div>
+    <p style="margin-bottom:8px;font-size:14px">Seu token de acesso:</p>
+    <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.3);border-radius:10px;padding:16px;font-family:monospace;font-size:13px;word-break:break-all;color:#f5b455">${token}</div>
+    <p style="color:#8888a0;font-size:12px;margin-top:12px">Cole em Configuracoes > Token de Acesso</p>
+    <a href="https://leadhunter-vert.vercel.app" style="display:inline-block;margin-top:20px;background:linear-gradient(135deg,#f09030,#e06818);color:#000;font-weight:700;padding:12px 24px;border-radius:9px;text-decoration:none">Acessar LeadHunter</a>
+  </div>`;
+
+  // Tenta enviar ao cliente primeiro; se falhar, notifica o dono
+  const enviar = (to, subject, html) =>
+    resendKey
+      ? axios.post("https://api.resend.com/emails", {
+          from: "onboarding@resend.dev", to, subject, html,
+        }, { headers: { Authorization: `Bearer ${resendKey}` } })
+          .then(() => console.log(`[Email] Enviado para ${to}`))
+          .catch(async (e) => {
+            if (to !== ownerEmail) {
+              console.warn(`[Email] Falha ao enviar para cliente ${to}, notificando dono`);
+              await enviarNotificacaoParaDono(email, nome, token, plano);
+            } else {
+              const detail = e.response?.data ? JSON.stringify(e.response.data) : e.message;
+              console.error(`[Email] ERRO ao enviar para ${to}: ${detail}`);
+            }
+          })
+      : Promise.resolve();
+
+  await enviar(email, "Seu acesso ao LeadHunter Pro esta pronto!", htmlCliente);
+}
+
+async function enviarNotificacaoParaDono(emailCliente, nome, token, plano) {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) return;
+  const planosLabel = { mensal: "Basico R$97", trimestral: "Pro R$147", vitalicio: "Alpha Member R$267" };
+  await axios.post("https://api.resend.com/emails", {
+    from: "onboarding@resend.dev",
+    to: "nilsonleite244@gmail.com",
+    subject: `[LeadHunter] Novo assinante: ${emailCliente}`,
+    html: `<div style="font-family:monospace;padding:20px">
+      <b>Novo assinante!</b><br><br>
+      Email: ${emailCliente}<br>
+      Nome: ${nome || "—"}<br>
+      Plano: ${planosLabel[plano] || plano}<br><br>
+      Token do cliente:<br>
+      <code style="background:#f0f0f0;padding:8px;display:block;word-break:break-all">${token}</code><br>
+      <small>Encaminhe este token para o cliente via WhatsApp ou email manual.</small>
     </div>`,
-  })
-    .then(() => console.log(`[Email] Enviado para ${email}`))
-    .catch(e => console.error(`[Email] ERRO ao enviar para ${email}: ${e.message}`));
+  }, { headers: { Authorization: `Bearer ${resendKey}` } })
+    .then(() => console.log(`[Email] Notificacao enviada ao dono sobre ${emailCliente}`))
+    .catch(e => console.error("[Email] Falha na notificacao ao dono:", e.message));
 }
 
 // Webhook Kirvano
