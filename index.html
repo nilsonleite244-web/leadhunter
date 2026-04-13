@@ -911,19 +911,124 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
         </div>
       </div>
 
-      <div style="margin-top:12px" class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-            Principais DDDs
-          </div>
-          <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Atualizar</button>
+      <div style="margin-top:12px" class="alpha-club-card">
+        <style>
+          .alpha-club-card{
+            background:linear-gradient(135deg,#0e0a00 0%,#1a0f00 40%,#0e0a00 100%);
+            border:1px solid rgba(255,140,0,.25);
+            border-radius:var(--rl);
+            padding:32px 20px 28px;
+            text-align:center;
+            position:relative;
+            overflow:hidden;
+          }
+          .alpha-club-card::before{
+            content:'';position:absolute;inset:0;
+            background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(255,140,0,.18) 0%,transparent 70%);
+            pointer-events:none;
+          }
+          .alpha-club-card::after{
+            content:'';position:absolute;inset:0;
+            background:radial-gradient(ellipse 50% 50% at 50% 100%,rgba(255,80,0,.08) 0%,transparent 70%);
+            pointer-events:none;
+          }
+          /* Partículas flutuantes */
+          .ac-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+          .ac-p{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(255,160,0,.6);animation:acFloat linear infinite}
+          @keyframes acFloat{
+            0%{transform:translateY(100%) scale(0);opacity:0}
+            10%{opacity:1}
+            90%{opacity:.4}
+            100%{transform:translateY(-120%) scale(1.5);opacity:0}
+          }
+          /* Brilho scanning */
+          .ac-scan{
+            position:absolute;left:-60%;top:0;bottom:0;width:40%;
+            background:linear-gradient(90deg,transparent,rgba(255,180,0,.07),transparent);
+            animation:acScan 3.5s ease-in-out infinite;
+            pointer-events:none;
+          }
+          @keyframes acScan{0%,100%{left:-60%}50%{left:120%}}
+          /* Coroa */
+          .ac-crown{
+            display:inline-flex;align-items:center;justify-content:center;
+            width:64px;height:64px;
+            background:radial-gradient(circle at 40% 35%,#ffcc00,#ff8c00 60%,#cc4400);
+            border-radius:50%;
+            box-shadow:0 0 0 3px rgba(255,140,0,.3),0 0 30px rgba(255,140,0,.5),0 0 60px rgba(255,100,0,.3);
+            margin-bottom:14px;position:relative;z-index:1;
+            animation:acCrownPulse 2.5s ease-in-out infinite;
+          }
+          @keyframes acCrownPulse{
+            0%,100%{box-shadow:0 0 0 3px rgba(255,140,0,.3),0 0 30px rgba(255,140,0,.5),0 0 60px rgba(255,100,0,.3)}
+            50%{box-shadow:0 0 0 6px rgba(255,140,0,.2),0 0 50px rgba(255,160,0,.7),0 0 90px rgba(255,100,0,.4)}
+          }
+          .ac-crown svg{width:30px;height:30px;color:#fff;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))}
+          /* Título */
+          .ac-title{
+            font-size:28px;font-weight:900;letter-spacing:2px;text-transform:uppercase;
+            background:linear-gradient(180deg,#ffd060 0%,#ff8c00 50%,#ff5500 100%);
+            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+            filter:drop-shadow(0 0 18px rgba(255,140,0,.6));
+            position:relative;z-index:1;line-height:1;margin-bottom:4px;
+            animation:acTitleGlow 3s ease-in-out infinite;
+          }
+          @keyframes acTitleGlow{
+            0%,100%{filter:drop-shadow(0 0 12px rgba(255,140,0,.5))}
+            50%{filter:drop-shadow(0 0 28px rgba(255,200,0,.9))}
+          }
+          .ac-sub{
+            font-size:11px;font-weight:700;letter-spacing:5px;text-transform:uppercase;
+            color:rgba(255,160,0,.5);position:relative;z-index:1;margin-bottom:18px;
+          }
+          /* Linha decorativa */
+          .ac-line{
+            width:80px;height:1px;margin:0 auto;
+            background:linear-gradient(90deg,transparent,rgba(255,140,0,.7),transparent);
+            position:relative;z-index:1;
+          }
+          /* Badges */
+          .ac-badges{display:flex;gap:8px;justify-content:center;margin-top:16px;position:relative;z-index:1;flex-wrap:wrap}
+          .ac-badge{
+            padding:4px 12px;border-radius:50px;font-size:11px;font-weight:700;letter-spacing:.5px;
+            background:rgba(255,140,0,.1);border:1px solid rgba(255,140,0,.25);
+            color:rgba(255,180,0,.8);
+            animation:acBadgePop .4s ease both;
+          }
+          @keyframes acBadgePop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+        </style>
+
+        <!-- Partículas -->
+        <div class="ac-particles">
+          <div class="ac-p" style="left:10%;animation-duration:4.2s;animation-delay:0s"></div>
+          <div class="ac-p" style="left:22%;animation-duration:5.8s;animation-delay:.7s"></div>
+          <div class="ac-p" style="left:38%;animation-duration:3.9s;animation-delay:1.3s"></div>
+          <div class="ac-p" style="left:55%;animation-duration:6.1s;animation-delay:.3s"></div>
+          <div class="ac-p" style="left:70%;animation-duration:4.7s;animation-delay:2s"></div>
+          <div class="ac-p" style="left:85%;animation-duration:5.2s;animation-delay:.9s"></div>
+          <div class="ac-p" style="left:93%;animation-duration:3.6s;animation-delay:1.8s"></div>
         </div>
-        <div class="tw">
-          <table>
-            <thead><tr><th>DDD</th><th>UF</th><th>Total Leads</th><th>Ação</th></tr></thead>
-            <tbody id="ddd-tbody"><tr><td colspan="4"><div class="loading-row"><div class="spinner light"></div></div></td></tr></tbody>
-          </table>
+        <!-- Scan -->
+        <div class="ac-scan"></div>
+
+        <!-- Coroa -->
+        <div style="display:flex;justify-content:center">
+          <div class="ac-crown">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M2 19h20v2H2v-2zm2-2l2-8 4 4 2-6 2 6 4-4 2 8H4z"/></svg>
+          </div>
+        </div>
+
+        <!-- Texto -->
+        <div class="ac-title">Alpha Club</div>
+        <div class="ac-sub">LeadHunter Pro</div>
+        <div class="ac-line"></div>
+
+        <!-- Badges -->
+        <div class="ac-badges">
+          <span class="ac-badge" style="animation-delay:.1s">976K+ Leads</span>
+          <span class="ac-badge" style="animation-delay:.2s">Instagram</span>
+          <span class="ac-badge" style="animation-delay:.3s">CNPJ</span>
+          <span class="ac-badge" style="animation-delay:.4s">WhatsApp</span>
         </div>
       </div>
     </div>
@@ -1617,7 +1722,7 @@ async function loadDashboard() {
     const d = await api('/stats/geral');
     renderKPIs(d);
     renderStats(d);
-    renderDDDs();
+
     document.getElementById('badge-leads').textContent = '976k';
     document.getElementById('badge-leads').className = 'nav-badge';
     addFeed('green', `Base: <b>976.000</b> empresas ativas disponíveis`);
@@ -1682,25 +1787,6 @@ function renderStats(d) {
   `;
 }
 
-function renderDDDs() {
-  const tbody = document.getElementById('ddd-tbody');
-  const ddds = [{d:'11',u:'SP'},{d:'21',u:'RJ'},{d:'31',u:'MG'},{d:'41',u:'PR'},{d:'51',u:'RS'},{d:'61',u:'DF'},{d:'71',u:'BA'},{d:'81',u:'PE'},{d:'85',u:'CE'},{d:'91',u:'PA'}];
-  tbody.innerHTML = ddds.map(x => `<tr><td><b>${x.d}</b></td><td><span class="badge bg">${x.u}</span></td><td id="dc-${x.d}" style="color:var(--t3)">—</td><td><button class="btn btn-ghost btn-sm" onclick="quickDDD('${x.d}')">Buscar →</button></td></tr>`).join('');
-  ddds.forEach(async x => {
-    try {
-      const s = await api(`/stats/ddd/${x.d}`);
-      const el = document.getElementById('dc-' + x.d);
-      if (el) el.innerHTML = `<span style="color:var(--txt)">${(s.total_leads||0).toLocaleString('pt-BR')}</span>`;
-    } catch {}
-  });
-}
-
-function quickDDD(ddd) {
-  document.getElementById('f-ddd').value = ddd;
-  setMode('cnpj');
-  nav('leads', document.querySelector('[onclick*=leads]'));
-  setTimeout(runSearch, 200);
-}
 
 // ══ FEED ══
 const feedMsgs = [
