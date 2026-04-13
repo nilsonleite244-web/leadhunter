@@ -11,16 +11,26 @@ require("dotenv").config();
 // ── FIREBASE INIT ─────────────────────────────────────────────────────────────
 let credential;
 try {
-  // Tenta arquivo local primeiro (mais confiável no Railway)
+  // Tenta arquivo local primeiro (desenvolvimento local)
   credential = admin.credential.cert(require("./firebase-service-account.json"));
   console.log("[Firebase] Credencial carregada via arquivo JSON");
 } catch {
   try {
-    // Fallback: env var
-    credential = admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT));
+    // Fallback: env var (Railway/produção)
+    let raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (!raw) throw new Error("FIREBASE_SERVICE_ACCOUNT não definida");
+    // Corrige problema comum no Railway: \n da chave privada vira \\n literal
+    raw = raw.replace(/\\n/g, "\n");
+    const parsed = JSON.parse(raw);
+    // Garante que a chave privada tem quebras de linha reais
+    if (parsed.private_key) {
+      parsed.private_key = parsed.private_key.replace(/\\n/g, "\n");
+    }
+    credential = admin.credential.cert(parsed);
     console.log("[Firebase] Credencial carregada via env var");
   } catch(e) {
-    console.error("[Firebase] Erro ao carregar credencial:", e.message);
+    console.error("[Firebase] ERRO CRÍTICO ao carregar credencial:", e.message);
+    console.error("[Firebase] Defina FIREBASE_SERVICE_ACCOUNT nas variáveis de ambiente do Railway");
     process.exit(1);
   }
 }
@@ -438,10 +448,28 @@ app.get("/leads/aleatorio", async (req, res) => {
         qParams.push(...excludeList);
       }
 
-      const r = await pgQuery(
-        `SELECT ${cols} FROM leads WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != ''${whereExtra} ORDER BY RANDOM() LIMIT $1`,
-        qParams
-      );
+      // TABLESAMPLE é muito mais rápido que ORDER BY RANDOM() em tabelas grandes.
+      // Amostra ~5% da tabela e depois ordena aleatoriamente apenas esse subconjunto.
+      // Se a amostra vier menor que o solicitado, fallback para RANDOM() completo.
+      let r;
+      try {
+        r = await pgQuery(
+          `SELECT ${cols} FROM leads TABLESAMPLE SYSTEM(5) WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != ''${whereExtra} ORDER BY RANDOM() LIMIT $1`,
+          qParams
+        );
+        // Se a amostra retornou menos que o pedido, tenta sem TABLESAMPLE
+        if (r.rows.length < effectiveLimit) {
+          r = await pgQuery(
+            `SELECT ${cols} FROM leads WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != ''${whereExtra} ORDER BY RANDOM() LIMIT $1`,
+            qParams
+          );
+        }
+      } catch {
+        r = await pgQuery(
+          `SELECT ${cols} FROM leads WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != ''${whereExtra} ORDER BY RANDOM() LIMIT $1`,
+          qParams
+        );
+      }
       const data = r.rows.map(row => ({
         id: row.cnpj, cnpj: row.cnpj, razao_social: row.razao_social,
         nome_fantasia: row.nome_fantasia, cnae_descricao: row.cnae_descricao,
