@@ -6,6 +6,7 @@ const axios      = require("axios");
 const admin      = require("firebase-admin");
 const path       = require("path");
 const { Pool }   = require("pg");
+const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 // ── FIREBASE INIT (não bloqueia startup) ──────────────────────────────────────
@@ -24,10 +25,8 @@ function initFirebase() {
     } catch {
       let raw = process.env.FIREBASE_SERVICE_ACCOUNT;
       if (!raw) throw new Error("FIREBASE_SERVICE_ACCOUNT não definida nas env vars");
-      // Corrige \\n → \n real (problema comum no Railway)
-      raw = raw.replace(/\\n/g, "\n");
+      // JSON.parse já converte \n em newlines reais — não fazer replace antes
       const parsed = JSON.parse(raw);
-      if (parsed.private_key) parsed.private_key = parsed.private_key.replace(/\\n/g, "\n");
       credential = admin.credential.cert(parsed);
       console.log("[Firebase] Credencial carregada via env var");
     }
@@ -686,16 +685,25 @@ async function processarPagamento(email, nome, txId, dados, plataforma) {
 }
 
 async function enviarEmailBoasVindas(email, nome, token, plano) {
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey || !token) return;
+  if (!token) return;
+  const gmailUser = process.env.GMAIL_USER || process.env.EMAIL_FROM;
+  const gmailPass = process.env.GMAIL_PASS;
+  if (!gmailUser || !gmailPass) {
+    console.warn("[Email] GMAIL_USER ou GMAIL_PASS não configurados — email não enviado");
+    return;
+  }
   const planosLabel = { mensal: "Básico — R$97/mês", trimestral: "Pro — R$147/mês", vitalicio: "Alpha Member — R$267/mês" };
   const limiteLabel = { mensal: "150 leads/dia", trimestral: "300 leads/dia", vitalicio: "600 leads/dia" }[plano] || "—";
-  await axios.post("https://api.resend.com/emails", {
-    from: process.env.EMAIL_FROM || "noreply@leadhunter.app",
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user: gmailUser, pass: gmailPass },
+  });
+  await transporter.sendMail({
+    from: `"LeadHunter Pro" <${gmailUser}>`,
     to: email,
-    subject: "🦊 Seu acesso ao LeadHunter Pro está pronto!",
+    subject: "Seu acesso ao LeadHunter Pro está pronto!",
     html: `<div style="font-family:Inter,sans-serif;max-width:500px;margin:0 auto;background:#08080f;color:#eeeef2;padding:32px;border-radius:16px">
-      <h2 style="color:#f09030;margin-bottom:4px">Bem-vindo ao LeadHunter Pro! 🦊</h2>
+      <h2 style="color:#f09030;margin-bottom:4px">Bem-vindo ao LeadHunter Pro!</h2>
       <p style="color:#8888a0;margin-bottom:24px">Olá${nome ? " " + nome.split(" ")[0] : ""}! Seu pagamento foi confirmado.</p>
       <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.2);border-radius:10px;padding:16px;margin-bottom:20px">
         <div style="font-size:12px;color:#8888a0;margin-bottom:4px">Plano ativo</div>
@@ -705,10 +713,11 @@ async function enviarEmailBoasVindas(email, nome, token, plano) {
       <p style="margin-bottom:8px;font-size:14px">Seu token de acesso:</p>
       <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.3);border-radius:10px;padding:16px;font-family:monospace;font-size:13px;word-break:break-all;color:#f5b455">${token}</div>
       <p style="color:#8888a0;font-size:12px;margin-top:12px">Cole em <b style="color:#eeeef2">Configurações → Token de Acesso</b></p>
-      <a href="https://leadhunter-vert.vercel.app" style="display:inline-block;margin-top:20px;background:linear-gradient(135deg,#f09030,#e06818);color:#000;font-weight:700;padding:12px 24px;border-radius:9px;text-decoration:none">Acessar LeadHunter →</a>
+      <a href="https://leadhunter-vert.vercel.app" style="display:inline-block;margin-top:20px;background:linear-gradient(135deg,#f09030,#e06818);color:#000;font-weight:700;padding:12px 24px;border-radius:9px;text-decoration:none">Acessar LeadHunter</a>
     </div>`,
-  }, { headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" } })
-    .catch(e => console.error("[Resend]", e.message));
+  })
+    .then(() => console.log(`[Email] Enviado para ${email}`))
+    .catch(e => console.error(`[Email] ERRO ao enviar para ${email}: ${e.message}`));
 }
 
 // Webhook Kirvano
@@ -872,6 +881,16 @@ app.patch("/admin/assinante/:id/status", async (req, res) => {
     if (!["ativo","cancelado","expirado"].includes(status)) return res.status(400).json({ error: "status inválido" });
     await assinantesCol().doc(req.params.id).update({ status, updated_at: admin.firestore.FieldValue.serverTimestamp() });
     res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/admin/assinante/:id/reset-cota", async (req, res) => {
+  try {
+    await assinantesCol().doc(req.params.id).update({
+      leads_hoje: 0, leads_data: null,
+      updated_at: admin.firestore.FieldValue.serverTimestamp()
+    });
+    res.json({ ok: true, msg: "Cota diária resetada" });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
