@@ -193,14 +193,9 @@ async function verificarCota(req, res, count) {
 // ── ROTAS PÚBLICAS ────────────────────────────────────────────────────────────
 app.get("/version", (req, res) => res.json({ v: "2.1.0", db: "firebase+postgresql" }));
 
-app.get("/health", async (req, res) => {
-  try {
-    // Verifica apenas conectividade — nunca expõe contagens reais (rota pública)
-    const pgOk = pool ? await pgQuery("SELECT 1").then(() => true).catch(() => false) : false;
-    res.json({ status: "ok", db: pgOk ? "connected" : "unavailable", timestamp: new Date().toISOString() });
-  } catch(e) {
-    res.status(500).json({ status: "erro", error: e.message });
-  }
+app.get("/health", (req, res) => {
+  // Responde imediatamente — Railway precisa de resposta rápida
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 // ── LEADS (protegidos) ────────────────────────────────────────────────────────
