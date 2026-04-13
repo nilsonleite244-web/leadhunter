@@ -8,39 +8,45 @@ const path       = require("path");
 const { Pool }   = require("pg");
 require("dotenv").config();
 
-// ── FIREBASE INIT ─────────────────────────────────────────────────────────────
-let credential;
-try {
-  // Tenta arquivo local primeiro (desenvolvimento local)
-  credential = admin.credential.cert(require("./firebase-service-account.json"));
-  console.log("[Firebase] Credencial carregada via arquivo JSON");
-} catch {
+// ── FIREBASE INIT (não bloqueia startup) ──────────────────────────────────────
+let db = null;
+let firebaseOk = false;
+
+function leadsCol()      { return db.collection("leads_extra"); }
+function assinantesCol() { return db.collection("assinantes"); }
+
+function initFirebase() {
   try {
-    // Fallback: env var (Railway/produção)
-    let raw = process.env.FIREBASE_SERVICE_ACCOUNT;
-    if (!raw) throw new Error("FIREBASE_SERVICE_ACCOUNT não definida");
-    // Corrige problema comum no Railway: \n da chave privada vira \\n literal
-    raw = raw.replace(/\\n/g, "\n");
-    const parsed = JSON.parse(raw);
-    // Garante que a chave privada tem quebras de linha reais
-    if (parsed.private_key) {
-      parsed.private_key = parsed.private_key.replace(/\\n/g, "\n");
+    let credential;
+    try {
+      credential = admin.credential.cert(require("./firebase-service-account.json"));
+      console.log("[Firebase] Credencial carregada via arquivo JSON");
+    } catch {
+      let raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+      if (!raw) throw new Error("FIREBASE_SERVICE_ACCOUNT não definida nas env vars");
+      // Corrige \\n → \n real (problema comum no Railway)
+      raw = raw.replace(/\\n/g, "\n");
+      const parsed = JSON.parse(raw);
+      if (parsed.private_key) parsed.private_key = parsed.private_key.replace(/\\n/g, "\n");
+      credential = admin.credential.cert(parsed);
+      console.log("[Firebase] Credencial carregada via env var");
     }
-    credential = admin.credential.cert(parsed);
-    console.log("[Firebase] Credencial carregada via env var");
+    admin.initializeApp({ credential });
+    db = admin.firestore();
+    firebaseOk = true;
+    console.log("[Firebase] Inicializado — projeto: leadhunter-eb847");
   } catch(e) {
-    console.error("[Firebase] ERRO CRÍTICO ao carregar credencial:", e.message);
-    console.error("[Firebase] Defina FIREBASE_SERVICE_ACCOUNT nas variáveis de ambiente do Railway");
-    process.exit(1);
+    console.error("[Firebase] ERRO ao inicializar:", e.message);
+    console.error("[Firebase] Defina FIREBASE_SERVICE_ACCOUNT nas variáveis de ambiente");
+    // Não chama process.exit — servidor continua e healthcheck responde OK
   }
 }
 
-admin.initializeApp({ credential });
-console.log("[Firebase] Inicializado — projeto: leadhunter-eb847");
-const db = admin.firestore();
-
-const leadsCol      = () => db.collection("leads_extra");
-const assinantesCol = () => db.collection("assinantes");
+// Middleware: bloqueia rotas que precisam do Firebase se ele não inicializou
+function requireFirebase(req, res, next) {
+  if (!firebaseOk) return res.status(503).json({ error: "Firebase não inicializado. Verifique FIREBASE_SERVICE_ACCOUNT nas env vars do Railway." });
+  next();
+}
 
 // ── POSTGRESQL (Supabase) — CNPJ leads ───────────────────────────────────────
 let pool = null;
@@ -199,6 +205,7 @@ app.get("/health", (req, res) => {
 });
 
 // ── LEADS (protegidos) ────────────────────────────────────────────────────────
+app.use(["/leads", "/stats", "/whatsapp", "/auth", "/webhook", "/admin"], requireFirebase);
 app.use(["/leads", "/stats", "/whatsapp"], authMiddleware);
 
 // Rotas admin — exigem API_SECRET (somente o dono do sistema)
@@ -874,4 +881,9 @@ app.get("/",        (req, res) => res.sendFile(path.join(__dirname, "index.html"
 app.get("/landing", (req, res) => res.sendFile(path.join(__dirname, "landing.html")));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, "0.0.0.0", () => console.log(`LeadHunter API (Firebase) rodando na porta ${PORT}`));
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`LeadHunter API rodando na porta ${PORT}`);
+  // Inicia Firebase DEPOIS do servidor estar na porta
+  // Garante que /health responde mesmo se Firebase demorar ou falhar
+  initFirebase();
+});
