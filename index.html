@@ -822,6 +822,12 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
       <span class="nav-badge dim" id="badge-fin" style="background:rgba(46,216,164,.12);color:var(--ok);border:1px solid rgba(46,216,164,.2)">R$0</span>
     </div>
 
+    <div class="nav-item" onclick="nav('meus-leads',this)" id="nav-meus-leads">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Meus Leads
+      <span class="nav-badge dim" id="badge-meus-leads" style="display:none">0</span>
+    </div>
+
     <div class="nav-label">Sistema</div>
     <div class="nav-item" onclick="nav('admin',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -870,9 +876,6 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
   </div>
 
   <div class="content">
-
-    <!-- Banner de restauração de leads do dia -->
-    <div id="banner-restaurar" style="display:none;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--amber);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--t1)"></div>
 
     <!-- ══════ DASHBOARD ══════ -->
     <div class="page active" id="page-dashboard">
@@ -1421,6 +1424,52 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
     </div>
 
     <!-- ══════ SETTINGS ══════ -->
+    <!-- ══════ MEUS LEADS ══════ -->
+    <div class="page" id="page-meus-leads">
+      <div id="meus-leads-loading" style="text-align:center;padding:60px 0;color:var(--t2);font-size:14px">
+        <div class="spinner" style="margin:0 auto 12px;width:24px;height:24px"></div>
+        Carregando seus leads do dia...
+      </div>
+      <div id="meus-leads-empty" style="display:none;text-align:center;padding:60px 20px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px;height:48px;opacity:.2;margin:0 auto 16px;display:block"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        <div style="font-size:15px;font-weight:600;color:var(--t1);margin-bottom:6px">Nenhum lead gerado hoje</div>
+        <div style="font-size:13px;color:var(--t2);margin-bottom:20px">Faça uma busca para gerar seus leads do dia.</div>
+        <button class="btn btn-primary" onclick="nav('leads',document.getElementById('nav-meus-leads').previousElementSibling.previousElementSibling)">
+          Buscar Leads
+        </button>
+      </div>
+      <div id="meus-leads-content" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div>
+            <span id="meus-leads-count" style="font-size:22px;font-weight:700;color:var(--t1)">0</span>
+            <span style="font-size:13px;color:var(--t2);margin-left:6px">leads gerados hoje</span>
+            <span style="font-size:11px;color:var(--t3);margin-left:8px">· Reseta à meia-noite</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="exportMeusLeads()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar CSV
+          </button>
+        </div>
+
+        <!-- Tabs CNPJ / Instagram -->
+        <div class="mode-toggle" style="margin-bottom:16px">
+          <button class="mode-btn active" id="ml-tab-ig" onclick="mlTab('instagram')" style="flex:1;justify-content:center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+            Instagram / Google Maps
+            <span id="ml-count-ig" style="font-size:10px;background:rgba(180,144,255,.2);color:#B490FF;padding:1px 6px;border-radius:4px;margin-left:4px">0</span>
+          </button>
+          <button class="mode-btn" id="ml-tab-cnpj" onclick="mlTab('cnpj')" style="flex:1;justify-content:center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            CNPJ
+            <span id="ml-count-cnpj" style="font-size:10px;background:rgba(240,144,48,.15);color:var(--orange);padding:1px 6px;border-radius:4px;margin-left:4px">0</span>
+          </button>
+        </div>
+
+        <div id="ml-results-ig"></div>
+        <div id="ml-results-cnpj" style="display:none"></div>
+      </div>
+    </div>
+
     <div class="page" id="page-settings">
       <div style="margin-bottom:24px">
         <div style="font-size:18px;font-weight:800;letter-spacing:-.5px;margin-bottom:3px">Configurações</div>
@@ -1688,6 +1737,7 @@ function showErr(id, show, msg) {
 const titles = {
   dashboard:'Dashboard <span>/ Visão Geral</span>',
   leads:'Buscar Leads <span>/ Base CNPJ · Instagram</span>',
+  'meus-leads':'Meus Leads <span>/ Leads gerados hoje</span>',
   financeiro:'Gestão Financeira <span>/ Abordagens · Vendas · Conversão</span>',
   admin:'Assinantes <span>/ Gestão de Clientes</span>',
   settings:'Configurações <span>/ Sistema</span>',
@@ -1698,10 +1748,11 @@ function nav(id, el) {
   document.getElementById('page-' + id).classList.add('active');
   if (el) el.classList.add('active');
   document.getElementById('page-title').innerHTML = titles[id] || id;
-  if (id === 'dashboard')  loadDashboard();
-  if (id === 'settings')   { preencherConfiguracoes(); checkHealth(); loadSettings(); }
-  if (id === 'admin')      loadAdmin();
-  if (id === 'financeiro') renderFinanceiro();
+  if (id === 'dashboard')   loadDashboard();
+  if (id === 'settings')    { preencherConfiguracoes(); checkHealth(); loadSettings(); }
+  if (id === 'admin')       loadAdmin();
+  if (id === 'financeiro')  renderFinanceiro();
+  if (id === 'meus-leads')  loadMeusLeads();
 }
 
 // ══ MODAL ══
@@ -2542,53 +2593,125 @@ function mostrarApp() {
   restaurarLeadsDodia();
 }
 
+// ══ MEUS LEADS ══
+
+let _meusLeadsCache = { cnpj: [], instagram: [] };
+
+async function loadMeusLeads() {
+  const loading = document.getElementById('meus-leads-loading');
+  const empty   = document.getElementById('meus-leads-empty');
+  const content = document.getElementById('meus-leads-content');
+
+  loading.style.display = '';
+  empty.style.display   = 'none';
+  content.style.display = 'none';
+
+  try {
+    const d = await api('/leads/meus-leads');
+    _meusLeadsCache = { cnpj: d.cnpj || [], instagram: d.instagram || [] };
+    const total = (_meusLeadsCache.cnpj.length + _meusLeadsCache.instagram.length);
+
+    loading.style.display = 'none';
+
+    if (!total) { empty.style.display = ''; return; }
+
+    content.style.display = '';
+    document.getElementById('meus-leads-count').textContent = total;
+    document.getElementById('ml-count-ig').textContent   = _meusLeadsCache.instagram.length;
+    document.getElementById('ml-count-cnpj').textContent = _meusLeadsCache.cnpj.length;
+
+    // Atualiza badge sidebar
+    const badge = document.getElementById('badge-meus-leads');
+    badge.textContent = total;
+    badge.style.display = '';
+    badge.classList.remove('dim');
+
+    // Renderiza aba padrão (instagram)
+    mlTab(_meusLeadsCache.instagram.length ? 'instagram' : 'cnpj');
+  } catch(e) {
+    loading.style.display = 'none';
+    empty.style.display = '';
+  }
+}
+
+function mlTab(tipo) {
+  document.getElementById('ml-tab-ig').classList.toggle('active',   tipo === 'instagram');
+  document.getElementById('ml-tab-cnpj').classList.toggle('active', tipo === 'cnpj');
+  document.getElementById('ml-results-ig').style.display   = tipo === 'instagram' ? '' : 'none';
+  document.getElementById('ml-results-cnpj').style.display = tipo === 'cnpj'      ? '' : 'none';
+
+  const container = document.getElementById(tipo === 'instagram' ? 'ml-results-ig' : 'ml-results-cnpj');
+  if (container.innerHTML) return; // já renderizado
+
+  const leads = tipo === 'instagram' ? _meusLeadsCache.instagram : _meusLeadsCache.cnpj;
+  if (!leads.length) { container.innerHTML = '<p style="color:var(--t2);font-size:13px;text-align:center;padding:30px">Nenhum lead nesta categoria.</p>'; return; }
+
+  // Reutiliza o renderResults existente para manter visual igual
+  state.results = leads;
+  renderResults(leads, tipo === 'instagram' ? 'instagram' : 'cnpj');
+  container.innerHTML = document.getElementById('results-card').querySelector('table, .results-list, tbody')?.parentElement?.outerHTML
+    || `<p style="color:var(--t2);font-size:12px;text-align:center;padding:20px">${leads.length} leads salvos.</p>`;
+
+  // Renderização alternativa: tabela simples
+  container.innerHTML = '';
+  const table = document.createElement('div');
+  table.style.cssText = 'overflow-x:auto';
+  table.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:12.5px">
+    <thead><tr style="border-bottom:1px solid var(--s3)">
+      <th style="text-align:left;padding:8px 10px;color:var(--t2);font-weight:600">Nome</th>
+      <th style="text-align:left;padding:8px 10px;color:var(--t2);font-weight:600">Segmento</th>
+      <th style="text-align:left;padding:8px 10px;color:var(--t2);font-weight:600">Cidade</th>
+      <th style="text-align:left;padding:8px 10px;color:var(--t2);font-weight:600">Contato</th>
+    </tr></thead>
+    <tbody>${leads.map(l => `<tr style="border-bottom:1px solid var(--s2)">
+      <td style="padding:8px 10px;color:var(--t1);font-weight:500">${esc(l.nome || l.razao_social || l.nome_fantasia || '—')}</td>
+      <td style="padding:8px 10px;color:var(--t2)">${esc(l.segmento || l.cnae_descricao || '—')}</td>
+      <td style="padding:8px 10px;color:var(--t2)">${esc((l.cidade || l.municipio_nome || '') + (l.estado || l.uf ? ', '+(l.estado||l.uf) : ''))}</td>
+      <td style="padding:8px 10px">
+        ${l.whatsapp   ? `<a href="${l.whatsapp}" target="_blank" style="color:var(--ok);margin-right:8px;font-size:11px">WhatsApp</a>` : ''}
+        ${l.instagram  ? `<a href="${l.instagram}" target="_blank" style="color:#B490FF;margin-right:8px;font-size:11px">Instagram</a>` : ''}
+        ${l.website    ? `<a href="${l.website}" target="_blank" style="color:var(--blue);font-size:11px">Site</a>` : ''}
+        ${l.telefone1  ? `<span style="color:var(--t2);font-size:11px">${esc(l.telefone1)}</span>` : ''}
+        ${!l.whatsapp && !l.instagram && !l.website && !l.telefone1 ? '<span style="color:var(--t3);font-size:11px">—</span>' : ''}
+      </td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+  container.appendChild(table);
+}
+
+function exportMeusLeads() {
+  const all = [..._meusLeadsCache.instagram, ..._meusLeadsCache.cnpj];
+  if (!all.length) return toast('Nenhum lead para exportar', 'error');
+  const rows = [['Nome','Segmento','Cidade','Estado','WhatsApp','Instagram','Website','Telefone']];
+  all.forEach(l => rows.push([
+    l.nome || l.razao_social || '',
+    l.segmento || l.cnae_descricao || '',
+    l.cidade || l.municipio_nome || '',
+    l.estado || l.uf || '',
+    l.whatsapp || '',
+    l.instagram || '',
+    l.website || '',
+    l.telefone1 || '',
+  ]));
+  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'meus-leads-' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+  toast('CSV exportado!', 'success');
+}
+
 async function restaurarLeadsDodia() {
   try {
     const d = await api('/leads/meus-leads');
     if (!d || !d.total) return;
-
-    const banner = document.getElementById('banner-restaurar');
-    if (!banner) return;
-
-    banner.style.display = 'flex';
-    banner.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
-      <span>Você tem <b>${d.total} leads do dia</b> disponíveis.</span>
-      <div style="display:flex;gap:6px;margin-left:auto">
-        ${d.cnpj?.length      ? `<button onclick="verLeadsCacheCNPJ()"      style="background:var(--s3);border:none;color:var(--t1);padding:4px 10px;border-radius:5px;cursor:pointer;font-size:12px">Ver CNPJ (${d.cnpj.length})</button>` : ''}
-        ${d.instagram?.length ? `<button onclick="verLeadsCacheInstagram()" style="background:var(--s3);border:none;color:var(--t1);padding:4px 10px;border-radius:5px;cursor:pointer;font-size:12px">Ver Instagram (${d.instagram.length})</button>` : ''}
-        <button onclick="this.parentElement.parentElement.style.display='none'" style="background:none;border:none;color:var(--t2);cursor:pointer;padding:4px 8px;font-size:14px">✕</button>
-      </div>`;
-
-    // Guarda cache local para os botões usarem
-    window._cacheLeadsCNPJ      = d.cnpj || [];
-    window._cacheLeadsInstagram = d.instagram || [];
+    // Atualiza badge da sidebar
+    const badge = document.getElementById('badge-meus-leads');
+    if (badge) { badge.textContent = d.total; badge.style.display = ''; badge.classList.remove('dim'); }
   } catch(e) { /* silencioso */ }
 }
 
-function verLeadsCacheCNPJ() {
-  const leads = window._cacheLeadsCNPJ || [];
-  if (!leads.length) return;
-  state.results = leads;
-  renderResults(leads, 'cnpj');
-  document.getElementById('results-card').style.display = '';
-  document.getElementById('result-count').textContent = leads.length + ' leads do dia (CNPJ)';
-  document.getElementById('result-count').style.display = '';
-  document.getElementById('btn-export').disabled = false;
-  showSection('busca');
-}
-
-function verLeadsCacheInstagram() {
-  const leads = window._cacheLeadsInstagram || [];
-  if (!leads.length) return;
-  state.results = leads;
-  renderResults(leads, 'instagram');
-  document.getElementById('results-card').style.display = '';
-  document.getElementById('result-count').textContent = leads.length + ' leads do dia (Instagram/Google Maps)';
-  document.getElementById('result-count').style.display = '';
-  document.getElementById('btn-export').disabled = false;
-  showSection('instagram');
-}
 
 // Nomes de exibição dos planos (valores internos não mudam)
 const PLANO_LABELS = { mensal: 'Básico', trimestral: 'Pro', vitalicio: 'Alpha Member' };
