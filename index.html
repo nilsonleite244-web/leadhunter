@@ -871,6 +871,9 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
 
   <div class="content">
 
+    <!-- Banner de restauração de leads do dia -->
+    <div id="banner-restaurar" style="display:none;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--amber);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--t1)"></div>
+
     <!-- ══════ DASHBOARD ══════ -->
     <div class="page active" id="page-dashboard">
       <div class="err-banner" id="dash-err">
@@ -2536,6 +2539,55 @@ function mostrarApp() {
   document.getElementById('app').style.display = 'flex';
   atualizarBadgePlano();
   updateFinBadge();
+  restaurarLeadsDodia();
+}
+
+async function restaurarLeadsDodia() {
+  try {
+    const d = await api('/leads/meus-leads');
+    if (!d || !d.total) return;
+
+    const banner = document.getElementById('banner-restaurar');
+    if (!banner) return;
+
+    banner.style.display = 'flex';
+    banner.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
+      <span>Você tem <b>${d.total} leads do dia</b> disponíveis.</span>
+      <div style="display:flex;gap:6px;margin-left:auto">
+        ${d.cnpj?.length      ? `<button onclick="verLeadsCacheCNPJ()"      style="background:var(--s3);border:none;color:var(--t1);padding:4px 10px;border-radius:5px;cursor:pointer;font-size:12px">Ver CNPJ (${d.cnpj.length})</button>` : ''}
+        ${d.instagram?.length ? `<button onclick="verLeadsCacheInstagram()" style="background:var(--s3);border:none;color:var(--t1);padding:4px 10px;border-radius:5px;cursor:pointer;font-size:12px">Ver Instagram (${d.instagram.length})</button>` : ''}
+        <button onclick="this.parentElement.parentElement.style.display='none'" style="background:none;border:none;color:var(--t2);cursor:pointer;padding:4px 8px;font-size:14px">✕</button>
+      </div>`;
+
+    // Guarda cache local para os botões usarem
+    window._cacheLeadsCNPJ      = d.cnpj || [];
+    window._cacheLeadsInstagram = d.instagram || [];
+  } catch(e) { /* silencioso */ }
+}
+
+function verLeadsCacheCNPJ() {
+  const leads = window._cacheLeadsCNPJ || [];
+  if (!leads.length) return;
+  state.results = leads;
+  renderResults(leads, 'cnpj');
+  document.getElementById('results-card').style.display = '';
+  document.getElementById('result-count').textContent = leads.length + ' leads do dia (CNPJ)';
+  document.getElementById('result-count').style.display = '';
+  document.getElementById('btn-export').disabled = false;
+  showSection('busca');
+}
+
+function verLeadsCacheInstagram() {
+  const leads = window._cacheLeadsInstagram || [];
+  if (!leads.length) return;
+  state.results = leads;
+  renderResults(leads, 'instagram');
+  document.getElementById('results-card').style.display = '';
+  document.getElementById('result-count').textContent = leads.length + ' leads do dia (Instagram/Google Maps)';
+  document.getElementById('result-count').style.display = '';
+  document.getElementById('btn-export').disabled = false;
+  showSection('instagram');
 }
 
 // Nomes de exibição dos planos (valores internos não mudam)

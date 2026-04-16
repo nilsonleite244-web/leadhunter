@@ -106,6 +106,39 @@ function incrementarCota(a, count) {
   assinantesCol().doc(a.id).update({ leads_hoje: novoTotal, leads_data: hoje }).catch(() => {});
 }
 
+// ── CACHE DE LEADS GERADOS POR DIA ───────────────────────────────────────────
+// Cria tabela se não existir (executa uma vez no startup)
+if (pool) {
+  pool.query(`
+    CREATE TABLE IF NOT EXISTS leads_gerados (
+      id               SERIAL PRIMARY KEY,
+      assinante_token  TEXT NOT NULL,
+      data_geracao     DATE NOT NULL DEFAULT CURRENT_DATE,
+      lead_tipo        TEXT NOT NULL,
+      lead_id          TEXT NOT NULL,
+      lead_json        JSONB NOT NULL,
+      UNIQUE(assinante_token, data_geracao, lead_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_leads_gerados_tok_data
+      ON leads_gerados(assinante_token, data_geracao);
+  `).catch(e => console.warn("[leads_gerados] Aviso ao criar tabela:", e.message));
+}
+
+// Salva leads entregues no cache (sem bloquear a resposta)
+function salvarLeadsGerados(token, tipo, leads) {
+  if (!pool || !token || !leads?.length) return;
+  const hoje = new Date().toISOString().split("T")[0];
+  const values = leads.map(l => {
+    const id = String(l.cnpj || l.id || l.instagram || l.nome || Math.random());
+    const json = JSON.stringify(l).replace(/'/g, "''");
+    return `('${token}','${hoje}','${tipo}','${id.slice(0,200)}','${json}')`;
+  }).join(",");
+  pool.query(
+    `INSERT INTO leads_gerados (assinante_token, data_geracao, lead_tipo, lead_id, lead_json)
+     VALUES ${values} ON CONFLICT DO NOTHING`
+  ).catch(() => {});
+}
+
 const SOCIAL_DOMAINS = ["wa.me","whatsapp","instagram.com","facebook.com","linktr.ee","tiktok.com","youtube.com","bio.site","hotmart","kirvano"];
 function hasOwnWebsite(website) {
   if (!website) return false;
@@ -300,8 +333,9 @@ app.get("/leads/instagram", async (req, res) => {
       };
     });
 
-    // Debita cota
+    // Debita cota e salva no cache do dia
     incrementarCota(a, rows.length);
+    if (a) salvarLeadsGerados(a.token, 'instagram', rows);
 
     // Monta resposta — assinantes não recebem total real
     const hoje = new Date().toISOString().split("T")[0];
@@ -394,6 +428,7 @@ app.get("/leads/buscar", async (req, res) => {
     }));
 
     incrementarCota(a, data.length);
+    if (a) salvarLeadsGerados(a.token, 'cnpj', data);
 
     const hoje = new Date().toISOString().split("T")[0];
     const usadoAntes = a?.leads_data === hoje ? (a?.leads_hoje || 0) : 0;
@@ -408,6 +443,32 @@ app.get("/leads/buscar", async (req, res) => {
     const pages = isAdmin ? Math.ceil(total / effectiveLimit) : null;
 
     res.json({ total, page, limit: effectiveLimit, pages, data, cota });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /leads/meus-leads — devolve leads já entregues hoje (sem debitar cota)
+app.get("/leads/meus-leads", async (req, res) => {
+  try {
+    if (!pool) return res.status(503).json({ error: "Banco não configurado" });
+    const a = req.assinante;
+    if (!a) return res.status(401).json({ error: "Token inválido" });
+
+    const tipo = req.query.tipo || null; // 'cnpj', 'instagram' ou null (todos)
+    const hoje = new Date().toISOString().split("T")[0];
+
+    const params = [a.token, hoje];
+    let sql = `SELECT lead_tipo, lead_json FROM leads_gerados
+               WHERE assinante_token = $1 AND data_geracao = $2`;
+    if (tipo) { sql += ` AND lead_tipo = $3`; params.push(tipo); }
+    sql += ` ORDER BY id ASC`;
+
+    const r = await pool.query(sql, params);
+    const cnpj      = r.rows.filter(x => x.lead_tipo === 'cnpj').map(x => x.lead_json);
+    const instagram = r.rows.filter(x => x.lead_tipo === 'instagram').map(x => x.lead_json);
+
+    res.json({ total: r.rows.length, cnpj, instagram });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
