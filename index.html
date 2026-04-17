@@ -706,6 +706,28 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
   .g2{grid-template-columns:1fr}
 }
 </style>
+<style>
+/* ── Modal Copy Script ── */
+#overlay-copy-script{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s}
+#overlay-copy-script.open{opacity:1;pointer-events:all}
+#modal-copy-script{background:var(--s1);border:1px solid var(--s3);border-radius:14px;width:100%;max-width:680px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.cs-header{padding:18px 20px 14px;border-bottom:1px solid var(--s3);display:flex;align-items:center;gap:10px}
+.cs-tabs{display:flex;gap:4px;padding:12px 16px 0;border-bottom:1px solid var(--s3);overflow-x:auto}
+.cs-tab{padding:7px 14px;font-size:12px;font-weight:600;color:var(--t2);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;font-family:Inter,sans-serif}
+.cs-tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+.cs-body{padding:18px 20px;overflow-y:auto;flex:1}
+.cs-panel{display:none}
+.cs-panel.active{display:block}
+.cs-msg{background:var(--s2);border:1px solid var(--s3);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;color:var(--t1);white-space:pre-wrap;word-break:break-word;margin-bottom:10px}
+.cs-copy-btn{display:flex;align-items:center;gap:6px;background:var(--s3);border:none;color:var(--t1);font-size:11.5px;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:Inter,sans-serif;transition:all .15s;margin-bottom:18px}
+.cs-copy-btn:hover{background:var(--orange);color:#fff}
+.cs-label{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.cs-obj{background:var(--s2);border:1px solid var(--s3);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.cs-obj-q{padding:10px 14px;font-size:13px;font-weight:600;color:var(--amber);cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.cs-obj-a{padding:0 14px;font-size:13px;line-height:1.7;color:var(--t1);max-height:0;overflow:hidden;transition:max-height .3s,padding .3s}
+.cs-obj-a.open{max-height:400px;padding:10px 14px 14px}
+.cs-dica{background:rgba(240,144,48,.07);border:1px solid rgba(240,144,48,.2);border-radius:7px;padding:10px 13px;font-size:12.5px;color:var(--t1);margin-bottom:8px;display:flex;gap:8px}
+</style>
 </head>
 <body>
 <!-- ══ TELA DE LOGIN ══ -->
@@ -2132,6 +2154,9 @@ function renderResults(rows, mode) {
         <td><div class="td-act">
           ${igUrl ? `<a href="${igUrl}" target="_blank" onclick="registrarAbordagem(this)" class="ib ig" title="Abrir Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>` : ''}
           ${wppUrl ? `<a href="${wppUrl}" target="_blank" onclick="registrarAbordagem(this)" class="ib wpp" title="Abrir WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>` : ''}
+          <button class="ib" title="Script de vendas" style="color:var(--orange)" onclick='abrirCopyScript(${JSON.stringify({nome:r.razao_social,cidade:r.cidade||r.municipio_nome,segmento:r.cnae_descricao||r.segmento,instagram_url:igUrl||""})})'>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </button>
         </div></td>
       </tr>`;
     }).join('');
@@ -2156,6 +2181,9 @@ function renderResults(rows, mode) {
         <td><div class="td-act">
           <button class="ib" onclick="viewLead('${r.cnpj}')" title="Ver detalhes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
           ${wppUrl ? `<a href="${wppUrl}" target="_blank" onclick="registrarAbordagem(this)" class="ib wpp" title="Enviar WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>` : ''}
+          <button class="ib" title="Script de vendas" style="color:var(--orange)" onclick='abrirCopyScript(${JSON.stringify({nome:r.nome_fantasia||r.razao_social,cidade:r.municipio_nome,segmento:r.cnae_descricao,instagram_url:""})})'>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </button>
         </div></td>
       </tr>`;
     }).join('');
@@ -2918,6 +2946,187 @@ window.addEventListener('load', async () => {
   }
   mostrarTelaLogin();
 });
+</script>
+
+<!-- ══ MODAL COPY SCRIPT ══ -->
+<div id="overlay-copy-script" onclick="if(event.target===this)closeCopyScript()">
+  <div id="modal-copy-script">
+    <div class="cs-header">
+      <span id="cs-emoji" style="font-size:22px">🚀</span>
+      <div style="flex:1">
+        <div id="cs-titulo" style="font-size:15px;font-weight:700;color:var(--t1)">Script de Vendas</div>
+        <div id="cs-dor" style="font-size:12px;color:var(--t2);margin-top:2px"></div>
+      </div>
+      <button onclick="closeCopyScript()" style="background:none;border:none;color:var(--t2);cursor:pointer;font-size:20px;padding:4px 8px;line-height:1">×</button>
+    </div>
+    <div class="cs-tabs">
+      <button class="cs-tab active" onclick="csTab('abertura',this)">1. Abertura</button>
+      <button class="cs-tab" onclick="csTab('seguimento',this)">2. Seguimento</button>
+      <button class="cs-tab" onclick="csTab('proposta',this)">3. Proposta</button>
+      <button class="cs-tab" onclick="csTab('objecoes',this)">4. Objeções</button>
+      <button class="cs-tab" onclick="csTab('followup',this)">5. Follow-up</button>
+      <button class="cs-tab" onclick="csTab('fechamento',this)">6. Fechamento</button>
+      <button class="cs-tab" onclick="csTab('dicas',this)">💡 Dicas</button>
+    </div>
+    <div class="cs-body">
+
+      <div class="cs-panel active" id="cs-panel-abertura">
+        <div class="cs-label">Primeira mensagem — WhatsApp ou DM Instagram</div>
+        <div class="cs-msg" id="cs-msg-abertura"></div>
+        <button class="cs-copy-btn" onclick="copiarScript('cs-msg-abertura')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copiar mensagem
+        </button>
+        <div class="cs-label" style="margin-top:4px">Como usar</div>
+        <div class="cs-dica"><span>💡</span><span>Mande essa mensagem pelo WhatsApp ou DM do Instagram. Espere a resposta antes de mandar qualquer outra coisa. A pergunta no final é proposital — faça o lead responder primeiro.</span></div>
+        <div class="cs-dica"><span>⏰</span><span>Melhor horário para enviar: entre 10h-12h ou 14h-16h. Evite segunda de manhã e sexta à tarde.</span></div>
+      </div>
+
+      <div class="cs-panel" id="cs-panel-seguimento">
+        <div class="cs-label">Se demonstrou interesse ou respondeu positivamente</div>
+        <div class="cs-msg" id="cs-msg-seguimento"></div>
+        <button class="cs-copy-btn" onclick="copiarScript('cs-msg-seguimento')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copiar mensagem
+        </button>
+        <div class="cs-label" style="margin-top:4px">Como usar</div>
+        <div class="cs-dica"><span>💡</span><span>Mande isso logo depois que o lead responder com interesse. O objetivo é criar curiosidade e agendar uma conversa mais aprofundada — não fechar ainda.</span></div>
+      </div>
+
+      <div class="cs-panel" id="cs-panel-proposta">
+        <div class="cs-label">Proposta completa — mande quando pedir mais detalhes</div>
+        <div class="cs-msg" id="cs-msg-proposta"></div>
+        <button class="cs-copy-btn" onclick="copiarScript('cs-msg-proposta')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copiar proposta
+        </button>
+        <div class="cs-dica"><span>💡</span><span>Mande a proposta apenas quando o lead pedir mais informações ou demonstrar interesse real. Não queime a proposta logo na abertura.</span></div>
+        <div class="cs-dica"><span>🎯</span><span>Destaque sempre o retorno sobre o investimento: quantos clientes precisa trazer pra se pagar. Isso remove a objeção de preço antes mesmo de aparecer.</span></div>
+      </div>
+
+      <div class="cs-panel" id="cs-panel-objecoes">
+        <div class="cs-label">Clique na objeção para ver a resposta ideal</div>
+        <div id="cs-objecoes-list"></div>
+      </div>
+
+      <div class="cs-panel" id="cs-panel-followup">
+        <div class="cs-label">Follow-up após 24h sem resposta</div>
+        <div class="cs-msg" id="cs-msg-followup24"></div>
+        <button class="cs-copy-btn" onclick="copiarScript('cs-msg-followup24')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copiar follow-up 24h
+        </button>
+        <div class="cs-label">Follow-up após 48h sem resposta</div>
+        <div class="cs-msg" id="cs-msg-followup48"></div>
+        <button class="cs-copy-btn" onclick="copiarScript('cs-msg-followup48')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copiar follow-up 48h
+        </button>
+        <div class="cs-dica"><span>💡</span><span>Nunca mande dois follow-ups no mesmo dia. Respeite o intervalo. Depois do segundo follow-up sem resposta, espere 7 dias antes de tentar novamente.</span></div>
+        <div class="cs-dica"><span>🔁</span><span>Se não responder após 3 tentativas, mude o canal: se abordou pelo WhatsApp, tente pelo Instagram (ou vice-versa).</span></div>
+      </div>
+
+      <div class="cs-panel" id="cs-panel-fechamento">
+        <div class="cs-label">Fechamento — quando o lead demonstrar intenção de compra</div>
+        <div class="cs-msg" id="cs-msg-fechamento"></div>
+        <button class="cs-copy-btn" onclick="copiarScript('cs-msg-fechamento')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copiar mensagem de fechamento
+        </button>
+        <div class="cs-dica"><span>🏁</span><span>No fechamento, apresente os próximos passos de forma clara e objetiva. Não deixe o lead sem saber o que acontece depois. Remova toda fricção da decisão.</span></div>
+        <div class="cs-dica"><span>💳</span><span>Sempre ofereça parcelamento. Muitas vezes o lead quer fechar mas o valor à vista trava. 3x sem juros resolve isso na maioria dos casos.</span></div>
+      </div>
+
+      <div class="cs-panel" id="cs-panel-dicas">
+        <div class="cs-label">Dicas profissionais para esse segmento</div>
+        <div id="cs-dicas-list"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="scripts-vendas.js"></script>
+<script>
+// ── Copy Script Modal ──────────────────────────────────────────────
+
+function abrirCopyScript(lead) {
+  const script = getScript(lead.segmento || lead.cnae_descricao || '');
+  const fill   = txt => preencherVariaveis(txt || '', lead);
+
+  document.getElementById('cs-emoji').textContent  = script.emoji || '🚀';
+  document.getElementById('cs-titulo').textContent = script.titulo || 'Script de Vendas';
+  document.getElementById('cs-dor').textContent    = script.dor || '';
+
+  document.getElementById('cs-msg-abertura').textContent    = fill(script.abertura);
+  document.getElementById('cs-msg-seguimento').textContent  = fill(script.seguimento_positivo);
+  document.getElementById('cs-msg-proposta').textContent    = fill(script.proposta);
+  document.getElementById('cs-msg-followup24').textContent  = fill(script.followup_24h);
+  document.getElementById('cs-msg-followup48').textContent  = fill(script.followup_48h);
+  document.getElementById('cs-msg-fechamento').textContent  = fill(script.fechamento);
+
+  // Objeções
+  const objList = document.getElementById('cs-objecoes-list');
+  objList.innerHTML = (script.objecoes || []).map((o, i) => `
+    <div class="cs-obj">
+      <div class="cs-obj-q" onclick="toggleObj(${i})">
+        <span>❌ "${esc(o.texto)}"</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="cs-obj-a" id="cs-obj-${i}">
+        <div style="white-space:pre-wrap;margin-bottom:10px">${esc(fill(o.resposta))}</div>
+        <button class="cs-copy-btn" onclick="copiarTexto(${JSON.stringify(fill(o.resposta))})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copiar resposta
+        </button>
+      </div>
+    </div>`).join('');
+
+  // Dicas
+  const dicasList = document.getElementById('cs-dicas-list');
+  dicasList.innerHTML = (script.dicas || []).map(d => `
+    <div class="cs-dica"><span>💡</span><span>${esc(d)}</span></div>`).join('');
+
+  // Reseta para aba abertura
+  csTab('abertura', document.querySelector('.cs-tab'));
+  document.getElementById('overlay-copy-script').classList.add('open');
+}
+
+function closeCopyScript() {
+  document.getElementById('overlay-copy-script').classList.remove('open');
+}
+
+function csTab(id, el) {
+  document.querySelectorAll('.cs-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.cs-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('cs-panel-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+function toggleObj(i) {
+  const el = document.getElementById('cs-obj-' + i);
+  el.classList.toggle('open');
+}
+
+function copiarScript(elId) {
+  const txt = document.getElementById(elId)?.textContent || '';
+  copiarTexto(txt);
+}
+
+function copiarTexto(txt) {
+  navigator.clipboard.writeText(txt).then(() => {
+    toast('Copiado!', 'success');
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = txt;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    toast('Copiado!', 'success');
+  });
+}
 </script>
 </body>
 </html>
