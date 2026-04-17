@@ -588,6 +588,18 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
 .sdot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
 .sdot.on{background:var(--ok)}.sdot.off{background:var(--err)}.sdot.warn{background:var(--amber)}
 
+/* ══ MODAL BUSCA ══ */
+.mb-range-wrap{position:relative;padding:0 4px}
+.mb-range{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:999px;background:var(--s5);outline:none;cursor:pointer}
+.mb-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:var(--amber);border:3px solid #fff;box-shadow:0 0 0 3px rgba(255,106,0,.25);cursor:pointer;transition:box-shadow .15s}
+.mb-range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--amber);border:3px solid #fff;cursor:pointer}
+.mb-preset{padding:5px 12px;border-radius:6px;border:1px solid var(--bd2);background:var(--s3);color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;transition:all .12s;font-family:'Inter',sans-serif}
+.mb-preset:hover{border-color:var(--amber);color:var(--amber)}
+.mb-preset.active{background:rgba(255,106,0,.12);border-color:rgba(255,106,0,.5);color:var(--amber)}
+.mb-seg-chip{padding:5px 12px;border-radius:6px;border:1px solid var(--bd);background:var(--s2);color:var(--t2);font-size:11.5px;cursor:pointer;transition:all .12s;white-space:nowrap;font-family:'Inter',sans-serif}
+.mb-seg-chip:hover{border-color:rgba(180,144,255,.4);color:#B490FF}
+.mb-seg-chip.active{background:rgba(180,144,255,.12);border-color:rgba(180,144,255,.45);color:#B490FF}
+
 /* ══ MODALS ══ */
 .overlay{
   position:fixed;inset:0;
@@ -1072,23 +1084,6 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
         <span>Configure a URL da API em Configurações.</span>
       </div>
 
-      <!-- Quantidade de leads -->
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:12px">
-        <label for="qty-leads" style="font-size:12px;font-weight:500;color:var(--t2);white-space:nowrap">Leads por busca</label>
-        <div style="position:relative;display:flex;align-items:center">
-          <select id="qty-leads" style="appearance:none;-webkit-appearance:none;background:var(--s3);border:1px solid var(--bd2);color:var(--txt);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;padding:6px 32px 6px 12px;border-radius:8px;cursor:pointer;outline:none;min-width:80px;transition:border-color .15s" onchange="onQtyChange(this)">
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50" selected>50</option>
-            <option value="75">75</option>
-            <option value="100">100</option>
-            <option value="150">150</option>
-          </select>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px;position:absolute;right:10px;pointer-events:none;color:var(--t2)"><path d="M6 9l6 6 6-6"/></svg>
-        </div>
-        <span id="qty-cota-hint" style="font-size:11px;color:var(--t3)"></span>
-      </div>
-
       <!-- Mode toggle — 3 botões -->
       <div class="mode-toggle" style="width:100%;margin-bottom:18px">
         <button class="mode-btn" id="mode-cnpj" onclick="setMode('cnpj')" style="flex:1;justify-content:center">
@@ -1143,7 +1138,7 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
           <div class="hero-title">Público Aleatório</div>
           <div class="hero-sub">Empresas com telefone selecionadas aleatoriamente da base da Receita Federal. Novo conjunto a cada clique.</div>
           <div class="hero-actions">
-            <button class="btn-lead" id="btn-aleatorio" onclick="buscarAleatorio()">
+            <button class="btn-lead" id="btn-aleatorio" onclick="abrirModalBusca('aleatorio')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
               <span>Gerar Leads Aleatórios</span>
             </button>
@@ -1204,7 +1199,7 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
           <div class="ig-title">Negócios com <span>Instagram</span></div>
           <div class="ig-sub">Apenas empresas com perfil no Instagram confirmado — prontas para prospecção por DM ou WhatsApp.</div>
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px">
-            <button class="ig-load-btn" id="btn-ig" onclick="buscarAtivos(1)">
+            <button class="ig-load-btn" id="btn-ig" onclick="abrirModalBusca('instagram')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg>
               <span class="ig-load-btn-txt">Carregar Leads com Instagram</span>
             </button>
@@ -1247,7 +1242,7 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
               </div>
               <div style="font-size:12.5px;color:rgba(147,197,253,.6);margin-bottom:14px">Negócios sem perfil no Instagram — abordagem por telefone, e-mail ou WhatsApp direto.</div>
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                <button id="btn-frios" onclick="buscarFrios(1)" class="btn-lead-ice">
+                <button id="btn-frios" onclick="abrirModalBusca('frios')" class="btn-lead-ice">
                   <span class="flake">❄</span>
                   <span class="flake">❄</span>
                   <span class="flake">❄</span>
@@ -1910,21 +1905,110 @@ setInterval(() => {
   }
 }, 7000);
 
-// ══ QUANTIDADE DE LEADS ══
-function getQtd() {
-  return parseInt(document.getElementById('qty-leads')?.value || '50');
+// ══ MODAL DE BUSCA ══
+let _mbMode = 'instagram'; // modo atual do modal
+let _mbQty  = 50;          // qtd selecionada
+
+function abrirModalBusca(mode) {
+  _mbMode = mode;
+  // Preserva segmento do campo já preenchido no modo atual
+  const segAtual =
+    mode === 'instagram' ? (document.getElementById('ig-seg')?.value || '') :
+    mode === 'frios'     ? (document.getElementById('frios-seg')?.value || '') : '';
+  document.getElementById('mb-seg-input').value = segAtual;
+  // Sincroniza chip ativo
+  document.querySelectorAll('.mb-seg-chip').forEach(c => c.classList.remove('active'));
+  // Atualiza cota
+  mbAtualizarCota();
+  // Range/display
+  setMbQty(_mbQty);
+  document.getElementById('overlay-busca').classList.add('open');
+  setTimeout(() => document.getElementById('mb-seg-input').focus(), 120);
 }
-function onQtyChange(sel) {
-  const v = parseInt(sel.value);
-  // Mostra aviso se perto do limite da cota
-  const hint = document.getElementById('qty-cota-hint');
-  if (hint && ASSINANTE_COTA && v > ASSINANTE_COTA.restante) {
-    hint.textContent = `Cota: ${ASSINANTE_COTA.restante} restantes`;
-    hint.style.color = '#f87171';
-  } else if (hint) {
-    hint.textContent = '';
+
+function fecharModalBusca() {
+  document.getElementById('overlay-busca').classList.remove('open');
+}
+
+function onMbRangeInput(v) {
+  _mbQty = parseInt(v);
+  document.getElementById('mb-qty-display').textContent = v;
+  document.getElementById('mb-confirm-qty').textContent = v;
+  // Atualiza preset ativo
+  document.querySelectorAll('.mb-preset').forEach(b => {
+    b.classList.toggle('active', parseInt(b.textContent) === _mbQty);
+  });
+  mbVerificarCota(_mbQty);
+}
+
+function setMbQty(v) {
+  _mbQty = v;
+  document.getElementById('mb-qty-range').value = v;
+  document.getElementById('mb-qty-display').textContent = v;
+  document.getElementById('mb-confirm-qty').textContent = v;
+  document.querySelectorAll('.mb-preset').forEach(b => {
+    b.classList.toggle('active', parseInt(b.textContent) === v);
+  });
+  mbVerificarCota(v);
+}
+
+function onMbSegInput(v) {
+  // Remove chip ativo se digitou manualmente
+  if (v) document.querySelectorAll('.mb-seg-chip').forEach(c => c.classList.remove('active'));
+}
+
+function setMbSeg(el, seg) {
+  document.getElementById('mb-seg-input').value = seg;
+  document.querySelectorAll('.mb-seg-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function mbAtualizarCota() {
+  const infoEl = document.getElementById('mb-cota-info');
+  if (!ASSINANTE_COTA) { infoEl.style.display = 'none'; return; }
+  infoEl.style.display = '';
+  const { limite, usado, restante } = ASSINANTE_COTA;
+  const pct = Math.min(100, Math.round((usado / limite) * 100));
+  document.getElementById('mb-cota-bar').style.width  = pct + '%';
+  document.getElementById('mb-cota-text').textContent = `${restante} restantes`;
+  mbVerificarCota(_mbQty);
+}
+
+function mbVerificarCota(qty) {
+  const warn = document.getElementById('mb-cota-warn');
+  if (!warn) return;
+  if (ASSINANTE_COTA && qty > ASSINANTE_COTA.restante) {
+    warn.style.display = '';
+    warn.textContent   = `⚠️ Sua cota atual é de ${ASSINANTE_COTA.restante} leads restantes hoje. A busca trará no máximo ${ASSINANTE_COTA.restante} leads.`;
+  } else {
+    warn.style.display = 'none';
   }
 }
+
+function confirmarBusca() {
+  const seg = document.getElementById('mb-seg-input').value.trim();
+  fecharModalBusca();
+
+  // Preenche os campos do modo correspondente e executa a busca
+  if (_mbMode === 'instagram') {
+    if (seg) document.getElementById('ig-seg').value = seg;
+    buscarAtivos(1);
+  } else if (_mbMode === 'frios') {
+    if (seg) document.getElementById('frios-seg').value = seg;
+    buscarFrios(1);
+  } else if (_mbMode === 'aleatorio') {
+    buscarAleatorio();
+  } else if (_mbMode === 'cnpj') {
+    if (seg) document.getElementById('f-busca').value = seg;
+    runSearch(1);
+  }
+}
+
+// ══ QUANTIDADE DE LEADS ══
+function getQtd() {
+  return _mbQty;
+}
+function onQtyChange() {} // mantido por compatibilidade
 
 // ══ MODE TOGGLE ══
 function setMode(mode) {
@@ -2825,6 +2909,7 @@ function updatePlanoUI() { atualizarBadgePlano(); }
 function checkCota(cota) {
   if (cota) { ASSINANTE_COTA = cota; }
   atualizarBadgePlano();
+  mbVerificarCota(_mbQty);
 }
 
 async function loginComEmail() {
@@ -2998,6 +3083,91 @@ window.addEventListener('load', async () => {
   mostrarTelaLogin();
 });
 </script>
+
+<!-- ══ MODAL BUSCA ══ -->
+<div class="overlay" id="overlay-busca" onclick="if(event.target===this)fecharModalBusca()">
+  <div class="modal" style="width:100%;max-width:460px">
+    <div class="modal-header">
+      <div class="modal-title" style="display:flex;align-items:center;gap:10px">
+        <div style="width:30px;height:30px;border-radius:8px;background:rgba(255,106,0,.12);border:1px solid rgba(255,106,0,.3);display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.5" style="width:14px;height:14px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+        Configurar busca
+      </div>
+      <button class="modal-close" onclick="fecharModalBusca()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:22px">
+
+      <!-- Quantidade -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <label style="font-size:13px;font-weight:600;color:var(--txt)">Quantos leads?</label>
+          <div style="display:flex;align-items:baseline;gap:4px">
+            <span id="mb-qty-display" style="font-size:28px;font-weight:800;color:var(--amber);letter-spacing:-.04em;line-height:1">50</span>
+            <span style="font-size:12px;color:var(--t2);font-weight:500">leads</span>
+          </div>
+        </div>
+        <div class="mb-range-wrap">
+          <input type="range" class="mb-range" id="mb-qty-range" min="1" max="150" value="50" oninput="onMbRangeInput(this.value)">
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:5px;padding:0 2px">
+          <span style="font-size:10px;color:var(--t3)">1</span>
+          <span style="font-size:10px;color:var(--t3)">150</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px">
+          <button class="mb-preset" onclick="setMbQty(10)">10</button>
+          <button class="mb-preset" onclick="setMbQty(25)">25</button>
+          <button class="mb-preset active" onclick="setMbQty(50)">50</button>
+          <button class="mb-preset" onclick="setMbQty(75)">75</button>
+          <button class="mb-preset" onclick="setMbQty(100)">100</button>
+          <button class="mb-preset" onclick="setMbQty(150)">150</button>
+        </div>
+        <div id="mb-cota-warn" style="display:none;margin-top:10px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:8px;padding:8px 12px;font-size:12px;color:#f87171"></div>
+      </div>
+
+      <!-- Segmento -->
+      <div>
+        <label style="font-size:13px;font-weight:600;color:var(--txt);display:block;margin-bottom:10px">Segmento <span style="font-size:11px;font-weight:400;color:var(--t2)">(opcional)</span></label>
+        <input type="text" id="mb-seg-input" placeholder="Ex: salão de beleza, clínica, restaurante..." style="width:100%;background:var(--s3);border:1px solid var(--bd2);color:var(--txt);font-family:'Inter',sans-serif;font-size:13px;padding:10px 14px;border-radius:8px;outline:none;transition:border-color .15s" oninput="onMbSegInput(this.value)" onkeydown="if(event.key==='Enter')confirmarBusca()">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px" id="mb-chips">
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'salão de beleza')">💇 Salão</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'barbearia')">✂️ Barbearia</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'clínica de estética')">✨ Estética</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'academia de ginastica')">🏋️ Academia</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'restaurante')">🍽️ Restaurante</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'pizzaria')">🍕 Pizzaria</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'pet shop')">🐾 Pet Shop</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'clínica odontológica')">🦷 Dentista</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'nutricionista')">🥗 Nutrição</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'oficina mecânica')">🔧 Oficina</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'loja de roupas')">👗 Roupas</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'imobiliaria')">🏠 Imobiliária</button>
+        </div>
+      </div>
+
+      <!-- Info cota -->
+      <div id="mb-cota-info" style="background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;display:none">
+        <div style="font-size:11.5px;color:var(--t2)">Cota do dia</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <div style="flex:1;height:4px;background:var(--s4);border-radius:999px;overflow:hidden">
+            <div id="mb-cota-bar" style="height:100%;background:var(--amber);border-radius:999px;transition:width .3s;width:0%"></div>
+          </div>
+          <span id="mb-cota-text" style="font-size:12px;font-weight:600;color:var(--txt);white-space:nowrap"></span>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer" style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="fecharModalBusca()">Cancelar</button>
+      <button class="btn btn-primary" id="mb-confirm-btn" onclick="confirmarBusca()" style="min-width:140px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Buscar <span id="mb-confirm-qty">50</span> leads
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ══ MODAL COPY SCRIPT ══ -->
 <div id="overlay-copy-script" onclick="if(event.target===this)closeCopyScript()">
