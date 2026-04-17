@@ -1072,6 +1072,23 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
         <span>Configure a URL da API em Configurações.</span>
       </div>
 
+      <!-- Quantidade de leads -->
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:12px">
+        <label for="qty-leads" style="font-size:12px;font-weight:500;color:var(--t2);white-space:nowrap">Leads por busca</label>
+        <div style="position:relative;display:flex;align-items:center">
+          <select id="qty-leads" style="appearance:none;-webkit-appearance:none;background:var(--s3);border:1px solid var(--bd2);color:var(--txt);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;padding:6px 32px 6px 12px;border-radius:8px;cursor:pointer;outline:none;min-width:80px;transition:border-color .15s" onchange="onQtyChange(this)">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="75">75</option>
+            <option value="100">100</option>
+            <option value="150">150</option>
+          </select>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px;position:absolute;right:10px;pointer-events:none;color:var(--t2)"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <span id="qty-cota-hint" style="font-size:11px;color:var(--t3)"></span>
+      </div>
+
       <!-- Mode toggle — 3 botões -->
       <div class="mode-toggle" style="width:100%;margin-bottom:18px">
         <button class="mode-btn" id="mode-cnpj" onclick="setMode('cnpj')" style="flex:1;justify-content:center">
@@ -1124,7 +1141,7 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
             Descoberta Rápida
           </div>
           <div class="hero-title">Público Aleatório</div>
-          <div class="hero-sub">50 empresas com telefone selecionadas aleatoriamente da base da Receita Federal. Novo conjunto a cada clique.</div>
+          <div class="hero-sub">Empresas com telefone selecionadas aleatoriamente da base da Receita Federal. Novo conjunto a cada clique.</div>
           <div class="hero-actions">
             <button class="btn-lead" id="btn-aleatorio" onclick="buscarAleatorio()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
@@ -1893,6 +1910,22 @@ setInterval(() => {
   }
 }, 7000);
 
+// ══ QUANTIDADE DE LEADS ══
+function getQtd() {
+  return parseInt(document.getElementById('qty-leads')?.value || '50');
+}
+function onQtyChange(sel) {
+  const v = parseInt(sel.value);
+  // Mostra aviso se perto do limite da cota
+  const hint = document.getElementById('qty-cota-hint');
+  if (hint && ASSINANTE_COTA && v > ASSINANTE_COTA.restante) {
+    hint.textContent = `Cota: ${ASSINANTE_COTA.restante} restantes`;
+    hint.style.color = '#f87171';
+  } else if (hint) {
+    hint.textContent = '';
+  }
+}
+
 // ══ MODE TOGGLE ══
 function setMode(mode) {
   searchMode = mode;
@@ -1929,7 +1962,7 @@ async function buscarAleatorio() {
     const excludeParam = state.seenAleatorio.size
       ? '&exclude=' + [...state.seenAleatorio].slice(-300).join(',')
       : '';
-    const d = await api('/leads/aleatorio?limit=50' + excludeParam);
+    const d = await api('/leads/aleatorio?limit=' + getQtd() + excludeParam);
     state.results = d.data || [];
     // Acumula CNPJs vistos para não repetir nas próximas gerações
     state.results.forEach(r => { if (r.cnpj) state.seenAleatorio.add(r.cnpj); });
@@ -1979,7 +2012,7 @@ async function runSearch(page = 1) {
   if (uf)    params.set('uf', uf);
   if (comTel   === '1') params.set('tem_telefone', 'true');
   if (comEmail === '1') params.set('tem_email', 'true');
-  params.set('page', page); params.set('limit', 50);
+  params.set('page', page); params.set('limit', getQtd());
 
   try {
     const d = await api('/leads/buscar?' + params);
@@ -2028,7 +2061,7 @@ async function buscarAtivos(page = 1) {
     }
   }
 
-  const params = new URLSearchParams({ apenas_ig: 'true', limit: 100, page });
+  const params = new URLSearchParams({ apenas_ig: 'true', limit: getQtd(), page });
   if (busca)  params.set('busca', busca);
   if (seg)    params.set('segmento', seg);
   if (cidade) params.set('cidade', cidade);
@@ -2076,7 +2109,7 @@ async function buscarFrios(page = 1) {
     }
   }
 
-  const p = new URLSearchParams({ sem_ig: 'true', limit: 100, page });
+  const p = new URLSearchParams({ sem_ig: 'true', limit: getQtd(), page });
   if (busca)  p.set('busca', busca);
   if (seg)    p.set('segmento', seg);
   if (cidade) p.set('cidade', cidade);
