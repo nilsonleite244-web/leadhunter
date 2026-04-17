@@ -1,11 +1,13 @@
 {
   "version": 2,
   "builds": [
-    { "src": "index.html",   "use": "@vercel/static" },
-    { "src": "landing.html", "use": "@vercel/static" }
+    { "src": "index.html",        "use": "@vercel/static" },
+    { "src": "landing.html",      "use": "@vercel/static" },
+    { "src": "scripts-vendas.js", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/landing", "dest": "/landing.html" },
-    { "src": "/(.*)",    "dest": "/index.html" }
+    { "src": "/landing",           "dest": "/landing.html" },
+    { "src": "/scripts-vendas.js", "dest": "/scripts-vendas.js" },
+    { "src": "/(.*)",              "dest": "/index.html" }
   ]
 }

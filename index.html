@@ -2701,7 +2701,7 @@ function mlTab(tipo) {
       <th style="text-align:left;padding:8px 10px;color:var(--t2);font-weight:600">Ações</th>
     </tr></thead>
     <tbody>${leads.map((l, idx) => {
-      const wpp = l.whatsapp || (l.telefone1 ? 'https://wa.me/55' + l.telefone1.replace(/\D/g,'') : null);
+      const wpp = l.whatsapp || l.whatsapp_url || (l.telefone1 ? 'https://wa.me/55' + l.telefone1.replace(/\D/g,'') : null);
       const ig  = l.instagram || l.instagram_url || null;
       const seg = l.segmento || l.cnae_descricao || '';
       const igUrl = ig ? (ig.startsWith('http') ? ig : 'https://instagram.com/' + ig.replace(/^@/,'')) : null;
@@ -3069,6 +3069,10 @@ window.addEventListener('load', async () => {
 // ── Copy Script Modal ──────────────────────────────────────────────
 
 function abrirCopyScript(lead) {
+  if (typeof getScript !== 'function') {
+    toast('Scripts de vendas não carregados. Recarregue a página.', 'error');
+    return;
+  }
   const script = getScript(lead.segmento || lead.cnae_descricao || '');
   const fill   = txt => preencherVariaveis(txt || '', lead);
 
