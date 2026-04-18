@@ -294,8 +294,8 @@ app.get("/leads/instagram", async (req, res) => {
 
     if (apenasIG) where.push("instagram IS NOT NULL AND instagram != ''");
     if (semIG)    where.push("(instagram IS NULL OR instagram = '') AND (whatsapp IS NOT NULL AND whatsapp != '')");
-    if (busca)    { where.push(`nome ILIKE $${p}`);     params.push("%" + busca + "%");    p++; }
-    if (segmento) { where.push(`segmento ILIKE $${p}`); params.push("%" + segmento + "%"); p++; }
+    if (busca)    { where.push(`unaccent(nome) ILIKE unaccent($${p})`);     params.push("%" + busca + "%");    p++; }
+    if (segmento) { where.push(`unaccent(segmento) ILIKE unaccent($${p})`); params.push("%" + segmento + "%"); p++; }
     if (cidade)   { where.push(`cidade ILIKE $${p}`);   params.push("%" + cidade + "%");   p++; }
 
     const whereStr = where.length ? "WHERE " + where.join(" AND ") : "";
@@ -399,9 +399,9 @@ app.get("/leads/buscar", async (req, res) => {
 
     where.push("situacao_cadastral = 2");
 
-    if (uf)    { where.push(`uf = $${p++}`);                                                               params.push(uf.toUpperCase()); }
-    if (seg)   { where.push(`cnae_descricao ILIKE $${p++}`);                                               params.push("%" + seg + "%"); }
-    if (busca) { where.push(`(razao_social ILIKE $${p} OR nome_fantasia ILIKE $${p+1})`); params.push("%" + busca + "%", "%" + busca + "%"); p += 2; }
+    if (uf)    { where.push(`uf = $${p++}`);                                                                                          params.push(uf.toUpperCase()); }
+    if (seg)   { where.push(`unaccent(cnae_descricao) ILIKE unaccent($${p++})`);                                                           params.push("%" + seg + "%"); }
+    if (busca) { where.push(`(unaccent(razao_social) ILIKE unaccent($${p}) OR unaccent(nome_fantasia) ILIKE unaccent($${p+1}))`); params.push("%" + busca + "%", "%" + busca + "%"); p += 2; }
     if (ddd)   { where.push(`ddd_municipio = $${p++}`);                                                    params.push(ddd); }
     if (porte) { where.push(`porte = $${p++}`);                                                            params.push(porte.toUpperCase()); }
     if (req.query.tem_telefone   === "true" || apenas_com_telefone === "true") where.push("telefone1 IS NOT NULL AND telefone1 != ''");

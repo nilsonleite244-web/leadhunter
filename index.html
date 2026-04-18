@@ -3151,18 +3151,32 @@ window.addEventListener('load', async () => {
         <label style="font-size:13px;font-weight:600;color:var(--txt);display:block;margin-bottom:10px">Segmento <span style="font-size:11px;font-weight:400;color:var(--t2)">(opcional)</span></label>
         <input type="text" id="mb-seg-input" placeholder="Ex: salão de beleza, clínica, restaurante..." style="width:100%;background:var(--s3);border:1px solid var(--bd2);color:var(--txt);font-family:'Inter',sans-serif;font-size:13px;padding:10px 14px;border-radius:8px;outline:none;transition:border-color .15s" oninput="onMbSegInput(this.value)" onkeydown="if(event.key==='Enter')confirmarBusca()">
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px" id="mb-chips">
-          <button class="mb-seg-chip" onclick="setMbSeg(this,'salão de beleza')">💇 Salão</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'beleza')">💇 Salão</button>
           <button class="mb-seg-chip" onclick="setMbSeg(this,'barbearia')">✂️ Barbearia</button>
-          <button class="mb-seg-chip" onclick="setMbSeg(this,'clínica de estética')">✨ Estética</button>
-          <button class="mb-seg-chip" onclick="setMbSeg(this,'academia de ginastica')">🏋️ Academia</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'estetica')">✨ Estética</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'academia')">🏋️ Academia</button>
           <button class="mb-seg-chip" onclick="setMbSeg(this,'restaurante')">🍽️ Restaurante</button>
           <button class="mb-seg-chip" onclick="setMbSeg(this,'pizzaria')">🍕 Pizzaria</button>
-          <button class="mb-seg-chip" onclick="setMbSeg(this,'pet shop')">🐾 Pet Shop</button>
-          <button class="mb-seg-chip" onclick="setMbSeg(this,'clínica odontológica')">🦷 Dentista</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'pet')">🐾 Pet Shop</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'odonto')">🦷 Dentista</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'medic')">🏥 Clínica Médica</button>
           <button class="mb-seg-chip" onclick="setMbSeg(this,'nutricionista')">🥗 Nutrição</button>
-          <button class="mb-seg-chip" onclick="setMbSeg(this,'oficina mecânica')">🔧 Oficina</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'oficina')">🔧 Oficina</button>
           <button class="mb-seg-chip" onclick="setMbSeg(this,'loja de roupas')">👗 Roupas</button>
           <button class="mb-seg-chip" onclick="setMbSeg(this,'imobiliaria')">🏠 Imobiliária</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'farmacia')">💊 Farmácia</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'psicologo')">🧠 Psicólogo</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'lava jato')">🚗 Lava Jato</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'sobrancelha')">💅 Sobrancelhas</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'escola')">🎓 Escola</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'contabilidade')">📊 Contabilidade</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'advogad')">⚖️ Advocacia</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'personal')">💪 Personal</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'buffet')">🎂 Buffet</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'moveis')">🛋️ Móveis</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'calcados')">👟 Calçados</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'suplemento')">💪 Suplementos</button>
+          <button class="mb-seg-chip" onclick="setMbSeg(this,'depilacao')">✦ Depilação</button>
         </div>
       </div>
 
