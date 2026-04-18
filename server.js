@@ -12,8 +12,39 @@ require("dotenv").config();
 let db = null;
 let firebaseOk = false;
 
-function leadsCol()      { return db.collection("leads_extra"); }
-function assinantesCol() { return db.collection("assinantes"); }
+function leadsExtraCol()   { return db.collection("leads_extra"); }
+function leadsGeradosCol() { return db.collection("leads_gerados"); }
+function assinantesCol()   { return db.collection("assinantes"); }
+
+// Normaliza string removendo acentos
+function removeAccents(s) {
+  return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+// Mapeia termo de busca/segmento para categoria do Firestore
+function segmentoToCategory(seg) {
+  const s = removeAccents((seg || "").toLowerCase().trim());
+  if (/barbearia|barbeiro/.test(s))                                          return "barbearia";
+  if (/odonto|dentist|dental|ortodont/.test(s))                              return "odonto";
+  if (/academia|ginast|fitness|recreat|jiujitsu|treinofunc|natacao|corredor|zumba|danca|artes.mar|funcional|musculac|crossfit|boxe|luta|pilates|spinning|ciclismo|triathlon|futebol|escoladefu|muaythai|yoga|personal/.test(s)) return "academia";
+  if (/restaurante|lanchonete|hamburguer|pizzaria|sushi|acai|marmita|foodtruck|churrasco|cafeteria|sorveteria|padaria|salgado|doceria|doce|brigadeiro|bolo|confeit|chocolate|gastronom|bistro|bistr/.test(s)) return "restaurante";
+  if (/beleza|salao|saloes|cabeleir|manicure|pedicure|sobrancelh|micropigm|lashdesign|unhas|extensao.cilio|cilios|nail|maquiad|maquiagem|esteticist|estetica|depilac|skincare|cosmetico|perfumaria/.test(s)) return "beleza";
+  if (/medic|clinica|ambulatory|health|ginecolog|pediatr|cardiol|laborator|maternidade|dermato|ortopedi|fisioter|fonoaudi|terapiaoc|quiroprat|exame|saude|outpatient/.test(s)) return "medic";
+  return "outros";
+}
+
+// Shuffle determinístico com seed (diário por assinante)
+function shuffleWithSeed(arr, seed) {
+  const r = [...arr];
+  let s = 0;
+  for (let i = 0; i < seed.length; i++) s = ((s << 5) - s + seed.charCodeAt(i)) | 0;
+  for (let i = r.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    const j = Math.abs(s) % (i + 1);
+    [r[i], r[j]] = [r[j], r[i]];
+  }
+  return r;
+}
 
 function initFirebase() {
   try {
@@ -124,19 +155,18 @@ if (pool) {
   `).catch(e => console.warn("[leads_gerados] Aviso ao criar tabela:", e.message));
 }
 
-// Salva leads entregues no cache (sem bloquear a resposta)
+// Salva leads entregues no cache diário — Firestore
 function salvarLeadsGerados(token, tipo, leads) {
-  if (!pool || !token || !leads?.length) return;
+  if (!firebaseOk || !token || !leads?.length) return;
   const hoje = new Date().toISOString().split("T")[0];
-  // Insere um por um com parâmetros para evitar SQL injection no lead_id/json
+  const parentRef = leadsGeradosCol().doc(`${token}_${hoje}`);
+  const batch = db.batch();
   for (const l of leads) {
-    const id = String(l.cnpj || l.id || l.instagram || l.nome || Math.random()).slice(0, 200);
-    pool.query(
-      `INSERT INTO leads_gerados (assinante_token, data_geracao, lead_tipo, lead_id, lead_json)
-       VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING`,
-      [token, hoje, tipo, id, l]
-    ).catch(() => {});
+    const rawId = String(l.cnpj || l.id || l.instagram_url || l.whatsapp_url || l.razao_social || Math.random());
+    const id = rawId.replace(/[^A-Za-z0-9_\-]/g, "_").slice(0, 100);
+    batch.set(parentRef.collection(tipo).doc(id), l);
   }
+  batch.commit().catch(() => {});
 }
 
 const SOCIAL_DOMAINS = ["wa.me","whatsapp","instagram.com","facebook.com","linktr.ee","tiktok.com","youtube.com","bio.site","hotmart","kirvano"];
@@ -249,16 +279,13 @@ function adminMiddleware(req, res, next) {
 }
 app.use("/admin", adminMiddleware);
 
-// GET /leads/instagram — busca no Supabase leads_extra
+// GET /leads/instagram — busca no Firestore leads_extra
 app.get("/leads/instagram", async (req, res) => {
   try {
-    if (!pool) return res.status(503).json({ error: "Banco não configurado" });
-
     const a       = req.assinante;
-    const isAdmin = !a; // admin usa x-api-key, não tem req.assinante
+    const isAdmin = !a;
     const limite  = getLimiteDiario(a);
 
-    // Bloqueia se já atingiu cota antes de qualquer query
     if (limite !== null) {
       const restante = getRestanteHoje(a);
       if (restante <= 0) {
@@ -275,69 +302,49 @@ app.get("/leads/instagram", async (req, res) => {
       }
     }
 
-    // Capeia o limit pelo restante da cota (assinantes não podem pedir mais do que têm)
     const { page } = paginate(req);
     const restante = limite !== null ? getRestanteHoje(a) : 500;
     const reqLimit = Math.min(500, Math.max(1, parseInt(req.query.limit) || 100));
     const effectiveLimit = Math.min(reqLimit, restante);
     const offset = (page - 1) * reqLimit;
 
-    const busca    = req.query.busca?.trim();
-    const segmento = req.query.segmento?.trim();
-    const cidade   = req.query.cidade?.trim();
+    const busca    = removeAccents((req.query.busca    || "").trim().toLowerCase());
+    const segmento = (req.query.segmento || "").trim();
+    const cidade   = removeAccents((req.query.cidade   || "").trim().toLowerCase());
     const apenasIG = req.query.apenas_ig === "true";
     const semIG    = req.query.sem_ig    === "true";
 
-    const params = [];
-    const where  = [];
-    let p = 1;
+    // Usa um único filtro indexado no Firestore; o restante filtra em memória
+    let q = leadsExtraCol();
+    if (segmento) {
+      q = q.where("category", "==", segmentoToCategory(segmento));
+    } else if (semIG) {
+      q = q.where("sem_ig", "==", true);
+    } else if (apenasIG) {
+      q = q.where("has_ig", "==", true);
+    }
 
-    if (apenasIG) where.push("instagram IS NOT NULL AND instagram != ''");
-    if (semIG)    where.push("(instagram IS NULL OR instagram = '') AND (whatsapp IS NOT NULL AND whatsapp != '')");
-    if (busca)    { where.push(`unaccent(nome) ILIKE unaccent($${p})`);     params.push("%" + busca + "%");    p++; }
-    if (segmento) { where.push(`unaccent(segmento) ILIKE unaccent($${p})`); params.push("%" + segmento + "%"); p++; }
-    if (cidade)   { where.push(`cidade ILIKE $${p}`);   params.push("%" + cidade + "%");   p++; }
+    const snap = await q.limit(5000).get();
+    let docs = snap.docs;
 
-    const whereStr = where.length ? "WHERE " + where.join(" AND ") : "";
+    // Filtros secundários em memória
+    if (segmento && apenasIG) docs = docs.filter(d => d.data().has_ig);
+    if (segmento && semIG)    docs = docs.filter(d => d.data().sem_ig);
+    if (busca)  { docs = docs.filter(d => (d.data().nome_lower  || "").includes(busca)); }
+    if (cidade) { docs = docs.filter(d => (d.data().cidade_lower || "").includes(cidade)); }
 
-    // Admin recebe contagem real; assinantes nunca veem o total do banco
-    const [countRes, dataRes] = await Promise.all([
-      isAdmin
-        ? pgQuery(`SELECT COUNT(*) FROM leads_extra ${whereStr}`, params)
-        : Promise.resolve(null),
-      pgQuery(
-        `SELECT id, nome, segmento, cidade, estado, instagram, whatsapp, website, funcionarios, receita FROM leads_extra ${whereStr} ORDER BY md5(id::text || current_date::text) LIMIT $${p} OFFSET $${p+1}`,
-        [...params, effectiveLimit, offset]
-      ),
-    ]);
+    const total = isAdmin ? docs.length : null;
+    const pages = isAdmin ? Math.ceil(docs.length / effectiveLimit) : null;
 
-    const rows = dataRes.rows.map(r => {
-      const igRaw = r.instagram || "";
-      const handleMatch = igRaw.match(/instagram\.com\/([A-Za-z0-9._]{2,40})/i);
-      const handle = handleMatch
-        ? handleMatch[1]
-        : (igRaw.startsWith("@") ? igRaw.slice(1) : (/^[A-Za-z0-9._]{2,40}$/.test(igRaw) ? igRaw : null));
-      return {
-        id:            String(r.id),
-        razao_social:  r.nome,
-        nome_fantasia: r.nome,
-        cnae_descricao: r.segmento,
-        municipio_nome: r.cidade,
-        uf:            r.estado,
-        instagram_url: handle ? `https://instagram.com/${handle}` : (igRaw.startsWith("http") ? igRaw : null),
-        whatsapp_url:  r.whatsapp,
-        website:       r.website,
-        funcionarios:  r.funcionarios,
-        receita:       r.receita,
-        email: null, cnpj: null, telefone1: null, ddd_municipio: null,
-      };
-    });
+    // Embaralha deterministicamente por assinante+dia
+    const seed = (a?.token || "admin") + new Date().toISOString().split("T")[0];
+    const shuffled = shuffleWithSeed(docs, seed);
+    const pageDocs = shuffled.slice(offset, offset + effectiveLimit);
+    const rows = pageDocs.map(d => docToLead(d.id, d.data()));
 
-    // Debita cota e salva no cache do dia
     incrementarCota(a, rows.length);
     if (a) salvarLeadsGerados(a.token, 'instagram', rows);
 
-    // Monta resposta — assinantes não recebem total real
     const hoje = new Date().toISOString().split("T")[0];
     const usadoAntes = a?.leads_data === hoje ? (a?.leads_hoje || 0) : 0;
     const cota = limite !== null ? {
@@ -346,10 +353,6 @@ app.get("/leads/instagram", async (req, res) => {
       restante: Math.max(0, limite - usadoAntes - rows.length),
       plano:    a.plano,
     } : null;
-
-    // total e pages: admin vê real, assinante vê apenas baseado na cota restante
-    const total = isAdmin ? parseInt(countRes.rows[0].count) : null;
-    const pages = isAdmin ? Math.ceil(total / effectiveLimit) : null;
 
     res.json({ total, page, limit: effectiveLimit, pages, data: rows, cota });
   } catch(e) {
@@ -451,24 +454,24 @@ app.get("/leads/buscar", async (req, res) => {
 // GET /leads/meus-leads — devolve leads já entregues hoje (sem debitar cota)
 app.get("/leads/meus-leads", async (req, res) => {
   try {
-    if (!pool) return res.status(503).json({ error: "Banco não configurado" });
     const a = req.assinante;
     if (!a) return res.status(401).json({ error: "Token inválido" });
 
-    const tipo = req.query.tipo || null; // 'cnpj', 'instagram' ou null (todos)
+    const tipo = req.query.tipo || null;
     const hoje = new Date().toISOString().split("T")[0];
+    const parentRef = leadsGeradosCol().doc(`${a.token}_${hoje}`);
 
-    const params = [a.token, hoje];
-    let sql = `SELECT lead_tipo, lead_json FROM leads_gerados
-               WHERE assinante_token = $1 AND data_geracao = $2`;
-    if (tipo) { sql += ` AND lead_tipo = $3`; params.push(tipo); }
-    sql += ` ORDER BY id ASC`;
+    let cnpj = [], instagram = [];
+    if (!tipo || tipo === 'cnpj') {
+      const snap = await parentRef.collection('cnpj').get();
+      cnpj = snap.docs.map(d => d.data());
+    }
+    if (!tipo || tipo === 'instagram') {
+      const snap = await parentRef.collection('instagram').get();
+      instagram = snap.docs.map(d => d.data());
+    }
 
-    const r = await pool.query(sql, params);
-    const cnpj      = r.rows.filter(x => x.lead_tipo === 'cnpj').map(x => x.lead_json);
-    const instagram = r.rows.filter(x => x.lead_tipo === 'instagram').map(x => x.lead_json);
-
-    res.json({ total: r.rows.length, cnpj, instagram });
+    res.json({ total: cnpj.length + instagram.length, cnpj, instagram });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
