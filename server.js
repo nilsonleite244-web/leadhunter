@@ -128,15 +128,15 @@ if (pool) {
 function salvarLeadsGerados(token, tipo, leads) {
   if (!pool || !token || !leads?.length) return;
   const hoje = new Date().toISOString().split("T")[0];
-  const values = leads.map(l => {
-    const id = String(l.cnpj || l.id || l.instagram || l.nome || Math.random());
-    const json = JSON.stringify(l).replace(/'/g, "''");
-    return `('${token}','${hoje}','${tipo}','${id.slice(0,200)}','${json}')`;
-  }).join(",");
-  pool.query(
-    `INSERT INTO leads_gerados (assinante_token, data_geracao, lead_tipo, lead_id, lead_json)
-     VALUES ${values} ON CONFLICT DO NOTHING`
-  ).catch(() => {});
+  // Insere um por um com parâmetros para evitar SQL injection no lead_id/json
+  for (const l of leads) {
+    const id = String(l.cnpj || l.id || l.instagram || l.nome || Math.random()).slice(0, 200);
+    pool.query(
+      `INSERT INTO leads_gerados (assinante_token, data_geracao, lead_tipo, lead_id, lead_json)
+       VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING`,
+      [token, hoje, tipo, id, l]
+    ).catch(() => {});
+  }
 }
 
 const SOCIAL_DOMAINS = ["wa.me","whatsapp","instagram.com","facebook.com","linktr.ee","tiktok.com","youtube.com","bio.site","hotmart","kirvano"];
@@ -792,16 +792,18 @@ app.post("/webhook/kirvano", express.raw({ type: "*/*" }), async (req, res) => {
     const txId    = dados.transaction?.id || dados.id    || dados.order_id    || "";
 
     const ePagamento = ["approved","paid","complete","renewed","reactivated","active"].some(k => evento.includes(k));
-    const eCancelado = ["cancel","refund","chargeback","refused"].some(k => evento.includes(k));
-    const status = ePagamento ? "ativo" : eCancelado ? "cancelado" : null;
+    // "refused" é tentativa de pagamento recusada — não cancela o acesso ativo.
+    // Só cancela em chargeback/refund/cancel explícito.
+    const eCancelado = ["cancel","refund","chargeback"].some(k => evento.includes(k));
 
-    if (!email || !status) return res.json({ ok: true, msg: "evento ignorado: " + evento });
+    if (!email || (!ePagamento && !eCancelado)) return res.json({ ok: true, msg: "evento ignorado: " + evento });
 
     if (eCancelado && !ePagamento) {
       await assinantesCol().doc(email.toLowerCase().trim()).update({
         status: "cancelado", expira_em: new Date(),
         updated_at: admin.firestore.FieldValue.serverTimestamp()
       }).catch(() => {});
+      console.log(`[Kirvano] cancelamento: ${email} — evento: ${evento}`);
     } else if (ePagamento) {
       const token = await processarPagamento(email, nome, txId, dados, "Kirvano");
       await enviarEmailBoasVindas(email, nome, token, detectarPlano(dados));
@@ -831,7 +833,8 @@ async function handleCaktoWebhook(req, res) {
     const txId    = dados.order?.id       || dados.transaction_id || dados.order_id     || payload.id || "";
 
     const ePagamento = ["approved","paid","complete","renewed","active","created","success"].some(k => evento.includes(k));
-    const eCancelado = ["cancel","refund","chargeback","refused"].some(k => evento.includes(k));
+    // "refused" é tentativa de pagamento recusada — não cancela o acesso ativo.
+    const eCancelado = ["cancel","refund","chargeback"].some(k => evento.includes(k));
 
     if (!email) return res.json({ ok: true, msg: "sem email no payload" });
 
@@ -840,6 +843,7 @@ async function handleCaktoWebhook(req, res) {
         status: "cancelado", expira_em: new Date(),
         updated_at: admin.firestore.FieldValue.serverTimestamp()
       }).catch(() => {});
+      console.log(`[Cakto] cancelamento: ${email} — evento: ${evento}`);
     } else if (ePagamento) {
       const token = await processarPagamento(email, nome, txId, dados, "Cakto");
       await enviarEmailBoasVindas(email, nome, token, detectarPlano(dados));
@@ -945,6 +949,43 @@ app.post("/admin/assinante/:id/reset-cota", async (req, res) => {
       updated_at: admin.firestore.FieldValue.serverTimestamp()
     });
     res.json({ ok: true, msg: "Cota diária resetada" });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Reativa assinante expirado/cancelado por mais 35 dias
+app.post("/admin/assinante/:id/reativar", async (req, res) => {
+  try {
+    const { plano } = req.body;
+    const expiraEm = calcularExpiracao(plano || "mensal");
+    const docRef = assinantesCol().doc(req.params.id);
+    const doc = await docRef.get();
+    if (!doc.exists) return res.status(404).json({ error: "Assinante não encontrado" });
+    await docRef.update({
+      status: "ativo",
+      plano: plano || doc.data().plano || "mensal",
+      expira_em: expiraEm,
+      updated_at: admin.firestore.FieldValue.serverTimestamp()
+    });
+    res.json({ ok: true, msg: "Assinante reativado", expira_em: expiraEm });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Lista assinantes com problemas (expirados ou cancelados)
+app.get("/admin/assinantes/problemas", async (req, res) => {
+  try {
+    const snap = await assinantesCol().where("status", "!=", "ativo").limit(200).get();
+    const agora = new Date();
+    // Também pega os ativos com expira_em já passada
+    const snapAtivos = await assinantesCol().where("status", "==", "ativo").limit(200).get();
+    const expiradosSemUpdate = snapAtivos.docs.filter(d => {
+      const exp = d.data().expira_em;
+      return exp && exp.toDate && exp.toDate() < agora;
+    });
+    const todos = [
+      ...snap.docs.map(d => ({ id: d.id, ...d.data(), _problema: d.data().status })),
+      ...expiradosSemUpdate.map(d => ({ id: d.id, ...d.data(), _problema: "ativo_expirado" })),
+    ];
+    res.json({ total: todos.length, assinantes: todos });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

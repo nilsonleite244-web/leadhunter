@@ -1424,6 +1424,7 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
         </div>
         <div class="ml-auto flex gap-8">
           <button class="btn btn-ghost btn-sm" onclick="loadAdmin()">Atualizar</button>
+          <button class="btn btn-ghost btn-sm" onclick="verProblemas()" style="color:#f87171;border-color:rgba(248,113,113,.3)">⚠ Problemas</button>
           <button class="btn btn-primary btn-sm" onclick="showModal('novoAssinante')">+ Adicionar</button>
         </div>
       </div>
@@ -3021,7 +3022,7 @@ async function loadAdmin() {
         <td><div class="td-act">
           ${a.status==='ativo'
             ? `<button class="ib" onclick="alterarStatus('${escapedId}','cancelado')" title="Cancelar" style="color:var(--err)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></button>`
-            : `<button class="ib" onclick="alterarStatus('${escapedId}','ativo')" title="Reativar" style="color:var(--ok)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></button>`
+            : `<button class="ib" onclick="reativarAssinante('${escapedId}','${a.plano||'mensal'}')" title="Reativar +35 dias" style="color:var(--ok)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></button>`
           }
         </div></td>
       </tr>`;
@@ -3052,6 +3053,24 @@ async function alterarStatus(id, status) {
     await adminFetch(`/admin/assinante/${id}/status`, { method:'PATCH', body: JSON.stringify({ status }) });
     toast(`Status alterado para ${status}`, 'success');
     loadAdmin();
+  } catch(e) { toast('Erro: ' + e.message, 'error'); }
+}
+
+async function reativarAssinante(id, plano) {
+  if (!confirm(`Reativar assinante por mais 35 dias?`)) return;
+  try {
+    await adminFetch(`/admin/assinante/${id}/reativar`, { method:'POST', body: JSON.stringify({ plano }) });
+    toast('Assinante reativado por 35 dias!', 'success');
+    loadAdmin();
+  } catch(e) { toast('Erro: ' + e.message, 'error'); }
+}
+
+async function verProblemas() {
+  try {
+    const d = await adminFetch('/admin/assinantes/problemas');
+    if (!d.total) return toast('Nenhum assinante com problema', 'success');
+    const nomes = d.assinantes.map(a => `${a.id} (${a._problema})`).join('\n');
+    alert(`${d.total} assinante(s) com problema:\n\n${nomes}`);
   } catch(e) { toast('Erro: ' + e.message, 'error'); }
 }
 
