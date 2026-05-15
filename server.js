@@ -843,7 +843,7 @@ async function processarPagamento(email, nome, txId, dados, plataforma, planoOve
       updated_at: admin.firestore.FieldValue.serverTimestamp()
     });
     console.log(`[${plataforma}] renovacao: ${email} → ${plano}`);
-    return null;
+    return existing.data().token || null;
   }
 
   const token = gerarToken();
