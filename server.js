@@ -104,6 +104,97 @@ process.on("unhandledRejection", e => console.error("[unhandledRejection]", e));
 const LIMITES_PLANO  = { mensal: 150, trimestral: 300, vitalicio: 600 };
 const PLANOS_LABEL   = { mensal: "Básico", trimestral: "Pro", vitalicio: "Alpha Member" };
 
+// ── DEMO LEADS (50 fixos para contas de afiliado/beta) ───────────────────────
+const DEMO_LEADS = [
+  { id:"demo_01", nome:"Studio Prado Barber",        segmento:"Barbearia",        handle:"studiopradobarber_",       website:"wa.me/message/E7BSQCGSZZVQK1", cidade:"São Paulo",      uf:"SP", ddd:"11", cnpj:"00000000000101", telefone:"11999990001" },
+  { id:"demo_02", nome:"Dra. Elvira Morgado",        segmento:"Clínica Estética", handle:"dra.elviramorgado",         website:"www.skintime.es",              cidade:"Rio de Janeiro", uf:"RJ", ddd:"21", cnpj:"00000000000102", telefone:"21999990002" },
+  { id:"demo_03", nome:"Vila Pet",                   segmento:"Pet Shop",         handle:"vilapet_petshop",           website:"wa.me/5561995189438",          cidade:"Brasília",       uf:"DF", ddd:"61", cnpj:"00000000000103", telefone:"61999990003" },
+  { id:"demo_04", nome:"JR Guedes João XXIII",       segmento:"Academia",         handle:"academiajrguedes",          website:"bio.site/jrguedes",            cidade:"Fortaleza",      uf:"CE", ddd:"85", cnpj:"00000000000104", telefone:"85999990004" },
+  { id:"demo_05", nome:"Barbearia Conceito",         segmento:"Barbearia",        handle:"_barbeariaconceito_",       website:null,                           cidade:"Belo Horizonte", uf:"MG", ddd:"31", cnpj:"00000000000105", telefone:"31999990005" },
+  { id:"demo_06", nome:"Filhos de Patas Agropet",    segmento:"Pet Shop",         handle:"filhosdepatasagropet",      website:"linktr.ee/filhosdepatasagropet",cidade:"Salvador",      uf:"BA", ddd:"71", cnpj:"00000000000106", telefone:"71999990006" },
+  { id:"demo_07", nome:"Barbearia The Brother's",    segmento:"Barbearia",        handle:"barbeariathebrothers2",     website:"wa.me/5548996424572",          cidade:"Curitiba",       uf:"PR", ddd:"41", cnpj:"00000000000107", telefone:"48999990007" },
+  { id:"demo_08", nome:"Marcos Fade",                segmento:"Barbearia",        handle:"marcos.fade",               website:"linktr.ee/marcos.fade",        cidade:"Manaus",         uf:"AM", ddd:"92", cnpj:"00000000000108", telefone:"92999990008" },
+  { id:"demo_09", nome:"Barbearia Social",           segmento:"Barbearia",        handle:"barbearia_social",          website:"wa.me/5585987654321",          cidade:"Natal",          uf:"RN", ddd:"84", cnpj:"00000000000109", telefone:"84999990009" },
+  { id:"demo_10", nome:"Barber Elite",               segmento:"Barbearia",        handle:"barberelite",               website:"barberelite.com.br",           cidade:"Recife",         uf:"PE", ddd:"81", cnpj:"00000000000110", telefone:"81999990010" },
+  { id:"demo_11", nome:"Barbearia Vintage",          segmento:"Barbearia",        handle:"barbearia.vintage",         website:null,                           cidade:"Porto Alegre",   uf:"RS", ddd:"51", cnpj:"00000000000111", telefone:"51999990011" },
+  { id:"demo_12", nome:"Barber Shop Pro",            segmento:"Barbearia",        handle:"barbershoppro",             website:"linktr.ee/barbershoppro",      cidade:"São Paulo",      uf:"SP", ddd:"11", cnpj:"00000000000112", telefone:"11999990012" },
+  { id:"demo_13", nome:"Studio Barba",               segmento:"Barbearia",        handle:"studiobarba",               website:"studiobarba.belasis.app",      cidade:"Campinas",       uf:"SP", ddd:"19", cnpj:"00000000000113", telefone:"19999990013" },
+  { id:"demo_14", nome:"Barbearia Kings",            segmento:"Barbearia",        handle:"barbeariakings",            website:"wa.me/5588999887766",          cidade:"São Luís",       uf:"MA", ddd:"98", cnpj:"00000000000114", telefone:"98999990014" },
+  { id:"demo_15", nome:"Mundo Pet",                  segmento:"Pet Shop",         handle:"mundopet",                  website:"mundopet.com.br",              cidade:"Goiânia",        uf:"GO", ddd:"62", cnpj:"00000000000115", telefone:"62999990015" },
+  { id:"demo_16", nome:"Pet Care Center",            segmento:"Pet Shop",         handle:"petcarecenter",             website:"linktr.ee/petcarecenter",      cidade:"Belém",          uf:"PA", ddd:"91", cnpj:"00000000000116", telefone:"91999990016" },
+  { id:"demo_17", nome:"Pet Max Shop",               segmento:"Pet Shop",         handle:"petmaxshop",                website:"petmaxshop.belasis.app",       cidade:"Santos",         uf:"SP", ddd:"13", cnpj:"00000000000117", telefone:"13999990017" },
+  { id:"demo_18", nome:"Loja Pet Premium",           segmento:"Pet Shop",         handle:"lojapetpremium",            website:"lojapetpremium.com.br",        cidade:"Vitória",        uf:"ES", ddd:"27", cnpj:"00000000000118", telefone:"27999990018" },
+  { id:"demo_19", nome:"Pet Center Completo",        segmento:"Pet Shop",         handle:"petcentercom",              website:"wa.me/5587888999000",          cidade:"Teresina",       uf:"PI", ddd:"86", cnpj:"00000000000119", telefone:"86999990019" },
+  { id:"demo_20", nome:"Academia Fit Life",          segmento:"Academia",         handle:"academiafit_life",          website:"fitlife.belasis.app",          cidade:"São Paulo",      uf:"SP", ddd:"11", cnpj:"00000000000120", telefone:"11999990020" },
+  { id:"demo_21", nome:"Academia PowerGym",          segmento:"Academia",         handle:"powergymacademia",          website:"powergymacademia.com.br",      cidade:"Rio de Janeiro", uf:"RJ", ddd:"21", cnpj:"00000000000121", telefone:"21999990021" },
+  { id:"demo_22", nome:"Studio Musculação",          segmento:"Academia",         handle:"studiomusc",                website:"linktr.ee/studiomusculacao",   cidade:"Maceió",         uf:"AL", ddd:"82", cnpj:"00000000000122", telefone:"82999990022" },
+  { id:"demo_23", nome:"Academia Shape",             segmento:"Academia",         handle:"academiashape",             website:"wa.me/5586777888999",          cidade:"João Pessoa",    uf:"PB", ddd:"83", cnpj:"00000000000123", telefone:"83999990023" },
+  { id:"demo_24", nome:"Ginásio Força Total",        segmento:"Academia",         handle:"gimnasiofortotal",          website:"forcatotal.com.br",            cidade:"Aracaju",        uf:"SE", ddd:"79", cnpj:"00000000000124", telefone:"79999990024" },
+  { id:"demo_25", nome:"Clínica Beleza Total",       segmento:"Clínica Estética", handle:"clinicabeletatotal",        website:"clinicabeletatotal.com.br",    cidade:"Florianópolis",  uf:"SC", ddd:"48", cnpj:"00000000000125", telefone:"48999990025" },
+  { id:"demo_26", nome:"Estética & Wellness",        segmento:"Clínica Estética", handle:"esteticawellness",          website:"esteticawellness.com.br",      cidade:"São Paulo",      uf:"SP", ddd:"11", cnpj:"00000000000126", telefone:"11999990026" },
+  { id:"demo_27", nome:"Centro Estético Premium",    segmento:"Clínica Estética", handle:"centroestpremium",          website:"linktr.ee/centroestpremium",   cidade:"Campo Grande",   uf:"MS", ddd:"67", cnpj:"00000000000127", telefone:"67999990027" },
+  { id:"demo_28", nome:"Clínica Derma Beauty",       segmento:"Clínica Estética", handle:"clinicadermabe",            website:"dermabeuty.belasis.app",       cidade:"Cuiabá",         uf:"MT", ddd:"65", cnpj:"00000000000128", telefone:"65999990028" },
+  { id:"demo_29", nome:"Spa & Estética",             segmento:"Clínica Estética", handle:"spaestetica",               website:"wa.me/5581555444333",          cidade:"Recife",         uf:"PE", ddd:"81", cnpj:"00000000000129", telefone:"81999990029" },
+  { id:"demo_30", nome:"Nobres Barbershop Planalto", segmento:"Barbearia",        handle:"nobresbarbershop_planalto", website:"wa.me/5531989224374",          cidade:"Contagem",       uf:"MG", ddd:"31", cnpj:"00000000000130", telefone:"31999990030" },
+  { id:"demo_31", nome:"Breno Barber Nobres",        segmento:"Barbearia",        handle:"brenoo_barber",             website:"go.hotmart.com/G104489115V",   cidade:"Porto Alegre",   uf:"RS", ddd:"51", cnpj:"00000000000131", telefone:"51999990031" },
+  { id:"demo_32", nome:"Estação Barba",              segmento:"Barbearia",        handle:"estacaobarba",              website:"linktr.ee/estacaobarba",       cidade:"São Paulo",      uf:"SP", ddd:"11", cnpj:"00000000000132", telefone:"11999990032" },
+  { id:"demo_33", nome:"Barbearia dos Malandros",    segmento:"Barbearia",        handle:"barbearia_malandros",       website:"wa.me/5584999776655",          cidade:"Mossoró",        uf:"RN", ddd:"84", cnpj:"00000000000133", telefone:"84999990033" },
+  { id:"demo_34", nome:"Black Barber Studio",        segmento:"Barbearia",        handle:"blackbarberstudio",         website:"blackbarber.belasis.app",      cidade:"Rio de Janeiro", uf:"RJ", ddd:"21", cnpj:"00000000000134", telefone:"21999990034" },
+  { id:"demo_35", nome:"Barbearia Nova Era",         segmento:"Barbearia",        handle:"barbearianovaera",          website:"novaera.com.br",               cidade:"Londrina",       uf:"PR", ddd:"43", cnpj:"00000000000135", telefone:"43999990035" },
+  { id:"demo_36", nome:"Corte Perfeito Barber",      segmento:"Barbearia",        handle:"corteperfeito",             website:"linktr.ee/corteperfeito",      cidade:"São Paulo",      uf:"SP", ddd:"11", cnpj:"00000000000136", telefone:"11999990036" },
+  { id:"demo_37", nome:"Barbearia Gentil",           segmento:"Barbearia",        handle:"barbeariagentil",           website:"wa.me/5587666555444",          cidade:"Imperatriz",     uf:"MA", ddd:"99", cnpj:"00000000000137", telefone:"99999990037" },
+  { id:"demo_38", nome:"Master Cut Barbershop",      segmento:"Barbearia",        handle:"mastercutbarber",           website:"mastercutbarber.com.br",       cidade:"Uberlândia",     uf:"MG", ddd:"34", cnpj:"00000000000138", telefone:"34999990038" },
+  { id:"demo_39", nome:"Barbearia Toca do Leão",     segmento:"Barbearia",        handle:"tocadoleao",                website:"linktr.ee/tocadoleao",         cidade:"São Paulo",      uf:"SP", ddd:"11", cnpj:"00000000000139", telefone:"11999990039" },
+  { id:"demo_40", nome:"PetWorld Paradise",          segmento:"Pet Shop",         handle:"petworldparadise",          website:"petworldparadise.com.br",      cidade:"Rio de Janeiro", uf:"RJ", ddd:"21", cnpj:"00000000000140", telefone:"21999990040" },
+  { id:"demo_41", nome:"Animal Planet Petshop",      segmento:"Pet Shop",         handle:"animalplanetpet",           website:"wa.me/5589888777666",          cidade:"Manaus",         uf:"AM", ddd:"92", cnpj:"00000000000141", telefone:"92999990041" },
+  { id:"demo_42", nome:"Royal Pet Shop",             segmento:"Pet Shop",         handle:"royalpetshop",              website:"royalpet.belasis.app",         cidade:"Belém",          uf:"PA", ddd:"91", cnpj:"00000000000142", telefone:"91999990042" },
+  { id:"demo_43", nome:"Peludos & Cia",              segmento:"Pet Shop",         handle:"peludosecia",               website:"linktr.ee/peludosecia",        cidade:"Brasília",       uf:"DF", ddd:"61", cnpj:"00000000000143", telefone:"61999990043" },
+  { id:"demo_44", nome:"Pet Shop Meu Bichinho",      segmento:"Pet Shop",         handle:"meubichinho",               website:"meubichinho.com.br",           cidade:"Salvador",       uf:"BA", ddd:"71", cnpj:"00000000000144", telefone:"71999990044" },
+  { id:"demo_45", nome:"Arco de Animais",            segmento:"Pet Shop",         handle:"arcodeanim_ais",            website:"wa.me/5586555444333",          cidade:"Teresina",       uf:"PI", ddd:"86", cnpj:"00000000000145", telefone:"86999990045" },
+  { id:"demo_46", nome:"Power Iron Gym",             segmento:"Academia",         handle:"powerirongym",              website:"powerirungym.com.br",          cidade:"Goiânia",        uf:"GO", ddd:"62", cnpj:"00000000000146", telefone:"62999990046" },
+  { id:"demo_47", nome:"Musculação Elite",           segmento:"Academia",         handle:"musculacaoelit",            website:"linktr.ee/musculacaoelit",     cidade:"Belo Horizonte", uf:"MG", ddd:"31", cnpj:"00000000000147", telefone:"31999990047" },
+  { id:"demo_48", nome:"Fitness Planet",             segmento:"Academia",         handle:"fitnessplanet",             website:"fitnesplanet.belasis.app",     cidade:"São Paulo",      uf:"SP", ddd:"11", cnpj:"00000000000148", telefone:"11999990048" },
+  { id:"demo_49", nome:"Força Bruta Academia",       segmento:"Academia",         handle:"forcabrutaacad",            website:"wa.me/5585444333222",          cidade:"Natal",          uf:"RN", ddd:"84", cnpj:"00000000000149", telefone:"84999990049" },
+  { id:"demo_50", nome:"Spartans Gym",               segmento:"Academia",         handle:"spartansgym",               website:"spartansgym.com.br",           cidade:"Curitiba",       uf:"PR", ddd:"41", cnpj:"00000000000150", telefone:"41999990050" },
+];
+
+function demoLeadToInstagram(l) {
+  return {
+    id:             l.id,
+    razao_social:   l.nome,
+    nome_fantasia:  l.nome,
+    cnae_descricao: l.segmento,
+    whatsapp_url:   null,
+    instagram_url:  `https://instagram.com/${l.handle}`,
+    municipio_nome: l.cidade,
+    uf:             l.uf,
+    website:        l.website,
+    funcionarios:   null,
+    receita:        null,
+    ddd_municipio:  l.ddd,
+    email:          null,
+    cnpj:           null,
+  };
+}
+
+function demoLeadToCnpj(l) {
+  return {
+    id:              l.cnpj,
+    cnpj:            l.cnpj,
+    razao_social:    l.nome,
+    nome_fantasia:   l.nome,
+    cnae_descricao:  l.segmento,
+    porte:           "ME",
+    email:           null,
+    telefone1:       l.telefone,
+    ddd_municipio:   l.ddd,
+    municipio_nome:  l.cidade,
+    uf:              l.uf,
+    nome_socio:      null,
+    score_completude: 60,
+  };
+}
+
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 function paginate(req) {
   const page  = Math.max(1, parseInt(req.query.page)  || 1);
@@ -114,6 +205,7 @@ function paginate(req) {
 // Retorna limite diário do assinante (null = sem limite = admin)
 function getLimiteDiario(a) {
   if (!a) return null;
+  if (a.is_demo) return 50;
   return LIMITES_PLANO[a.plano] ?? null;
 }
 
@@ -283,6 +375,12 @@ app.use("/admin", adminMiddleware);
 app.get("/leads/instagram", async (req, res) => {
   try {
     const a       = req.assinante;
+
+    if (a?.is_demo) {
+      const data = DEMO_LEADS.map(demoLeadToInstagram);
+      return res.json({ total: 50, page: 1, limit: 50, pages: 1, data, cota: { limite: 50, usado: 50, restante: 0, plano: "demo" } });
+    }
+
     const isAdmin = !a;
     const limite  = getLimiteDiario(a);
 
@@ -363,9 +461,15 @@ app.get("/leads/instagram", async (req, res) => {
 // GET /leads/buscar — busca nos leads de CNPJ (PostgreSQL)
 app.get("/leads/buscar", async (req, res) => {
   try {
+    const a = req.assinante;
+
+    if (a?.is_demo) {
+      const data = DEMO_LEADS.map(demoLeadToCnpj);
+      return res.json({ total: 50, page: 1, limit: 50, pages: 1, data, cota: { limite: 50, usado: 50, restante: 0, plano: "demo" } });
+    }
+
     if (!pool) return res.status(503).json({ error: "Banco de CNPJ não configurado. Configure DATABASE_URL." });
 
-    const a       = req.assinante;
     const isAdmin = !a;
     const limite  = getLimiteDiario(a);
 
@@ -480,7 +584,13 @@ app.get("/leads/meus-leads", async (req, res) => {
 // GET /leads/aleatorio — CNPJs aleatórios com telefone (sujeito à cota do plano)
 app.get("/leads/aleatorio", async (req, res) => {
   try {
-    const a      = req.assinante;
+    const a = req.assinante;
+
+    if (a?.is_demo) {
+      const data = DEMO_LEADS.map(demoLeadToCnpj);
+      return res.json({ total: 50, data, cota: { limite: 50, usado: 50, restante: 0, plano: "demo" } });
+    }
+
     const limite = getLimiteDiario(a);
 
     if (limite !== null) {
@@ -721,8 +831,8 @@ function calcularExpiracao(plano) {
   return new Date(Date.now() + 35 * 86400000);
 }
 
-async function processarPagamento(email, nome, txId, dados, plataforma) {
-  const plano    = detectarPlano(dados);
+async function processarPagamento(email, nome, txId, dados, plataforma, planoOverride = null) {
+  const plano    = planoOverride || detectarPlano(dados);
   const expiraEm = calcularExpiracao(plano);
   const docRef   = assinantesCol().doc(email.toLowerCase().trim());
   const existing = await docRef.get();
@@ -775,6 +885,38 @@ async function enviarEmailBoasVindas(email, nome, token, plano) {
   }, { headers: { "api-key": apiKey } })
     .then(() => console.log(`[Email] Enviado para ${email}`))
     .catch(e => console.error(`[Email] ERRO: ${e.response?.data?.message || e.message}`));
+}
+
+async function enviarEmailResend(email, nome, token, plano) {
+  if (!token) return;
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) { console.warn("[Email Resend] RESEND_API_KEY não configurada"); return; }
+
+  const planosLabel = { mensal: "Básico — R$97/mês", trimestral: "Pro — R$147/mês", vitalicio: "Alpha Member — R$267/mês" };
+  const limiteLabel = { mensal: "150 leads/dia", trimestral: "300 leads/dia", vitalicio: "600 leads/dia" }[plano] || "—";
+  const primeiroNome = nome ? nome.split(" ")[0] : "";
+  const from = process.env.EMAIL_FROM || "onboarding@resend.dev";
+
+  await axios.post("https://api.resend.com/emails", {
+    from: `LeadHunter Pro <${from}>`,
+    to: [email],
+    subject: "Seu acesso ao LeadHunter Pro está pronto!",
+    html: `<div style="font-family:Inter,sans-serif;max-width:500px;margin:0 auto;background:#08080f;color:#eeeef2;padding:32px;border-radius:16px">
+      <h2 style="color:#f09030;margin-bottom:4px">Bem-vindo ao LeadHunter Pro!</h2>
+      <p style="color:#8888a0;margin-bottom:24px">Olá${primeiroNome ? " " + primeiroNome : ""}! Seu pagamento foi confirmado.</p>
+      <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.2);border-radius:10px;padding:16px;margin-bottom:20px">
+        <div style="font-size:12px;color:#8888a0;margin-bottom:4px">Plano ativo</div>
+        <div style="font-size:16px;font-weight:700;color:#f09030">${planosLabel[plano] || plano}</div>
+        <div style="font-size:12px;color:#8888a0;margin-top:4px">Leads: ${limiteLabel}</div>
+      </div>
+      <p style="margin-bottom:8px;font-size:14px">Seu token de acesso:</p>
+      <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.3);border-radius:10px;padding:16px;font-family:monospace;font-size:13px;word-break:break-all;color:#f5b455">${token}</div>
+      <p style="color:#8888a0;font-size:12px;margin-top:12px">Cole em <b style="color:#eeeef2">Configurações → Token de Acesso</b></p>
+      <a href="https://leadhunter-vert.vercel.app" style="display:inline-block;margin-top:20px;background:linear-gradient(135deg,#f09030,#e06818);color:#000;font-weight:700;padding:12px 24px;border-radius:9px;text-decoration:none">Acessar LeadHunter</a>
+    </div>`,
+  }, { headers: { "Authorization": `Bearer ${apiKey}` } })
+    .then(() => console.log(`[Email Resend] Enviado para ${email}`))
+    .catch(e => console.error(`[Email Resend] ERRO: ${e.response?.data?.message || e.message}`));
 }
 
 // Webhook Kirvano
@@ -859,10 +1001,67 @@ async function handleCaktoWebhook(req, res) {
 }
 
 const rawBody = express.raw({ type: "*/*" });
-app.get("/webhook/cakto", (req, res) => res.json({ ok: true, service: "LeadHunter webhook" }));
-app.get("/webhook",       (req, res) => res.json({ ok: true, service: "LeadHunter webhook" }));
+app.get("/webhook/cakto",   (req, res) => res.json({ ok: true, service: "LeadHunter webhook" }));
+app.get("/webhook/roldpay", (req, res) => res.json({ ok: true, service: "LeadHunter ROLDPAY webhook" }));
+app.get("/webhook",         (req, res) => res.json({ ok: true, service: "LeadHunter webhook" }));
 app.post("/webhook/cakto", rawBody, handleCaktoWebhook);
 app.post("/webhook",       rawBody, handleCaktoWebhook);
+
+// Webhook ROLDPAY
+app.post("/webhook/roldpay", rawBody, async (req, res) => {
+  try {
+    const bodyStr = Buffer.isBuffer(req.body) ? req.body.toString("utf-8") : (typeof req.body === "string" ? req.body : JSON.stringify(req.body));
+
+    // Verifica assinatura HMAC-SHA256
+    const secret = process.env.ROLDPAY_WEBHOOK_SECRET;
+    if (secret) {
+      const sig      = req.headers["x-roldpay-signature"] || "";
+      const expected = "sha256=" + require("crypto").createHmac("sha256", secret).update(bodyStr).digest("hex");
+      if (sig !== expected) {
+        console.warn("[ROLDPAY webhook] Assinatura inválida");
+        return res.status(401).json({ error: "Assinatura inválida" });
+      }
+    } else {
+      console.warn("[ROLDPAY webhook] ROLDPAY_WEBHOOK_SECRET não configurada — verificação ignorada");
+    }
+
+    const payload = JSON.parse(bodyStr);
+    const evento  = payload.event || "";
+    const data    = payload.data  || {};
+
+    if (evento === "payment.approved") {
+      const email       = data.customer?.email;
+      const nome        = data.customer?.name  || "";
+      const txId        = data.payment?.id     || "";
+      const productName = data.product?.name   || "";
+      if (!email) return res.json({ ok: true, msg: "sem email no payload" });
+
+      // Mapeamento pelo nome do produto no ROLDPAY
+      const n = productName.toLowerCase();
+      const plano = n.includes("alpha") ? "vitalicio" : n.includes("pro") ? "trimestral" : "mensal";
+
+      const token = await processarPagamento(email, nome, txId, data, "ROLDPAY", plano);
+      await enviarEmailResend(email, nome, token, plano);
+      console.log(`[ROLDPAY] processado: ${email} plano=${plano} token=${token ? "novo" : "renovação"}`);
+    } else if (["subscription.cancelled", "payment.rejected"].includes(evento)) {
+      const email = data.customer?.email;
+      if (email) {
+        await assinantesCol().doc(email.toLowerCase().trim()).update({
+          status: "cancelado", expira_em: new Date(),
+          updated_at: admin.firestore.FieldValue.serverTimestamp()
+        }).catch(() => {});
+        console.log(`[ROLDPAY] cancelamento: ${email} — evento: ${evento}`);
+      }
+    } else {
+      console.log(`[ROLDPAY webhook] evento ignorado: ${evento}`);
+    }
+
+    res.json({ ok: true });
+  } catch(e) {
+    console.error("[ROLDPAY webhook]", e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // ── AUTH ─────────────────────────────────────────────────────────────────────
 app.post("/auth/login", async (req, res) => {
@@ -896,10 +1095,11 @@ app.get("/auth/verificar", async (req, res) => {
     const hoje = new Date().toISOString().split("T")[0];
     const usadoHoje = a.leads_data === hoje ? (a.leads_hoje || 0) : 0;
     const plano  = a.plano || "mensal";
-    const limite = LIMITES_PLANO[plano] ?? 150;
+    const limite = a.is_demo ? 50 : (LIMITES_PLANO[plano] ?? 150);
     res.json({
       ok: true, nome: a.nome, email: a.email, plano, expira_em: a.expira_em,
-      cota: { limite, usado: usadoHoje, restante: Math.max(0, limite - usadoHoje) }
+      is_demo: a.is_demo || false,
+      cota: { limite, usado: a.is_demo ? 50 : usadoHoje, restante: a.is_demo ? 0 : Math.max(0, limite - usadoHoje) }
     });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -933,6 +1133,36 @@ app.post("/admin/assinante/criar", async (req, res) => {
       leads_hoje: 0, leads_data: null, updated_at: admin.firestore.FieldValue.serverTimestamp()
     });
     res.json({ ok: true, token, msg: "Assinante criado" });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Cria conta demo para afiliados — 50 leads fixos, sem expiração real
+app.post("/admin/assinante/criar-demo", async (req, res) => {
+  try {
+    const { email, nome } = req.body;
+    if (!email) return res.status(400).json({ error: "email obrigatório" });
+    const docRef   = assinantesCol().doc(email.toLowerCase().trim());
+    const existing = await docRef.get();
+    const expiraEm = new Date(Date.now() + 3650 * 86400000); // 10 anos
+
+    if (existing.exists) {
+      await docRef.update({
+        nome: nome || existing.data().nome, plano: "demo", status: "ativo",
+        is_demo: true, expira_em: expiraEm,
+        updated_at: admin.firestore.FieldValue.serverTimestamp()
+      });
+      return res.json({ ok: true, token: existing.data().token, msg: "Conta demo atualizada — 50 leads fixos para demonstração" });
+    }
+
+    const token = gerarToken();
+    await docRef.set({
+      email: email.toLowerCase().trim(), nome: nome || "", status: "ativo",
+      token, plano: "demo", is_demo: true,
+      ativado_em: admin.firestore.FieldValue.serverTimestamp(),
+      expira_em: expiraEm, leads_hoje: 0, leads_data: null,
+      updated_at: admin.firestore.FieldValue.serverTimestamp()
+    });
+    res.json({ ok: true, token, msg: "Conta demo criada — 50 leads fixos para demonstração" });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
