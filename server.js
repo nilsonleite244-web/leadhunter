@@ -1168,6 +1168,8 @@ app.post("/admin/assinante/criar-demo", async (req, res) => {
 
 // ── TRIAL GRATUITO (público) ──────────────────────────────────────────────────
 app.post("/trial/registrar", requireFirebase, async (req, res) => {
+  if (req.headers["x-api-key"] !== process.env.API_SECRET)
+    return res.status(401).json({ error: "Não autorizado" });
   try {
     const email = (req.body.email || "").toLowerCase().trim();
     const nome  = (req.body.nome  || "").trim().slice(0, 80);

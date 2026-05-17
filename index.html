@@ -1416,6 +1416,18 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
     <!-- ══════ ADMIN ══════ -->
     <div class="page" id="page-admin">
 
+      <!-- ── ENVIAR TRIAL ── -->
+      <div style="background:#1a1a28;border:1px solid rgba(240,144,48,.2);border-radius:14px;padding:20px 24px;margin-bottom:24px">
+        <div style="font-size:14px;font-weight:800;color:#f09030;margin-bottom:4px">🎁 Enviar Trial Gratuito (7 dias · 150 leads/dia)</div>
+        <div style="font-size:12px;color:var(--t2);margin-bottom:14px">Envie acesso gratuito manualmente para um lead. O token chega por email.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="trial-nome-adm" type="text" placeholder="Nome" style="flex:1;min-width:120px;padding:9px 12px;background:#0d0d16;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#eeeef2;font-size:13px;font-family:inherit;outline:none">
+          <input id="trial-email-adm" type="email" placeholder="Email do lead" style="flex:2;min-width:180px;padding:9px 12px;background:#0d0d16;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#eeeef2;font-size:13px;font-family:inherit;outline:none">
+          <button onclick="enviarTrialAdmin()" style="padding:9px 18px;background:linear-gradient(135deg,#f09030,#e06818);color:#000;font-size:13px;font-weight:800;border:none;border-radius:8px;cursor:pointer;white-space:nowrap">Enviar acesso →</button>
+        </div>
+        <div id="trial-adm-msg" style="display:none;margin-top:10px;font-size:13px;padding:8px 12px;border-radius:8px"></div>
+      </div>
+
       <!-- ── ASSINANTES ── -->
       <div class="flex gap-8 mb-20" style="align-items:flex-end">
         <div>
@@ -3063,6 +3075,37 @@ async function reativarAssinante(id, plano) {
     toast('Assinante reativado por 35 dias!', 'success');
     loadAdmin();
   } catch(e) { toast('Erro: ' + e.message, 'error'); }
+}
+
+async function enviarTrialAdmin() {
+  const nome  = document.getElementById('trial-nome-adm').value.trim();
+  const email = document.getElementById('trial-email-adm').value.trim();
+  const msg   = document.getElementById('trial-adm-msg');
+  if (!email) { showTrialAdmMsg('Informe o email.', 'error'); return; }
+  try {
+    const r = await fetch(`${API_BASE}/trial/registrar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
+      body: JSON.stringify({ nome, email })
+    });
+    const d = await r.json();
+    if (r.ok && d.ok) {
+      showTrialAdmMsg(`✅ Trial enviado para ${email}`, 'success');
+      document.getElementById('trial-nome-adm').value = '';
+      document.getElementById('trial-email-adm').value = '';
+    } else {
+      showTrialAdmMsg(d.error || 'Erro ao enviar.', 'error');
+    }
+  } catch { showTrialAdmMsg('Erro de conexão.', 'error'); }
+}
+
+function showTrialAdmMsg(text, type) {
+  const el = document.getElementById('trial-adm-msg');
+  el.textContent = text;
+  el.style.display = 'block';
+  el.style.background = type === 'success' ? 'rgba(34,197,94,.1)' : 'rgba(248,113,113,.1)';
+  el.style.border = `1px solid ${type === 'success' ? 'rgba(34,197,94,.3)' : 'rgba(248,113,113,.3)'}`;
+  el.style.color = type === 'success' ? '#4ade80' : '#f87171';
 }
 
 async function verProblemas() {
