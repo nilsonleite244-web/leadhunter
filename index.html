@@ -3127,6 +3127,11 @@ function showTrialAdmMsg(text, type) {
 async function carregarSolicitacoes() {
   const lista = document.getElementById('sol-lista');
   const badge = document.getElementById('sol-badge');
+  if (!lista) return;
+  if (!ADMIN_TOKEN) {
+    lista.innerHTML = '<div style="font-size:13px;color:var(--t2);padding:8px 0">Clique na aba Admin para autenticar primeiro.</div>';
+    return;
+  }
   lista.innerHTML = '<div style="font-size:13px;color:var(--t2);padding:8px 0">Carregando...</div>';
   try {
     const d = await adminFetch('/admin/solicitacoes?status=pendente');
