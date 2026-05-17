@@ -101,7 +101,7 @@ process.on("uncaughtException",  e => console.error("[uncaughtException]",  e.me
 process.on("unhandledRejection", e => console.error("[unhandledRejection]", e));
 
 // ── LIMITES POR PLANO ─────────────────────────────────────────────────────────
-const LIMITES_PLANO  = { mensal: 150, trimestral: 300, vitalicio: 600 };
+const LIMITES_PLANO  = { mensal: 150, trimestral: 300, vitalicio: 600, trial: 20 };
 const PLANOS_LABEL   = { mensal: "Básico", trimestral: "Pro", vitalicio: "Alpha Member" };
 
 // ── DEMO LEADS (50 fixos para contas de afiliado/beta) ───────────────────────
@@ -1165,6 +1165,80 @@ app.post("/admin/assinante/criar-demo", async (req, res) => {
     res.json({ ok: true, token, msg: "Conta demo criada — 50 leads fixos para demonstração" });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
+
+// ── TRIAL GRATUITO (público) ──────────────────────────────────────────────────
+const trialLimiter = rateLimit({ windowMs: 3600000, max: 5, message: { error: "Muitas tentativas. Tente novamente em 1 hora." } });
+
+app.post("/trial/registrar", trialLimiter, requireFirebase, async (req, res) => {
+  try {
+    const email = (req.body.email || "").toLowerCase().trim();
+    const nome  = (req.body.nome  || "").trim().slice(0, 80);
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      return res.status(400).json({ error: "Email inválido." });
+
+    const docRef  = assinantesCol().doc(email);
+    const snap    = await docRef.get();
+    const agora   = new Date();
+
+    // Se já tem conta paga ativa, não sobrescreve
+    if (snap.exists) {
+      const d = snap.data();
+      const pago = ["mensal","trimestral","vitalicio"].includes(d.plano);
+      const ativo = d.status === "ativo" && d.expira_em?.toDate?.() > agora;
+      if (pago && ativo) return res.json({ ok: true }); // silencioso
+      // Trial já ativo: não recria, só reenvia email
+      if (d.plano === "trial" && ativo) {
+        await enviarEmailTrial(email, d.nome || nome, d.token);
+        return res.json({ ok: true });
+      }
+    }
+
+    const token    = gerarToken();
+    const expiraEm = new Date(Date.now() + 7 * 86400000);
+    await docRef.set({
+      email, nome, status: "ativo", token, plano: "trial",
+      is_trial: true,
+      ativado_em: admin.firestore.FieldValue.serverTimestamp(),
+      expira_em:  expiraEm,
+      leads_hoje: 0, leads_data: null,
+      updated_at: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    await enviarEmailTrial(email, nome, token);
+    console.log(`[Trial] novo: ${email}`);
+    res.json({ ok: true });
+  } catch(e) {
+    console.error("[Trial] erro:", e.message);
+    res.status(500).json({ error: "Erro interno. Tente novamente." });
+  }
+});
+
+async function enviarEmailTrial(email, nome, token) {
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) return;
+  const primeiroNome = nome ? nome.split(" ")[0] : "";
+  await axios.post("https://api.brevo.com/v3/smtp/email", {
+    sender:  { name: "Hunter Leads", email: "nilsonleite244@gmail.com" },
+    to:      [{ email }],
+    subject: "Seu acesso gratuito ao Hunter Leads está pronto!",
+    htmlContent: `<div style="font-family:Inter,sans-serif;max-width:500px;margin:0 auto;background:#08080f;color:#eeeef2;padding:32px;border-radius:16px">
+      <h2 style="color:#f09030;margin-bottom:4px">🦊 Seu trial de 7 dias começou!</h2>
+      <p style="color:#8888a0;margin-bottom:24px">Olá${primeiroNome ? " " + primeiroNome : ""}! Bem-vindo ao Hunter Leads. Você tem <strong style="color:#f09030">20 leads por dia</strong> durante 7 dias, sem precisar de cartão.</p>
+      <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.2);border-radius:10px;padding:16px;margin-bottom:20px">
+        <div style="font-size:12px;color:#8888a0;margin-bottom:4px">Seu plano gratuito</div>
+        <div style="font-size:16px;font-weight:700;color:#f09030">Trial — 7 dias grátis</div>
+        <div style="font-size:12px;color:#8888a0;margin-top:4px">20 leads/dia · Expira em 7 dias</div>
+      </div>
+      <p style="margin-bottom:8px;font-size:14px">Seu token de acesso:</p>
+      <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.3);border-radius:10px;padding:16px;font-family:monospace;font-size:13px;word-break:break-all;color:#f5b455">${token}</div>
+      <p style="color:#8888a0;font-size:12px;margin-top:12px">Cole em <b style="color:#eeeef2">Configurações → Token de Acesso</b></p>
+      <a href="https://leadhunter-vert.vercel.app" style="display:inline-block;margin-top:20px;background:linear-gradient(135deg,#f09030,#e06818);color:#000;font-weight:700;padding:12px 24px;border-radius:9px;text-decoration:none">Acessar Hunter Leads →</a>
+      <p style="color:#555568;font-size:11px;margin-top:24px">Após o trial, assine por R$97/mês para continuar com 150 leads/dia.</p>
+    </div>`,
+  }, { headers: { "api-key": apiKey } })
+    .then(() => console.log(`[Trial] email enviado: ${email}`))
+    .catch(e => console.error(`[Trial] email erro: ${e.response?.data?.message || e.message}`));
+}
 
 app.patch("/admin/assinante/:id/status", async (req, res) => {
   try {
