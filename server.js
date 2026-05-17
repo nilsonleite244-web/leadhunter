@@ -1346,8 +1346,24 @@ app.post("/admin/solicitacoes/:email/reenviar-email", async (req, res) => {
     const doc = await assinantesCol().doc(email).get();
     if (!doc.exists) return res.status(404).json({ error: "Assinante não encontrado" });
     const d = doc.data();
-    const emailOk = await enviarEmailTrial(email, d.nome || "", d.token);
-    res.json({ ok: emailOk, msg: emailOk ? "Email reenviado com sucesso" : "Falha ao reenviar email" });
+    const apiKey = process.env.RESEND_API_KEY;
+    const from   = process.env.EMAIL_FROM || "onboarding@resend.dev";
+    const nome   = d.nome || "";
+    const token  = d.token;
+    try {
+      const r = await axios.post("https://api.resend.com/emails", {
+        from: `Hunter Leads <${from}>`,
+        to: [email],
+        subject: "Seu acesso gratuito ao Hunter Leads está pronto!",
+        html: `<p>Olá ${nome}! Token: <b>${token}</b></p><a href="https://leadhunter-vert.vercel.app">Acessar Hunter Leads</a>`
+      }, { headers: { Authorization: `Bearer ${apiKey}` } });
+      console.log(`[Reenviar] OK id=${r.data.id} para ${email}`);
+      res.json({ ok: true, msg: "Email reenviado com sucesso" });
+    } catch(emailErr) {
+      const detail = emailErr.response?.data || emailErr.message;
+      console.error(`[Reenviar] ERRO:`, JSON.stringify(detail));
+      res.json({ ok: false, msg: "Falha ao reenviar", detail });
+    }
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
