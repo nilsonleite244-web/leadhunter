@@ -134,12 +134,14 @@ async function solicitar() {
   btn.textContent = 'Enviando...';
 
   try {
+    console.log('[Solicitar] enviando para:', `${API}/trial/solicitar`, { nome, email });
     const r = await fetch(`${API}/trial/solicitar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nome, email })
     });
     const d = await r.json();
+    console.log('[Solicitar] resposta:', r.status, d);
     if (r.ok && d.ok) {
       document.getElementById('form-wrap').style.display = 'none';
       if (d.msg === 'ja_tem_acesso') {
