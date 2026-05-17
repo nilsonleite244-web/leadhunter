@@ -716,6 +716,32 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
   .page{padding:16px}
   .kpi-grid{grid-template-columns:repeat(2,1fr)}
   .g2{grid-template-columns:1fr}
+  .content{padding-bottom:72px}
+}
+
+/* ══ BOTTOM NAV (mobile only) ══ */
+.bnav{display:none}
+@media(max-width:640px){
+  .bnav{
+    display:flex;position:fixed;bottom:0;left:0;right:0;height:60px;
+    background:var(--s1);border-top:1px solid var(--bd);z-index:45;
+    align-items:stretch;
+  }
+  .bnav-item{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:3px;color:var(--t3);cursor:pointer;font-size:10px;font-weight:600;
+    border:none;background:none;font-family:Inter,sans-serif;padding:6px 0;
+    transition:color .15s;position:relative;
+  }
+  .bnav-item svg{width:20px;height:20px;stroke:currentColor;fill:none;flex-shrink:0}
+  .bnav-item.active{color:var(--orange)}
+  .bnav-badge{
+    position:absolute;top:6px;right:calc(50% - 18px);
+    background:var(--orange);color:#fff;font-size:9px;font-weight:700;
+    border-radius:8px;padding:1px 5px;min-width:16px;text-align:center;
+    display:none;
+  }
+  .bnav-badge.show{display:block}
 }
 </style>
 <style>
@@ -2810,6 +2836,10 @@ async function loadMeusLeads() {
     badge.style.display = '';
     badge.classList.remove('dim');
 
+    // Atualiza badge bottom nav (mobile)
+    const bnavBadge = document.getElementById('bnav-badge-ml');
+    if (bnavBadge) { bnavBadge.textContent = total; bnavBadge.classList.add('show'); }
+
     // Renderiza aba padrão (instagram)
     mlTab(_meusLeadsCache.instagram.length ? 'instagram' : 'cnpj');
   } catch(e) {
@@ -2830,45 +2860,38 @@ function mlTab(tipo) {
   const leads = tipo === 'instagram' ? _meusLeadsCache.instagram : _meusLeadsCache.cnpj;
   if (!leads.length) { container.innerHTML = '<p style="color:var(--t2);font-size:13px;text-align:center;padding:30px">Nenhum lead nesta categoria.</p>'; return; }
 
-  // Reutiliza o renderResults existente para manter visual igual
-  state.results = leads;
-  renderResults(leads, tipo === 'instagram' ? 'instagram' : 'cnpj');
-  container.innerHTML = document.getElementById('results-card').querySelector('table, .results-list, tbody')?.parentElement?.outerHTML
-    || `<p style="color:var(--t2);font-size:12px;text-align:center;padding:20px">${leads.length} leads salvos.</p>`;
-
-  // Renderização alternativa: tabela simples
   container.innerHTML = '';
-  const table = document.createElement('div');
-  table.style.cssText = 'overflow-x:auto';
-  table.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:12.5px">
-    <thead><tr style="border-bottom:1px solid var(--s3)">
-      <th style="text-align:left;padding:8px 10px;color:var(--t2);font-weight:600">Nome</th>
-      <th style="text-align:left;padding:8px 10px;color:var(--t2);font-weight:600">Segmento</th>
-      <th style="text-align:left;padding:8px 10px;color:var(--t2);font-weight:600">Cidade</th>
-      <th style="text-align:left;padding:8px 10px;color:var(--t2);font-weight:600">Ações</th>
-    </tr></thead>
-    <tbody>${leads.map((l, idx) => {
-      const wpp = l.whatsapp || l.whatsapp_url || (l.telefone1 ? 'https://wa.me/55' + l.telefone1.replace(/\D/g,'') : null);
-      const ig  = l.instagram || l.instagram_url || null;
-      const seg = l.segmento || l.cnae_descricao || '';
-      const igUrl = ig ? (ig.startsWith('http') ? ig : 'https://instagram.com/' + ig.replace(/^@/,'')) : null;
-      // Guarda no cache global para acesso seguro pelo índice
-      window._leadsScriptCache[idx] = l;
-      return `<tr style="border-bottom:1px solid var(--s2)">
-        <td style="padding:8px 10px;color:var(--t1);font-weight:500">${esc(l.nome || l.razao_social || l.nome_fantasia || '—')}<br><small style="color:var(--t3);font-weight:400">${esc(l.website||l.email||'')}</small></td>
-        <td style="padding:8px 10px"><span class="badge b-purple" style="font-size:11px">${esc(seg.substring(0,22)||'—')}</span></td>
-        <td style="padding:8px 10px;color:var(--t2);font-size:12px">${esc((l.cidade||l.municipio_nome||'')+(l.estado||l.uf?', '+(l.estado||l.uf):''))}</td>
-        <td style="padding:8px 10px">
-          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-            ${wpp ? `<a href="${wpp}" target="_blank" class="btn btn-green btn-sm" style="padding:4px 10px;font-size:11px;text-decoration:none;display:flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WPP</a>` : ''}
-            ${igUrl ? `<a href="${igUrl}" target="_blank" class="btn btn-sm" style="padding:4px 10px;font-size:11px;text-decoration:none;background:rgba(180,144,255,.15);color:#B490FF;border:1px solid rgba(180,144,255,.3);display:flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>IG</a>` : ''}
-            <button class="btn btn-sm script-btn" style="padding:4px 10px;font-size:11px;display:flex;align-items:center;gap:4px" onclick="abrirCopyScriptIdx(${idx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>Script</button>
-          </div>
-        </td>
-      </tr>`;
-    }).join('')}</tbody>
-  </table>`;
-  container.appendChild(table);
+  window._leadsScriptCache = leads;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = leads.map((l, idx) => {
+    const wppRaw = l.whatsapp || l.whatsapp_url || l.telefone1 || '';
+    let wppUrl = null;
+    if (wppRaw.startsWith('http')) {
+      wppUrl = wppRaw;
+    } else if (wppRaw) {
+      const n = wppRaw.replace(/\D/g,'');
+      if (n.length >= 8) wppUrl = 'https://wa.me/' + (n.startsWith('55') ? n : '55' + n);
+    }
+    const igRaw = l.instagram || l.instagram_url || '';
+    const igUrl = igRaw.startsWith('http') ? igRaw : igRaw ? 'https://instagram.com/' + igRaw.replace(/^@/,'') : null;
+    const seg = l.segmento || l.cnae_descricao || '';
+    const loc = [l.cidade||l.municipio_nome, l.estado||l.uf].filter(Boolean).join(' / ');
+    const nome = esc(l.nome || l.razao_social || l.nome_fantasia || '—');
+    const sub = esc(l.website || l.email || loc || '');
+    return `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid var(--s2)">
+      <div style="min-width:0;flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nome}</div>
+        ${sub ? `<div style="font-size:11px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sub}</div>` : ''}
+        ${seg ? `<span class="badge b-purple" style="font-size:10px;margin-top:4px;display:inline-block">${esc(seg.substring(0,28))}</span>` : ''}
+      </div>
+      <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;max-width:130px">
+        ${wppUrl ? `<a href="${wppUrl}" target="_blank" class="btn btn-green btn-sm" style="padding:5px 10px;font-size:11px;text-decoration:none;display:flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WPP</a>` : ''}
+        ${igUrl ? `<a href="${igUrl}" target="_blank" class="btn btn-sm" style="padding:5px 10px;font-size:11px;text-decoration:none;background:rgba(180,144,255,.15);color:#B490FF;border:1px solid rgba(180,144,255,.3);display:flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>IG</a>` : ''}
+        <button class="btn btn-sm script-btn" style="padding:5px 10px;font-size:11px;display:flex;align-items:center;gap:4px" onclick="abrirCopyScriptIdx(${idx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>Script</button>
+      </div>
+    </div>`;
+  }).join('');
+  container.appendChild(wrap);
   container.dataset.rendered = '1';
 }
 
@@ -3534,6 +3557,34 @@ function copiarTexto(txt) {
     toast('Copiado!', 'success');
   });
 }
+
+// ══ BOTTOM NAV ══
+function updateBnav(id) {
+  document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('bnav-' + id);
+  if (el) el.classList.add('active');
+}
 </script>
+
+<!-- ══ BOTTOM NAV (mobile) ══ -->
+<nav class="bnav">
+  <button class="bnav-item active" id="bnav-dashboard" onclick="nav('dashboard',null);updateBnav('dashboard')">
+    <svg viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
+  </button>
+  <button class="bnav-item" id="bnav-leads" onclick="nav('leads',null);updateBnav('leads')">
+    <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    Buscar
+  </button>
+  <button class="bnav-item" id="bnav-meus-leads" onclick="nav('meus-leads',null);updateBnav('meus-leads')">
+    <span class="bnav-badge" id="bnav-badge-ml"></span>
+    <svg viewBox="0 0 24 24" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    Meus Leads
+  </button>
+  <button class="bnav-item" id="bnav-settings" onclick="nav('settings',null);updateBnav('settings')">
+    <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Config
+  </button>
+</nav>
 </body>
 </html>
