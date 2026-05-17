@@ -1123,7 +1123,11 @@ app.post("/admin/assinante/criar", async (req, res) => {
     const expiraEm = calcularExpiracao(plano);
 
     if (existing.exists) {
-      await docRef.update({ nome: nome || existing.data().nome, plano, status: "ativo", expira_em: expiraEm, updated_at: admin.firestore.FieldValue.serverTimestamp() });
+      await docRef.update({
+        nome: nome || existing.data().nome, plano, status: "ativo", expira_em: expiraEm,
+        is_trial: admin.firestore.FieldValue.delete(),
+        updated_at: admin.firestore.FieldValue.serverTimestamp()
+      });
       return res.json({ ok: true, token: existing.data().token, msg: "Assinante atualizado" });
     }
 
