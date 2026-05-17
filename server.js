@@ -1212,14 +1212,15 @@ app.post("/trial/registrar", requireFirebase, async (req, res) => {
 });
 
 async function enviarEmailTrial(email, nome, token) {
-  const apiKey = process.env.BREVO_API_KEY;
-  if (!apiKey) return;
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) { console.warn("[Trial] RESEND_API_KEY não configurada"); return; }
+  const from = process.env.EMAIL_FROM || "onboarding@resend.dev";
   const primeiroNome = nome ? nome.split(" ")[0] : "";
-  await axios.post("https://api.brevo.com/v3/smtp/email", {
-    sender:  { name: "Hunter Leads", email: "nilsonleite244@gmail.com" },
-    to:      [{ email }],
+  await axios.post("https://api.resend.com/emails", {
+    from: `Hunter Leads <${from}>`,
+    to: [email],
     subject: "Seu acesso gratuito ao Hunter Leads está pronto!",
-    htmlContent: `<div style="font-family:Inter,sans-serif;max-width:500px;margin:0 auto;background:#08080f;color:#eeeef2;padding:32px;border-radius:16px">
+    html: `<div style="font-family:Inter,sans-serif;max-width:500px;margin:0 auto;background:#08080f;color:#eeeef2;padding:32px;border-radius:16px">
       <h2 style="color:#f09030;margin-bottom:4px">🦊 Seu trial de 7 dias começou!</h2>
       <p style="color:#8888a0;margin-bottom:24px">Olá${primeiroNome ? " " + primeiroNome : ""}! Bem-vindo ao Hunter Leads. Você tem <strong style="color:#f09030">20 leads por dia</strong> durante 7 dias, sem precisar de cartão.</p>
       <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.2);border-radius:10px;padding:16px;margin-bottom:20px">
@@ -1233,7 +1234,7 @@ async function enviarEmailTrial(email, nome, token) {
       <a href="https://leadhunter-vert.vercel.app" style="display:inline-block;margin-top:20px;background:linear-gradient(135deg,#f09030,#e06818);color:#000;font-weight:700;padding:12px 24px;border-radius:9px;text-decoration:none">Acessar Hunter Leads →</a>
       <p style="color:#555568;font-size:11px;margin-top:24px">Após o trial, assine por R$97/mês para continuar com 150 leads/dia.</p>
     </div>`,
-  }, { headers: { "api-key": apiKey } })
+  }, { headers: { "Authorization": `Bearer ${apiKey}` } })
     .then(() => console.log(`[Trial] email enviado: ${email}`))
     .catch(e => console.error(`[Trial] email erro: ${e.response?.data?.message || e.message}`));
 }
