@@ -351,7 +351,7 @@ async function verificarCota(req, res, count) {
 }
 
 // ── ROTAS PÚBLICAS ────────────────────────────────────────────────────────────
-app.get("/version", (req, res) => res.json({ v: "2.5.0", db: "firebase+postgresql", trial_limit: 150 }));
+app.get("/version", (req, res) => res.json({ v: "2.5.1", db: "firebase+postgresql", trial_limit: 150 }));
 
 app.get("/health", (req, res) => {
   // Responde imediatamente — Railway precisa de resposta rápida
@@ -1464,7 +1464,7 @@ app.post("/webhook/roldpay", requireFirebase, async (req, res) => {
     if (snap.exists) {
       token = snap.data().token || gerarToken();
       await docRef.update({
-        nome, status: "ativo", plano: "mensal",
+        nome, status: "ativo", plano: "mensal", token,
         expira_em: expiraEm,
         is_trial: admin.firestore.FieldValue.delete(),
         updated_at: admin.firestore.FieldValue.serverTimestamp()
@@ -1487,21 +1487,33 @@ app.post("/webhook/roldpay", requireFirebase, async (req, res) => {
         from: `Hunter Leads <${from}>`,
         to:   [email],
         subject: "Seu acesso ao Hunter Leads está ativo! 🦊",
-        html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#08080f;font-family:'Inter',system-ui,sans-serif;">
-<div style="max-width:520px;margin:40px auto;background:#111120;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:40px 36px;color:#eeeef2;">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">
-    <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#f09030,#e06818);display:flex;align-items:center;justify-content:center;font-size:22px;">🦊</div>
-    <span style="font-size:18px;font-weight:800;letter-spacing:-.5px;">Hunter Leads</span>
-  </div>
-  <h1 style="font-size:22px;font-weight:800;margin:0 0 12px;letter-spacing:-.5px;">Olá, ${primeiroNome}! Seu acesso está pronto 🎉</h1>
-  <p style="color:#8888a0;font-size:14px;line-height:1.6;margin:0 0 24px;">Seu plano mensal foi ativado com sucesso. Use o token abaixo para acessar o sistema:</p>
-  <div style="background:#0d0d18;border:1px solid rgba(240,144,48,.25);border-radius:12px;padding:16px 20px;margin-bottom:24px;">
-    <p style="margin:0 0 6px;font-size:11px;color:#8888a0;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Seu token de acesso</p>
-    <p style="margin:0;font-family:monospace;font-size:15px;color:#f5b455;letter-spacing:.5px;word-break:break-all;">${token}</p>
-  </div>
-  <a href="https://leadhunter-vert.vercel.app" style="display:block;text-align:center;background:linear-gradient(135deg,#f09030,#e06818);color:#000;font-weight:800;font-size:15px;padding:14px 24px;border-radius:10px;text-decoration:none;letter-spacing:-.2px;">Acessar Hunter Leads →</a>
-  <p style="color:#44445a;font-size:12px;margin-top:24px;line-height:1.5;">Guarde esse token em local seguro. Validade: 30 dias a partir de hoje.</p>
-</div></body></html>`
+        html: `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin:0;padding:0;background:#f4f4f7;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:40px 0;">
+<tr><td align="center">
+<table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:520px;">
+  <tr><td style="background:#111120;padding:28px 36px;">
+    <span style="font-size:22px;">🦊</span>
+    <span style="color:#ffffff;font-size:18px;font-weight:bold;margin-left:10px;vertical-align:middle;">Hunter Leads</span>
+  </td></tr>
+  <tr><td style="padding:32px 36px;">
+    <h1 style="margin:0 0 12px;font-size:22px;color:#111120;">Olá, ${primeiroNome}! Seu acesso está pronto 🎉</h1>
+    <p style="margin:0 0 24px;font-size:14px;color:#555555;line-height:1.6;">Seu plano mensal foi ativado com sucesso. Use o token abaixo para entrar no sistema:</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+    <tr><td style="background:#fef3e2;border:2px solid #f09030;border-radius:8px;padding:16px 20px;">
+      <p style="margin:0 0 6px;font-size:11px;color:#888888;text-transform:uppercase;letter-spacing:1px;font-weight:bold;">Seu token de acesso</p>
+      <p style="margin:0;font-family:Courier New,monospace;font-size:14px;color:#000000;font-weight:bold;word-break:break-all;">${token}</p>
+    </td></tr>
+    </table>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+    <tr><td align="center" style="background:#f09030;border-radius:8px;padding:14px 24px;">
+      <a href="https://leadhunter-vert.vercel.app" style="color:#000000;font-weight:bold;font-size:15px;text-decoration:none;">Acessar Hunter Leads →</a>
+    </td></tr>
+    </table>
+    <p style="margin:0;font-size:12px;color:#999999;line-height:1.5;">Guarde esse token em local seguro. Validade: 30 dias a partir de hoje.</p>
+  </td></tr>
+</table>
+</td></tr>
+</table></body></html>`
       }, { headers: { Authorization: `Bearer ${resendKey}` } });
       console.log(`[Webhook RoldPay] email enviado: ${email}`);
     } catch (emailErr) {
