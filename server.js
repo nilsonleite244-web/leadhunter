@@ -1183,7 +1183,7 @@ app.post("/trial/registrar", requireFirebase, async (req, res) => {
       const d = snap.data();
       const pago = ["mensal","trimestral","vitalicio"].includes(d.plano);
       const ativo = d.status === "ativo" && d.expira_em?.toDate?.() > agora;
-      if (pago && ativo) return res.json({ ok: true }); // silencioso
+      if (pago && ativo) { console.log(`[Trial] ${email} já tem plano pago ativo — ignorado`); return res.json({ ok: true }); }
       // Trial já ativo: não recria, só reenvia email
       if (d.plano === "trial" && ativo) {
         await enviarEmailTrial(email, d.nome || nome, d.token);
