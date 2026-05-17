@@ -1167,7 +1167,7 @@ app.post("/admin/assinante/criar-demo", async (req, res) => {
 });
 
 // ── TRIAL GRATUITO (público) ──────────────────────────────────────────────────
-const trialLimiter = rateLimit({ windowMs: 3600000, max: 5, message: { error: "Muitas tentativas. Tente novamente em 1 hora." } });
+const trialLimiter = rateLimit({ windowMs: 3600000, max: 50, message: { error: "Muitas tentativas. Tente novamente em 1 hora." } });
 
 app.post("/trial/registrar", trialLimiter, requireFirebase, async (req, res) => {
   try {
