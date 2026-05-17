@@ -1796,7 +1796,8 @@ async function api(path, opts = {}) {
 }
 
 // ══ HEALTH ══
-async function checkHealth() {
+async function checkHealth(attempt) {
+  attempt = attempt || 1;
   const dot = document.getElementById('api-dot');
   const txt = document.getElementById('api-status-text');
   const hr  = document.getElementById('health-result');
@@ -1811,6 +1812,13 @@ async function checkHealth() {
     showErr('leads-err', false);
     return true;
   } catch (e) {
+    if (attempt < 4) {
+      const delay = attempt * 5000;
+      dot.className = 'dot off';
+      txt.textContent = 'Reconectando...';
+      setTimeout(() => checkHealth(attempt + 1), delay);
+      return false;
+    }
     dot.className = 'dot off';
     txt.textContent = 'Offline';
     if (hr) hr.value = '✗ ' + e.message;
