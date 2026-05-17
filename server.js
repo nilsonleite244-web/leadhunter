@@ -101,7 +101,7 @@ process.on("uncaughtException",  e => console.error("[uncaughtException]",  e.me
 process.on("unhandledRejection", e => console.error("[unhandledRejection]", e));
 
 // ── LIMITES POR PLANO ─────────────────────────────────────────────────────────
-const LIMITES_PLANO  = { mensal: 150, trimestral: 300, vitalicio: 600, trial: 20 };
+const LIMITES_PLANO  = { mensal: 150, trimestral: 300, vitalicio: 600, trial: 150 };
 const PLANOS_LABEL   = { mensal: "Básico", trimestral: "Pro", vitalicio: "Alpha Member" };
 
 // ── DEMO LEADS (50 fixos para contas de afiliado/beta) ───────────────────────
@@ -1222,11 +1222,11 @@ async function enviarEmailTrial(email, nome, token) {
     subject: "Seu acesso gratuito ao Hunter Leads está pronto!",
     html: `<div style="font-family:Inter,sans-serif;max-width:500px;margin:0 auto;background:#08080f;color:#eeeef2;padding:32px;border-radius:16px">
       <h2 style="color:#f09030;margin-bottom:4px">🦊 Seu trial de 7 dias começou!</h2>
-      <p style="color:#8888a0;margin-bottom:24px">Olá${primeiroNome ? " " + primeiroNome : ""}! Bem-vindo ao Hunter Leads. Você tem <strong style="color:#f09030">20 leads por dia</strong> durante 7 dias, sem precisar de cartão.</p>
+      <p style="color:#8888a0;margin-bottom:24px">Olá${primeiroNome ? " " + primeiroNome : ""}! Bem-vindo ao Hunter Leads. Você tem <strong style="color:#f09030">150 leads por dia</strong> durante 7 dias, sem precisar de cartão.</p>
       <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.2);border-radius:10px;padding:16px;margin-bottom:20px">
         <div style="font-size:12px;color:#8888a0;margin-bottom:4px">Seu plano gratuito</div>
         <div style="font-size:16px;font-weight:700;color:#f09030">Trial — 7 dias grátis</div>
-        <div style="font-size:12px;color:#8888a0;margin-top:4px">20 leads/dia · Expira em 7 dias</div>
+        <div style="font-size:12px;color:#8888a0;margin-top:4px">150 leads/dia · Expira em 7 dias</div>
       </div>
       <p style="margin-bottom:8px;font-size:14px">Seu token de acesso:</p>
       <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.3);border-radius:10px;padding:16px;font-family:monospace;font-size:13px;word-break:break-all;color:#f5b455">${token}</div>
