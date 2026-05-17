@@ -1279,8 +1279,10 @@ app.post("/trial/solicitar", requireFirebase, async (req, res) => {
 app.get("/admin/solicitacoes", async (req, res) => {
   try {
     const status = req.query.status || "pendente";
-    const snap = await solicitacoesCol().where("status", "==", status).orderBy("criado_em", "desc").limit(100).get();
-    const solicitacoes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const snap = await solicitacoesCol().where("status", "==", status).limit(100).get();
+    const solicitacoes = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.criado_em?._seconds || 0) - (a.criado_em?._seconds || 0));
     res.json({ total: solicitacoes.length, solicitacoes });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
