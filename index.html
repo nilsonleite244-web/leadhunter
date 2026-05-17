@@ -3012,7 +3012,6 @@ function adminFetch(path, opts = {}) {
 async function loadAdmin() {
   const tbody = document.getElementById('admin-tbody');
   if (!tbody) return;
-  carregarSolicitacoes();
 
   if (!ADMIN_TOKEN) {
     const token = prompt('Token de administrador:');
@@ -3020,6 +3019,8 @@ async function loadAdmin() {
     ADMIN_TOKEN = token.trim();
     sessionStorage.setItem('lh_admin_token', ADMIN_TOKEN);
   }
+
+  carregarSolicitacoes();
 
   tbody.innerHTML = '<tr><td colspan="7"><div class="loading-row"><div class="spinner light"></div></div></td></tr>';
   try {
