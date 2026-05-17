@@ -351,7 +351,7 @@ async function verificarCota(req, res, count) {
 }
 
 // ── ROTAS PÚBLICAS ────────────────────────────────────────────────────────────
-app.get("/version", (req, res) => res.json({ v: "2.2.0", db: "firebase+postgresql", trial_limit: 150 }));
+app.get("/version", (req, res) => res.json({ v: "2.3.0", db: "firebase+postgresql", trial_limit: 150 }));
 
 app.get("/health", (req, res) => {
   // Responde imediatamente — Railway precisa de resposta rápida
