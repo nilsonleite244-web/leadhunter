@@ -1484,14 +1484,8 @@ app.get("/landing",   (req, res) => res.sendFile(path.join(__dirname, "landing.h
 app.get("/solicitar", (req, res) => res.sendFile(path.join(__dirname, "solicitar.html")));
 
 // ── 404 e erro global — garante que NUNCA retorna HTML para chamadas de API ──
-app.use((req, res, next) => {
-  if (req.path.startsWith("/leads") || req.path.startsWith("/stats") ||
-      req.path.startsWith("/auth")  || req.path.startsWith("/admin") ||
-      req.path.startsWith("/webhook") || req.path.startsWith("/trial") ||
-      req.path.startsWith("/whatsapp")) {
-    return res.status(404).json({ error: "Rota não encontrada" });
-  }
-  next();
+app.use((req, res) => {
+  res.status(404).json({ error: "Rota não encontrada" });
 });
 
 // eslint-disable-next-line no-unused-vars
