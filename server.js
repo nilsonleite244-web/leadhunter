@@ -94,7 +94,7 @@ function pgQuery(sql, params) {
 // ── EXPRESS ──────────────────────────────────────────────────────────────────
 const app = express();
 app.set("trust proxy", 1);
-app.use(cors());
+app.use(cors({ origin: ["https://leadhunter-vert.vercel.app", "http://localhost:3000", "http://localhost:5500"] }));
 app.use(express.json({ limit: "10mb", verify: (req, _res, buf) => { req.rawBody = buf; } }));
 app.use(rateLimit({ windowMs: 60000, max: 300, message: { error: "Muitas requisicoes" } }));
 
@@ -299,10 +299,21 @@ function docToLead(id, d) {
   };
 }
 
+// Rate limit simples em memória para /auth/login
+const _loginAttempts = new Map();
+function loginRateLimit(ip) {
+  const now = Date.now();
+  const entry = _loginAttempts.get(ip) || { count: 0, resetAt: now + 60000 };
+  if (now > entry.resetAt) { entry.count = 0; entry.resetAt = now + 60000; }
+  entry.count++;
+  _loginAttempts.set(ip, entry);
+  return entry.count > 5;
+}
+
 // ── AUTH MIDDLEWARE ───────────────────────────────────────────────────────────
 function authMiddleware(req, res, next) {
   const secret = process.env.API_SECRET;
-  if (!secret) return next();
+  if (!secret) return res.status(500).json({ error: "Configuração interna ausente" });
 
   const key = req.headers["x-api-key"] || (req.headers["authorization"] || "").replace("Bearer ", "");
   if (key === secret) return next();
@@ -354,8 +365,7 @@ async function verificarCota(req, res, count) {
 app.get("/version", (req, res) => res.json({ v: "2.5.1", db: "firebase+postgresql", trial_limit: 150 }));
 
 app.get("/health", (req, res) => {
-  // Responde imediatamente — Railway precisa de resposta rápida
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+  res.json({ status: "ok", firebase: firebaseOk, timestamp: new Date().toISOString() });
 });
 
 // ── LEADS (protegidos) ────────────────────────────────────────────────────────
@@ -365,7 +375,7 @@ app.use(["/leads", "/stats", "/whatsapp"], authMiddleware);
 // Rotas admin — exigem API_SECRET (somente o dono do sistema)
 function adminMiddleware(req, res, next) {
   const secret = process.env.API_SECRET;
-  if (!secret) return next(); // sem secret configurado, permite (dev)
+  if (!secret) return res.status(500).json({ error: "Configuração interna ausente" });
   const key = req.headers["x-api-key"] || (req.headers["authorization"] || "").replace("Bearer ", "");
   if (key === secret) return next();
   return res.status(403).json({ error: "Acesso restrito ao administrador" });
@@ -455,7 +465,7 @@ app.get("/leads/instagram", async (req, res) => {
 
     res.json({ total, page, limit: effectiveLimit, pages, data: rows, cota });
   } catch(e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: "Erro interno" });
   }
 });
 
@@ -499,7 +509,14 @@ app.get("/leads/buscar", async (req, res) => {
     // resultados quando a cota está prestes a se esgotar
     const offset = (page - 1) * reqLimit;
 
-    const { uf, segmento: seg, busca, ddd, porte, apenas_com_email, apenas_com_telefone } = req.query;
+    let { uf, segmento: seg, busca, ddd, porte, apenas_com_email, apenas_com_telefone } = req.query;
+
+    // Validação de comprimento para evitar DoS
+    if (uf    && uf.length    > 2)   return res.status(400).json({ error: "uf inválido" });
+    if (ddd   && ddd.length   > 3)   return res.status(400).json({ error: "ddd inválido" });
+    if (porte && porte.length > 20)  return res.status(400).json({ error: "porte inválido" });
+    if (seg   && seg.length   > 50)  return res.status(400).json({ error: "segmento inválido" });
+    if (busca && busca.length > 100) return res.status(400).json({ error: "busca inválida" });
 
     const params = [];
     const where  = [];
@@ -552,7 +569,7 @@ app.get("/leads/buscar", async (req, res) => {
 
     res.json({ total, page, limit: effectiveLimit, pages, data, cota });
   } catch(e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: "Erro interno" });
   }
 });
 
@@ -578,7 +595,7 @@ app.get("/leads/meus-leads", async (req, res) => {
 
     res.json({ total: cnpj.length + instagram.length, cnpj, instagram });
   } catch(e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: "Erro interno" });
   }
 });
 
@@ -604,7 +621,7 @@ app.get("/leads/aleatorio", async (req, res) => {
       }
     }
 
-    const maxReq  = Math.min(100, parseInt(req.query.limit) || 50);
+    const maxReq  = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
     const restante = limite !== null ? getRestanteHoje(a) : 500;
     const effectiveLimit = Math.min(maxReq, restante);
 
@@ -662,12 +679,12 @@ app.get("/leads/aleatorio", async (req, res) => {
       return res.json({ total: data.length, data, cota });
     }
     // Fallback Firebase
-    const snap = await leadsCol().limit(effectiveLimit).get();
+    const snap = await leadsExtraCol().limit(effectiveLimit).get();
     const data = snap.docs.map(doc => docToLead(doc.id, doc.data()));
     incrementarCota(a, data.length);
     res.json({ total: data.length, data });
   } catch(e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: "Erro interno" });
   }
 });
 
@@ -684,11 +701,11 @@ app.get("/leads/:id", async (req, res) => {
     }
 
     // Fallback: Firebase (leads_extra)
-    const doc = await leadsCol().doc(id).get();
+    const doc = await leadsExtraCol().doc(id).get();
     if (!doc.exists) return res.status(404).json({ error: "Lead não encontrado" });
     res.json({ id: doc.id, ...doc.data() });
   } catch(e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: "Erro interno" });
   }
 });
 
@@ -743,14 +760,14 @@ app.get("/stats/geral", async (req, res) => {
       top_ufs:         pgResults[4] ? pgResults[4].rows : [],
     });
   } catch(e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: "Erro interno" });
   }
 });
 
 app.get("/stats/segmentos", async (req, res) => {
   try {
     // Busca todos e agrupa por segmento em memória (viável para até ~50k docs)
-    const snap = await leadsCol().select("segmento").get();
+    const snap = await leadsExtraCol().select("segmento").get();
     const counts = {};
     snap.docs.forEach(d => {
       const s = d.data().segmento || "outros";
@@ -762,7 +779,7 @@ app.get("/stats/segmentos", async (req, res) => {
       .slice(0, 20);
     res.json(result);
   } catch(e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: "Erro interno" });
   }
 });
 
@@ -796,7 +813,7 @@ app.get("/whatsapp/qr", async (req, res) => {
     const r = await axios.get(`${url}/instance/qrcode/${inst}`, { headers: { apikey: key }, timeout: 10000 });
     res.json({ qr: r.data?.qrcode?.base64 || r.data?.base64 || null });
   } catch(e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: "Erro interno" });
   }
 });
 
@@ -812,24 +829,30 @@ app.get("/whatsapp/status", async (req, res) => {
 });
 
 // ── ASSINATURAS ───────────────────────────────────────────────────────────────
+const crypto = require("crypto");
 function gerarToken() {
-  return require("crypto").randomBytes(32).toString("hex");
+  return crypto.randomBytes(32).toString("hex");
 }
 
 function detectarPlano(dados) {
-  const txt = JSON.stringify(dados).toLowerCase();
-  // vitalicio = Alpha Member R$267/mês (detecta por nome, keyword ou UUID do produto Kirvano)
-  if (txt.includes("vitalicio") || txt.includes("vitalício") || txt.includes("lifetime")
-    || txt.includes("alpha") || txt.includes("4f358cd8")) return "vitalicio";
-  // trimestral = Pro R$147/mês
-  if (txt.includes("trimestral") || txt.includes("quarterly") || txt.includes("3 meses")
-    || txt.includes("bc35d3cd")) return "trimestral";
+  // Detecta pelo nome do produto especificamente — não pelo JSON inteiro
+  const productName = (
+    dados?.product?.name || dados?.data?.product?.name ||
+    dados?.checkout?.product?.name || dados?.nome_produto || ""
+  ).toLowerCase();
+  if (productName.includes("vitalicio") || productName.includes("vitalício")
+    || productName.includes("lifetime") || productName.includes("alpha member")
+    || productName.includes("4f358cd8")) return "vitalicio";
+  if (productName.includes("trimestral") || productName.includes("quarterly")
+    || productName.includes("3 meses") || productName.includes("pro")
+    || productName.includes("bc35d3cd")) return "trimestral";
   return "mensal";
 }
 
 function calcularExpiracao(plano) {
-  // Todos os planos são mensais — renovam via webhook a cada pagamento
-  return new Date(Date.now() + 35 * 86400000);
+  if (plano === "vitalicio") return new Date(Date.now() + 36500 * 86400000); // 100 anos
+  if (plano === "trimestral") return new Date(Date.now() + 105 * 86400000);  // 3 meses + 5 dias
+  return new Date(Date.now() + 35 * 86400000); // mensal / trial
 }
 
 async function processarPagamento(email, nome, txId, dados, plataforma, planoOverride = null) {
@@ -839,12 +862,13 @@ async function processarPagamento(email, nome, txId, dados, plataforma, planoOve
   const existing = await docRef.get();
 
   if (existing.exists) {
+    const token = existing.data().token || gerarToken();
     await docRef.update({
-      status: "ativo", plano, expira_em: expiraEm,
+      status: "ativo", plano, expira_em: expiraEm, token,
       updated_at: admin.firestore.FieldValue.serverTimestamp()
     });
     console.log(`[${plataforma}] renovacao: ${email} → ${plano}`);
-    return existing.data().token || null;
+    return token;
   }
 
   const token = gerarToken();
@@ -889,7 +913,7 @@ async function enviarEmailBoasVindas(email, nome, token, plano) {
 }
 
 async function enviarEmailResend(email, nome, token, plano) {
-  if (!token) return;
+  if (!token) { console.warn(`[Email Resend] token ausente para ${email} — email não enviado`); return; }
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) { console.warn("[Email Resend] RESEND_API_KEY não configurada"); return; }
 
@@ -899,22 +923,39 @@ async function enviarEmailResend(email, nome, token, plano) {
   const from = process.env.EMAIL_FROM || "onboarding@resend.dev";
 
   await axios.post("https://api.resend.com/emails", {
-    from: `LeadHunter Pro <${from}>`,
+    from: `Hunter Leads <${from}>`,
     to: [email],
-    subject: "Seu acesso ao LeadHunter Pro está pronto!",
-    html: `<div style="font-family:Inter,sans-serif;max-width:500px;margin:0 auto;background:#08080f;color:#eeeef2;padding:32px;border-radius:16px">
-      <h2 style="color:#f09030;margin-bottom:4px">Bem-vindo ao LeadHunter Pro!</h2>
-      <p style="color:#8888a0;margin-bottom:24px">Olá${primeiroNome ? " " + primeiroNome : ""}! Seu pagamento foi confirmado.</p>
-      <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.2);border-radius:10px;padding:16px;margin-bottom:20px">
-        <div style="font-size:12px;color:#8888a0;margin-bottom:4px">Plano ativo</div>
-        <div style="font-size:16px;font-weight:700;color:#f09030">${planosLabel[plano] || plano}</div>
-        <div style="font-size:12px;color:#8888a0;margin-top:4px">Leads: ${limiteLabel}</div>
-      </div>
-      <p style="margin-bottom:8px;font-size:14px">Seu token de acesso:</p>
-      <div style="background:#1d1d28;border:1px solid rgba(240,144,48,.3);border-radius:10px;padding:16px;font-family:monospace;font-size:13px;word-break:break-all;color:#f5b455">${token}</div>
-      <p style="color:#8888a0;font-size:12px;margin-top:12px">Cole em <b style="color:#eeeef2">Configurações → Token de Acesso</b></p>
-      <a href="https://leadhunter-vert.vercel.app" style="display:inline-block;margin-top:20px;background:linear-gradient(135deg,#f09030,#e06818);color:#000;font-weight:700;padding:12px 24px;border-radius:9px;text-decoration:none">Acessar LeadHunter</a>
-    </div>`,
+    subject: "Seu acesso ao Hunter Leads está pronto!",
+    html: `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f4f4f7;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:40px 0;">
+<tr><td align="center">
+<table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:520px;">
+  <tr><td style="background:#111120;padding:28px 36px;">
+    <span style="font-size:22px;">🦊</span>
+    <span style="color:#ffffff;font-size:18px;font-weight:bold;margin-left:10px;vertical-align:middle;">Hunter Leads</span>
+  </td></tr>
+  <tr><td style="padding:32px 36px;">
+    <h1 style="margin:0 0 12px;font-size:22px;color:#111120;">Olá${primeiroNome ? ", " + primeiroNome : ""}! Seu acesso está pronto 🎉</h1>
+    <p style="margin:0 0 8px;font-size:14px;color:#555555;">Plano: <strong>${planosLabel[plano] || plano}</strong> — ${limiteLabel}</p>
+    <p style="margin:0 0 24px;font-size:14px;color:#555555;line-height:1.6;">Use o token abaixo para entrar na plataforma:</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+    <tr><td style="background:#fef3e2;border:2px solid #f09030;border-radius:8px;padding:16px 20px;">
+      <p style="margin:0 0 6px;font-size:11px;color:#888888;text-transform:uppercase;letter-spacing:1px;font-weight:bold;">Seu token de acesso</p>
+      <p style="margin:0;font-family:Courier New,monospace;font-size:14px;color:#000000;font-weight:bold;word-break:break-all;">${token}</p>
+    </td></tr>
+    </table>
+    <p style="margin:0 0 20px;font-size:13px;color:#555555;">Cole em <strong>Configurações → Token de Acesso</strong> dentro da plataforma.</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+    <tr><td align="center" style="background:#f09030;border-radius:8px;padding:14px 24px;">
+      <a href="https://leadhunter-vert.vercel.app" style="color:#000000;font-weight:bold;font-size:15px;text-decoration:none;">Acessar Hunter Leads →</a>
+    </td></tr>
+    </table>
+    <p style="margin:0;font-size:12px;color:#999999;">Guarde esse token em local seguro.</p>
+  </td></tr>
+</table>
+</td></tr>
+</table></body></html>`,
   }, { headers: { "Authorization": `Bearer ${apiKey}` } })
     .then(() => console.log(`[Email Resend] Enviado para ${email}`))
     .catch(e => console.error(`[Email Resend] ERRO: ${e.response?.data?.message || e.message}`));
@@ -957,7 +998,7 @@ app.post("/webhook/kirvano", express.raw({ type: "*/*" }), async (req, res) => {
     res.json({ ok: true });
   } catch(e) {
     console.error("[Kirvano webhook]", e.message);
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: "Erro interno" });
   }
 });
 
@@ -997,7 +1038,7 @@ async function handleCaktoWebhook(req, res) {
     res.json({ ok: true });
   } catch(e) {
     console.error("[Cakto webhook]", e.message);
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: "Erro interno" });
   }
 }
 
@@ -1018,7 +1059,9 @@ app.post("/webhook/roldpay", rawBody, async (req, res) => {
     if (secret) {
       const sig      = req.headers["x-roldpay-signature"] || "";
       const expected = "sha256=" + require("crypto").createHmac("sha256", secret).update(bodyStr).digest("hex");
-      if (sig !== expected) {
+      const sigBuf = Buffer.from(sig);
+      const expBuf = Buffer.from(expected);
+      if (sigBuf.length !== expBuf.length || !require("crypto").timingSafeEqual(sigBuf, expBuf)) {
         console.warn("[ROLDPAY webhook] Assinatura inválida");
         return res.status(401).json({ error: "Assinatura inválida" });
       }
@@ -1028,7 +1071,7 @@ app.post("/webhook/roldpay", rawBody, async (req, res) => {
 
     const payload = JSON.parse(bodyStr);
     const evento  = payload.event || "";
-    const data    = payload.data  || {};
+    const data    = payload.data  || payload;
 
     if (evento === "payment.approved") {
       const email       = data.customer?.email;
@@ -1060,13 +1103,15 @@ app.post("/webhook/roldpay", rawBody, async (req, res) => {
     res.json({ ok: true });
   } catch(e) {
     console.error("[ROLDPAY webhook]", e.message);
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: "Erro interno" });
   }
 });
 
 // ── AUTH ─────────────────────────────────────────────────────────────────────
 app.post("/auth/login", async (req, res) => {
   try {
+    const ip = req.ip || req.connection?.remoteAddress || "unknown";
+    if (loginRateLimit(ip)) return res.status(429).json({ error: "Muitas tentativas. Aguarde 1 minuto." });
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: "Email obrigatório" });
     const doc = await assinantesCol().doc(email.toLowerCase().trim()).get();
@@ -1078,11 +1123,11 @@ app.post("/auth/login", async (req, res) => {
       return res.status(403).json({ error: "Assinatura expirada. Renove para continuar." });
     }
     res.json({ token: a.token, nome: a.nome, ativado_em: a.ativado_em });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) { res.status(500).json({ error: "Erro interno" }); }
 });
 
 app.get("/auth/verificar", async (req, res) => {
-  const token = req.headers["x-assinante-token"] || req.query.token;
+  const token = req.headers["x-assinante-token"];
   if (!token) return res.status(401).json({ ok: false });
   try {
     const snap = await assinantesCol().where("token", "==", token).limit(1).get();
@@ -1102,7 +1147,7 @@ app.get("/auth/verificar", async (req, res) => {
       is_demo: a.is_demo || false,
       cota: { limite, usado: a.is_demo ? 50 : usadoHoje, restante: a.is_demo ? 0 : Math.max(0, limite - usadoHoje) }
     });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) { res.status(500).json({ error: "Erro interno" }); }
 });
 
 // ── ADMIN: ASSINANTES ─────────────────────────────────────────────────────────
@@ -1111,7 +1156,7 @@ app.get("/admin/assinantes", async (req, res) => {
     const snap = await assinantesCol().orderBy("ativado_em", "desc").limit(200).get();
     const assinantes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     res.json({ total: assinantes.length, assinantes });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) { res.status(500).json({ error: "Erro interno" }); }
 });
 
 app.post("/admin/assinante/criar", async (req, res) => {
@@ -1138,7 +1183,7 @@ app.post("/admin/assinante/criar", async (req, res) => {
       leads_hoje: 0, leads_data: null, updated_at: admin.firestore.FieldValue.serverTimestamp()
     });
     res.json({ ok: true, token, msg: "Assinante criado" });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) { res.status(500).json({ error: "Erro interno" }); }
 });
 
 // Cria conta demo para afiliados — 50 leads fixos, sem expiração real
@@ -1168,7 +1213,7 @@ app.post("/admin/assinante/criar-demo", async (req, res) => {
       updated_at: admin.firestore.FieldValue.serverTimestamp()
     });
     res.json({ ok: true, token, msg: "Conta demo criada — 50 leads fixos para demonstração" });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) { res.status(500).json({ error: "Erro interno" }); }
 });
 
 // ── TRIAL GRATUITO (público) ──────────────────────────────────────────────────
@@ -1293,7 +1338,7 @@ app.get("/admin/solicitacoes", async (req, res) => {
       .map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => (b.criado_em?._seconds || 0) - (a.criado_em?._seconds || 0));
     res.json({ total: solicitacoes.length, solicitacoes });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) { res.status(500).json({ error: "Erro interno" }); }
 });
 
 app.post("/admin/solicitacoes/:email/aprovar", async (req, res) => {
@@ -1336,7 +1381,7 @@ app.post("/admin/solicitacoes/:email/aprovar", async (req, res) => {
     res.json({ ok: true, msg: emailOk ? "Trial ativado e email enviado" : "Trial ativado mas email falhou", email_enviado: emailOk, token });
   } catch(e) {
     console.error("[Solicitação aprovar] erro:", e.message);
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: "Erro interno" });
   }
 });
 
@@ -1364,7 +1409,7 @@ app.post("/admin/solicitacoes/:email/reenviar-email", async (req, res) => {
       console.error(`[Reenviar] ERRO:`, JSON.stringify(detail));
       res.json({ ok: false, msg: "Falha ao reenviar", detail });
     }
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) { res.status(500).json({ error: "Erro interno" }); }
 });
 
 app.post("/admin/solicitacoes/:email/rejeitar", async (req, res) => {
@@ -1374,7 +1419,7 @@ app.post("/admin/solicitacoes/:email/rejeitar", async (req, res) => {
     if (!(await solRef.get()).exists) return res.status(404).json({ error: "Solicitação não encontrada" });
     await solRef.update({ status: "rejeitado", updated_at: admin.firestore.FieldValue.serverTimestamp() });
     res.json({ ok: true });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) { res.status(500).json({ error: "Erro interno" }); }
 });
 
 app.patch("/admin/assinante/:id/status", async (req, res) => {
@@ -1383,7 +1428,7 @@ app.patch("/admin/assinante/:id/status", async (req, res) => {
     if (!["ativo","cancelado","expirado"].includes(status)) return res.status(400).json({ error: "status inválido" });
     await assinantesCol().doc(req.params.id).update({ status, updated_at: admin.firestore.FieldValue.serverTimestamp() });
     res.json({ ok: true });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) { res.status(500).json({ error: "Erro interno" }); }
 });
 
 app.post("/admin/assinante/:id/reset-cota", async (req, res) => {
@@ -1393,7 +1438,7 @@ app.post("/admin/assinante/:id/reset-cota", async (req, res) => {
       updated_at: admin.firestore.FieldValue.serverTimestamp()
     });
     res.json({ ok: true, msg: "Cota diária resetada" });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) { res.status(500).json({ error: "Erro interno" }); }
 });
 
 // Reativa assinante expirado/cancelado por mais 35 dias
@@ -1411,7 +1456,7 @@ app.post("/admin/assinante/:id/reativar", async (req, res) => {
       updated_at: admin.firestore.FieldValue.serverTimestamp()
     });
     res.json({ ok: true, msg: "Assinante reativado", expira_em: expiraEm });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch(e) { res.status(500).json({ error: "Erro interno" }); }
 });
 
 // Lista assinantes com problemas (expirados ou cancelados)
@@ -1430,102 +1475,7 @@ app.get("/admin/assinantes/problemas", async (req, res) => {
       ...expiradosSemUpdate.map(d => ({ id: d.id, ...d.data(), _problema: "ativo_expirado" })),
     ];
     res.json({ total: todos.length, assinantes: todos });
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-
-// ── WEBHOOK ROLDPAY ───────────────────────────────────────────────────────────
-app.post("/webhook/roldpay", requireFirebase, async (req, res) => {
-  try {
-    const secret = process.env.ROLDPAY_WEBHOOK_SECRET;
-    const sig    = req.headers["x-roldpay-signature"];
-    if (secret && sig) {
-      const expected = "sha256=" + require("crypto").createHmac("sha256", secret).update(req.rawBody || "").digest("hex");
-      if (sig !== expected) {
-        console.warn("[Webhook RoldPay] assinatura inválida");
-        return res.status(401).json({ error: "Assinatura inválida" });
-      }
-    }
-
-    const { event, data } = req.body || {};
-    console.log(`[Webhook RoldPay] evento: ${event}`);
-
-    if (event !== "payment.approved") return res.json({ ok: true, msg: "ignored" });
-
-    const email = (data?.customer?.email || "").toLowerCase().trim();
-    const nome  = (data?.customer?.name  || "").trim().slice(0, 80);
-    if (!email) return res.status(400).json({ error: "email ausente" });
-
-    const docRef = assinantesCol().doc(email);
-    const snap   = await docRef.get();
-    const expiraEm = new Date(Date.now() + 30 * 86400000);
-
-    let token;
-    if (snap.exists) {
-      token = snap.data().token || gerarToken();
-      await docRef.update({
-        nome, status: "ativo", plano: "mensal", token,
-        expira_em: expiraEm,
-        is_trial: admin.firestore.FieldValue.delete(),
-        updated_at: admin.firestore.FieldValue.serverTimestamp()
-      });
-    } else {
-      token = gerarToken();
-      await docRef.set({
-        email, nome, status: "ativo", token, plano: "mensal",
-        ativado_em: admin.firestore.FieldValue.serverTimestamp(),
-        expira_em: expiraEm, leads_hoje: 0, leads_data: null,
-        updated_at: admin.firestore.FieldValue.serverTimestamp()
-      });
-    }
-
-    const resendKey   = process.env.RESEND_API_KEY;
-    const from        = process.env.EMAIL_FROM || "contato@roldpay.com.br";
-    const primeiroNome = nome ? nome.split(" ")[0] : "Caçador";
-    try {
-      await axios.post("https://api.resend.com/emails", {
-        from: `Hunter Leads <${from}>`,
-        to:   [email],
-        subject: "Seu acesso ao Hunter Leads está ativo! 🦊",
-        html: `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin:0;padding:0;background:#f4f4f7;font-family:Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:40px 0;">
-<tr><td align="center">
-<table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:520px;">
-  <tr><td style="background:#111120;padding:28px 36px;">
-    <span style="font-size:22px;">🦊</span>
-    <span style="color:#ffffff;font-size:18px;font-weight:bold;margin-left:10px;vertical-align:middle;">Hunter Leads</span>
-  </td></tr>
-  <tr><td style="padding:32px 36px;">
-    <h1 style="margin:0 0 12px;font-size:22px;color:#111120;">Olá, ${primeiroNome}! Seu acesso está pronto 🎉</h1>
-    <p style="margin:0 0 24px;font-size:14px;color:#555555;line-height:1.6;">Seu plano mensal foi ativado com sucesso. Use o token abaixo para entrar no sistema:</p>
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
-    <tr><td style="background:#fef3e2;border:2px solid #f09030;border-radius:8px;padding:16px 20px;">
-      <p style="margin:0 0 6px;font-size:11px;color:#888888;text-transform:uppercase;letter-spacing:1px;font-weight:bold;">Seu token de acesso</p>
-      <p style="margin:0;font-family:Courier New,monospace;font-size:14px;color:#000000;font-weight:bold;word-break:break-all;">${token}</p>
-    </td></tr>
-    </table>
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
-    <tr><td align="center" style="background:#f09030;border-radius:8px;padding:14px 24px;">
-      <a href="https://leadhunter-vert.vercel.app" style="color:#000000;font-weight:bold;font-size:15px;text-decoration:none;">Acessar Hunter Leads →</a>
-    </td></tr>
-    </table>
-    <p style="margin:0;font-size:12px;color:#999999;line-height:1.5;">Guarde esse token em local seguro. Validade: 30 dias a partir de hoje.</p>
-  </td></tr>
-</table>
-</td></tr>
-</table></body></html>`
-      }, { headers: { Authorization: `Bearer ${resendKey}` } });
-      console.log(`[Webhook RoldPay] email enviado: ${email}`);
-    } catch (emailErr) {
-      console.error("[Webhook RoldPay] email erro:", emailErr.response?.data || emailErr.message);
-    }
-
-    console.log(`[Webhook RoldPay] mensal ativado: ${email}`);
-    res.json({ ok: true });
-  } catch (e) {
-    console.error("[Webhook RoldPay] erro:", e.message);
-    res.status(500).json({ error: e.message });
-  }
+  } catch(e) { res.status(500).json({ error: "Erro interno" }); }
 });
 
 // ── FRONTEND ──────────────────────────────────────────────────────────────────
@@ -1533,10 +1483,25 @@ app.get("/",          (req, res) => res.sendFile(path.join(__dirname, "index.htm
 app.get("/landing",   (req, res) => res.sendFile(path.join(__dirname, "landing.html")));
 app.get("/solicitar", (req, res) => res.sendFile(path.join(__dirname, "solicitar.html")));
 
+// ── 404 e erro global — garante que NUNCA retorna HTML para chamadas de API ──
+app.use((req, res, next) => {
+  if (req.path.startsWith("/leads") || req.path.startsWith("/stats") ||
+      req.path.startsWith("/auth")  || req.path.startsWith("/admin") ||
+      req.path.startsWith("/webhook") || req.path.startsWith("/trial") ||
+      req.path.startsWith("/whatsapp")) {
+    return res.status(404).json({ error: "Rota não encontrada" });
+  }
+  next();
+});
+
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error("[Erro global]", err.message || err);
+  res.status(500).json({ error: "Erro interno do servidor" });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`LeadHunter API rodando na porta ${PORT}`);
-  // Inicia Firebase DEPOIS do servidor estar na porta
-  // Garante que /health responde mesmo se Firebase demorar ou falhar
   initFirebase();
 });
