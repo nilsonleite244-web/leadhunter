@@ -1123,7 +1123,10 @@ app.post("/auth/login", async (req, res) => {
       return res.status(403).json({ error: "Assinatura expirada. Renove para continuar." });
     }
     res.json({ token: a.token, nome: a.nome, ativado_em: a.ativado_em });
-  } catch(e) { res.status(500).json({ error: "Erro interno" }); }
+  } catch(e) {
+    console.error("[auth/login] ERRO:", e.code, e.message);
+    res.status(500).json({ error: "Erro interno" });
+  }
 });
 
 app.get("/auth/verificar", async (req, res) => {
@@ -1147,7 +1150,10 @@ app.get("/auth/verificar", async (req, res) => {
       is_demo: a.is_demo || false,
       cota: { limite, usado: a.is_demo ? 50 : usadoHoje, restante: a.is_demo ? 0 : Math.max(0, limite - usadoHoje) }
     });
-  } catch(e) { res.status(500).json({ error: "Erro interno" }); }
+  } catch(e) {
+    console.error("[auth/verificar] ERRO:", e.code, e.message);
+    res.status(500).json({ error: "Erro interno" });
+  }
 });
 
 // ── ADMIN: ASSINANTES ─────────────────────────────────────────────────────────
@@ -1156,7 +1162,10 @@ app.get("/admin/assinantes", async (req, res) => {
     const snap = await assinantesCol().orderBy("ativado_em", "desc").limit(200).get();
     const assinantes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     res.json({ total: assinantes.length, assinantes });
-  } catch(e) { res.status(500).json({ error: "Erro interno" }); }
+  } catch(e) {
+    console.error("[admin/assinantes] ERRO:", e.code, e.message);
+    res.status(500).json({ error: "Erro interno" });
+  }
 });
 
 app.post("/admin/assinante/criar", async (req, res) => {
@@ -1476,6 +1485,28 @@ app.get("/admin/assinantes/problemas", async (req, res) => {
     ];
     res.json({ total: todos.length, assinantes: todos });
   } catch(e) { res.status(500).json({ error: "Erro interno" }); }
+});
+
+// ── DIAGNÓSTICO FIRESTORE ────────────────────────────────────────────────────
+app.get("/admin/firestore-test", adminMiddleware, async (req, res) => {
+  const results = {};
+  try {
+    const s1 = await leadsExtraCol().limit(1).get();
+    results.leads_extra = { ok: true, count: s1.docs.length };
+  } catch(e) { results.leads_extra = { ok: false, code: e.code, msg: e.message }; }
+  try {
+    const s2 = await assinantesCol().limit(1).get();
+    results.assinantes_limit1 = { ok: true, count: s2.docs.length };
+  } catch(e) { results.assinantes_limit1 = { ok: false, code: e.code, msg: e.message }; }
+  try {
+    const s3 = await assinantesCol().orderBy("ativado_em", "desc").limit(1).get();
+    results.assinantes_orderby = { ok: true, count: s3.docs.length };
+  } catch(e) { results.assinantes_orderby = { ok: false, code: e.code, msg: e.message }; }
+  try {
+    const doc = await assinantesCol().doc("__diag_test__").get();
+    results.assinantes_doc_get = { ok: true, exists: doc.exists };
+  } catch(e) { results.assinantes_doc_get = { ok: false, code: e.code, msg: e.message }; }
+  res.json({ firebaseOk, results });
 });
 
 // ── FRONTEND ──────────────────────────────────────────────────────────────────
