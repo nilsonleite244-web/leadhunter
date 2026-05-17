@@ -94,7 +94,7 @@ function pgQuery(sql, params) {
 // ── EXPRESS ──────────────────────────────────────────────────────────────────
 const app = express();
 app.set("trust proxy", 1);
-app.use(cors({ origin: ["https://leadhunter-vert.vercel.app", "http://localhost:3000", "http://localhost:5500"] }));
+app.use(cors({ origin: ["https://leadhunter-vert.vercel.app", "https://leadhunter-production-bb4c.up.railway.app", "https://leadhunter-production-ede3.up.railway.app", "http://localhost:3000", "http://localhost:5500"] }));
 app.use(express.json({ limit: "10mb", verify: (req, _res, buf) => { req.rawBody = buf; } }));
 app.use(rateLimit({ windowMs: 60000, max: 300, message: { error: "Muitas requisicoes" } }));
 
