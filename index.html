@@ -3128,8 +3128,7 @@ async function carregarSolicitacoes() {
   const badge = document.getElementById('sol-badge');
   lista.innerHTML = '<div style="font-size:13px;color:var(--t2);padding:8px 0">Carregando...</div>';
   try {
-    const r = await fetch(`${API_BASE}/admin/solicitacoes?status=pendente`, { headers: { 'x-api-key': API_KEY } });
-    const d = await r.json();
+    const d = await adminFetch('/admin/solicitacoes?status=pendente');
     const items = d.solicitacoes || [];
     if (items.length === 0) {
       badge.style.display = 'none';
@@ -3158,8 +3157,7 @@ async function carregarSolicitacoes() {
 async function aprovarSolicitacao(email) {
   if (!confirm(`Aprovar trial para ${email}?`)) return;
   try {
-    const r = await fetch(`${API_BASE}/admin/solicitacoes/${encodeURIComponent(email)}/aprovar`, { method: 'POST', headers: { 'x-api-key': API_KEY } });
-    const d = await r.json();
+    const d = await adminFetch(`/admin/solicitacoes/${encodeURIComponent(email)}/aprovar`, { method: 'POST' });
     if (d.ok) { toast('Trial aprovado e email enviado!', 'success'); carregarSolicitacoes(); }
     else toast(d.error || 'Erro ao aprovar', 'error');
   } catch { toast('Erro de conexão', 'error'); }
@@ -3168,8 +3166,7 @@ async function aprovarSolicitacao(email) {
 async function rejeitarSolicitacao(email) {
   if (!confirm(`Rejeitar solicitação de ${email}?`)) return;
   try {
-    const r = await fetch(`${API_BASE}/admin/solicitacoes/${encodeURIComponent(email)}/rejeitar`, { method: 'POST', headers: { 'x-api-key': API_KEY } });
-    const d = await r.json();
+    const d = await adminFetch(`/admin/solicitacoes/${encodeURIComponent(email)}/rejeitar`, { method: 'POST' });
     if (d.ok) { toast('Solicitação rejeitada', 'info'); carregarSolicitacoes(); }
     else toast(d.error || 'Erro ao rejeitar', 'error');
   } catch { toast('Erro de conexão', 'error'); }
