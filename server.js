@@ -1220,10 +1220,10 @@ app.post("/trial/registrar", requireFirebase, async (req, res) => {
 
 async function enviarEmailTrial(email, nome, token) {
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) { console.warn("[Trial] RESEND_API_KEY não configurada"); return; }
+  if (!apiKey) { console.warn("[Trial] RESEND_API_KEY não configurada"); return false; }
   const from = process.env.EMAIL_FROM || "onboarding@resend.dev";
   const primeiroNome = nome ? nome.split(" ")[0] : "";
-  await axios.post("https://api.resend.com/emails", {
+  return axios.post("https://api.resend.com/emails", {
     from: `Hunter Leads <${from}>`,
     to: [email],
     subject: "Seu acesso gratuito ao Hunter Leads está pronto!",
@@ -1242,8 +1242,8 @@ async function enviarEmailTrial(email, nome, token) {
       <p style="color:#555568;font-size:11px;margin-top:24px">Após o trial, assine por R$97/mês para continuar com 150 leads/dia.</p>
     </div>`,
   }, { headers: { "Authorization": `Bearer ${apiKey}` } })
-    .then(() => console.log(`[Trial] email enviado: ${email}`))
-    .catch(e => console.error(`[Trial] email erro: ${e.response?.data?.message || e.message}`));
+    .then(() => { console.log(`[Trial] email enviado: ${email}`); return true; })
+    .catch(e => { console.error(`[Trial] email erro: ${e.response?.data?.message || e.message}`); return false; });
 }
 
 // ── SOLICITAÇÕES DE TRIAL (público) ──────────────────────────────────────────
@@ -1330,14 +1330,25 @@ app.post("/admin/solicitacoes/:email/aprovar", async (req, res) => {
       expira_em:  expiraEm, leads_hoje: 0, leads_data: null,
       updated_at: admin.firestore.FieldValue.serverTimestamp()
     });
-    await enviarEmailTrial(email, nome, token);
-    await solRef.update({ status: "aprovado", updated_at: admin.firestore.FieldValue.serverTimestamp() });
-    console.log(`[Solicitação] aprovada: ${email}`);
-    res.json({ ok: true, msg: "Trial ativado e email enviado" });
+    const emailOk = await enviarEmailTrial(email, nome, token);
+    await solRef.update({ status: "aprovado", email_enviado: emailOk, updated_at: admin.firestore.FieldValue.serverTimestamp() });
+    console.log(`[Solicitação] aprovada: ${email} email_enviado=${emailOk}`);
+    res.json({ ok: true, msg: emailOk ? "Trial ativado e email enviado" : "Trial ativado mas email falhou", email_enviado: emailOk, token });
   } catch(e) {
     console.error("[Solicitação aprovar] erro:", e.message);
     res.status(500).json({ error: e.message });
   }
+});
+
+app.post("/admin/solicitacoes/:email/reenviar-email", async (req, res) => {
+  try {
+    const email = decodeURIComponent(req.params.email).toLowerCase().trim();
+    const doc = await assinantesCol().doc(email).get();
+    if (!doc.exists) return res.status(404).json({ error: "Assinante não encontrado" });
+    const d = doc.data();
+    const emailOk = await enviarEmailTrial(email, d.nome || "", d.token);
+    res.json({ ok: emailOk, msg: emailOk ? "Email reenviado com sucesso" : "Falha ao reenviar email" });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post("/admin/solicitacoes/:email/rejeitar", async (req, res) => {

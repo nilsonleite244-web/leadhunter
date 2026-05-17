@@ -1436,6 +1436,10 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
           <button onclick="carregarSolicitacoes()" style="margin-left:auto;padding:5px 12px;background:rgba(99,102,241,.15);color:#818cf8;border:1px solid rgba(99,102,241,.25);border-radius:7px;font-size:12px;cursor:pointer">↻ Atualizar</button>
         </div>
         <div style="font-size:12px;color:var(--t2);margin-bottom:14px">Pessoas que solicitaram acesso via <b style="color:#eeeef2">leadhunter-production-bb4c.up.railway.app/solicitar</b>. Aprove para enviar o trial por email.</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button id="sol-tab-pendente" onclick="setSolTab('pendente')" style="padding:5px 14px;background:#1d1d28;border:1px solid rgba(99,102,241,.4);border-radius:7px;color:#818cf8;font-size:12px;font-weight:700;cursor:pointer">Pendentes</button>
+          <button id="sol-tab-aprovado" onclick="setSolTab('aprovado')" style="padding:5px 14px;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:7px;color:var(--t2);font-size:12px;cursor:pointer">Aprovados</button>
+        </div>
         <div id="sol-lista">
           <div style="font-size:13px;color:var(--t2);padding:8px 0">Carregando...</div>
         </div>
@@ -3124,6 +3128,19 @@ function showTrialAdmMsg(text, type) {
 }
 
 // ══ SOLICITAÇÕES ══
+let _solTab = 'pendente';
+
+function setSolTab(tab) {
+  _solTab = tab;
+  document.getElementById('sol-tab-pendente').style.background = tab === 'pendente' ? '#1d1d28' : 'transparent';
+  document.getElementById('sol-tab-pendente').style.color = tab === 'pendente' ? '#818cf8' : 'var(--t2)';
+  document.getElementById('sol-tab-pendente').style.borderColor = tab === 'pendente' ? 'rgba(99,102,241,.4)' : 'rgba(255,255,255,.1)';
+  document.getElementById('sol-tab-aprovado').style.background = tab === 'aprovado' ? '#1d1d28' : 'transparent';
+  document.getElementById('sol-tab-aprovado').style.color = tab === 'aprovado' ? '#818cf8' : 'var(--t2)';
+  document.getElementById('sol-tab-aprovado').style.borderColor = tab === 'aprovado' ? 'rgba(99,102,241,.4)' : 'rgba(255,255,255,.1)';
+  carregarSolicitacoes();
+}
+
 async function carregarSolicitacoes() {
   const lista = document.getElementById('sol-lista');
   const badge = document.getElementById('sol-badge');
@@ -3134,17 +3151,31 @@ async function carregarSolicitacoes() {
   }
   lista.innerHTML = '<div style="font-size:13px;color:var(--t2);padding:8px 0">Carregando...</div>';
   try {
-    const d = await adminFetch('/admin/solicitacoes?status=pendente');
+    const d = await adminFetch(`/admin/solicitacoes?status=${_solTab}`);
     const items = d.solicitacoes || [];
     if (items.length === 0) {
-      badge.style.display = 'none';
-      lista.innerHTML = '<div style="font-size:13px;color:var(--t2);padding:8px 0">Nenhuma solicitação pendente.</div>';
+      if (_solTab === 'pendente') { badge.style.display = 'none'; }
+      lista.innerHTML = `<div style="font-size:13px;color:var(--t2);padding:8px 0">Nenhuma solicitação ${_solTab === 'pendente' ? 'pendente' : 'aprovada'}.</div>`;
       return;
     }
-    badge.textContent = items.length + ' pendente' + (items.length > 1 ? 's' : '');
-    badge.style.display = 'inline';
+    if (_solTab === 'pendente') {
+      badge.textContent = items.length + ' pendente' + (items.length > 1 ? 's' : '');
+      badge.style.display = 'inline';
+    } else {
+      badge.style.display = 'none';
+    }
     lista.innerHTML = items.map(s => {
       const data = s.criado_em?._seconds ? new Date(s.criado_em._seconds * 1000).toLocaleDateString('pt-BR') : '—';
+      if (_solTab === 'aprovado') {
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0d0d16;border:1px solid rgba(255,255,255,.07);border-radius:9px;margin-bottom:6px;flex-wrap:wrap">
+          <div style="flex:1;min-width:140px">
+            <div style="font-size:13px;font-weight:600;color:#eeeef2">${s.nome || '—'}</div>
+            <div style="font-size:12px;color:#818cf8">${s.email}</div>
+          </div>
+          <div style="font-size:11px;color:var(--t2)">${data}</div>
+          <button onclick="reenviarEmail('${s.email}')" style="padding:6px 14px;background:rgba(99,102,241,.15);color:#818cf8;font-size:12px;font-weight:700;border:1px solid rgba(99,102,241,.3);border-radius:7px;cursor:pointer">↺ Reenviar email</button>
+        </div>`;
+      }
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0d0d16;border:1px solid rgba(255,255,255,.07);border-radius:9px;margin-bottom:6px;flex-wrap:wrap">
         <div style="flex:1;min-width:140px">
           <div style="font-size:13px;font-weight:600;color:#eeeef2">${s.nome || '—'}</div>
@@ -3160,12 +3191,25 @@ async function carregarSolicitacoes() {
   }
 }
 
+async function reenviarEmail(email) {
+  try {
+    const d = await adminFetch(`/admin/solicitacoes/${encodeURIComponent(email)}/reenviar-email`, { method: 'POST' });
+    toast(d.ok ? `✅ Email reenviado para ${email}` : `⚠️ Falha ao reenviar: ${d.msg}`, d.ok ? 'success' : 'error');
+  } catch(e) { toast('Erro: ' + e.message, 'error'); }
+}
+
 async function aprovarSolicitacao(email) {
   if (!confirm(`Aprovar trial para ${email}?`)) return;
   try {
     const d = await adminFetch(`/admin/solicitacoes/${encodeURIComponent(email)}/aprovar`, { method: 'POST' });
-    if (d.ok) { toast('Trial aprovado e email enviado!', 'success'); carregarSolicitacoes(); }
-    else toast(d.error || 'Erro ao aprovar', 'error');
+    if (d.ok) {
+      if (d.email_enviado === false) {
+        toast(`⚠️ Trial ativado mas email falhou para ${email}. Clique em "Reenviar" na lista de aprovados.`, 'warning');
+      } else {
+        toast('✅ Trial aprovado e email enviado!', 'success');
+      }
+      carregarSolicitacoes();
+    } else toast(d.error || 'Erro ao aprovar', 'error');
   } catch { toast('Erro de conexão', 'error'); }
 }
 
