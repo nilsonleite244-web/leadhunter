@@ -14,7 +14,8 @@ let firebaseOk = false;
 
 function leadsExtraCol()   { return db.collection("leads_extra"); }
 function leadsGeradosCol() { return db.collection("leads_gerados"); }
-function assinantesCol()   { return db.collection("assinantes"); }
+function assinantesCol()      { return db.collection("assinantes"); }
+function solicitacoesCol()    { return db.collection("solicitacoes_trial"); }
 
 // Normaliza string removendo acentos
 function removeAccents(s) {
@@ -1241,6 +1242,103 @@ async function enviarEmailTrial(email, nome, token) {
     .catch(e => console.error(`[Trial] email erro: ${e.response?.data?.message || e.message}`));
 }
 
+// ── SOLICITAÇÕES DE TRIAL (público) ──────────────────────────────────────────
+app.post("/trial/solicitar", requireFirebase, async (req, res) => {
+  try {
+    const email = (req.body.email || "").toLowerCase().trim();
+    const nome  = (req.body.nome  || "").trim().slice(0, 80);
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      return res.status(400).json({ error: "Email inválido." });
+
+    const agora = new Date();
+
+    const assnSnap = await assinantesCol().doc(email).get();
+    if (assnSnap.exists) {
+      const d = assnSnap.data();
+      const ativo = d.status === "ativo" && (!d.expira_em || d.expira_em?.toDate?.() > agora);
+      if (ativo) return res.json({ ok: true }); // já tem acesso
+    }
+
+    const solSnap = await solicitacoesCol().doc(email).get();
+    if (solSnap.exists && solSnap.data().status === "pendente")
+      return res.json({ ok: true }); // solicitação já existe
+
+    await solicitacoesCol().doc(email).set({
+      email, nome, status: "pendente",
+      criado_em: admin.firestore.FieldValue.serverTimestamp(),
+      updated_at: admin.firestore.FieldValue.serverTimestamp()
+    });
+    console.log(`[Solicitação] nova: ${email}`);
+    res.json({ ok: true });
+  } catch(e) {
+    console.error("[Solicitação] erro:", e.message);
+    res.status(500).json({ error: "Erro interno. Tente novamente." });
+  }
+});
+
+app.get("/admin/solicitacoes", async (req, res) => {
+  try {
+    const status = req.query.status || "pendente";
+    const snap = await solicitacoesCol().where("status", "==", status).orderBy("criado_em", "desc").limit(100).get();
+    const solicitacoes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    res.json({ total: solicitacoes.length, solicitacoes });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/admin/solicitacoes/:email/aprovar", async (req, res) => {
+  try {
+    const email = decodeURIComponent(req.params.email).toLowerCase().trim();
+    const solRef = solicitacoesCol().doc(email);
+    const sol = await solRef.get();
+    if (!sol.exists) return res.status(404).json({ error: "Solicitação não encontrada" });
+
+    const nome = sol.data().nome || "";
+    const agora = new Date();
+    const docRef = assinantesCol().doc(email);
+    const existing = await docRef.get();
+
+    if (existing.exists) {
+      const d = existing.data();
+      const ativo = d.status === "ativo" && d.expira_em?.toDate?.() > agora;
+      if (["mensal","trimestral","vitalicio"].includes(d.plano) && ativo) {
+        await solRef.update({ status: "aprovado", updated_at: admin.firestore.FieldValue.serverTimestamp() });
+        return res.json({ ok: true, msg: "Usuário já tem plano pago ativo" });
+      }
+      if (d.plano === "trial" && ativo) {
+        await enviarEmailTrial(email, d.nome || nome, d.token);
+        await solRef.update({ status: "aprovado", updated_at: admin.firestore.FieldValue.serverTimestamp() });
+        return res.json({ ok: true, msg: "Email de trial reenviado" });
+      }
+    }
+
+    const token    = gerarToken();
+    const expiraEm = new Date(Date.now() + 7 * 86400000);
+    await docRef.set({
+      email, nome, status: "ativo", token, plano: "trial", is_trial: true,
+      ativado_em: admin.firestore.FieldValue.serverTimestamp(),
+      expira_em:  expiraEm, leads_hoje: 0, leads_data: null,
+      updated_at: admin.firestore.FieldValue.serverTimestamp()
+    });
+    await enviarEmailTrial(email, nome, token);
+    await solRef.update({ status: "aprovado", updated_at: admin.firestore.FieldValue.serverTimestamp() });
+    console.log(`[Solicitação] aprovada: ${email}`);
+    res.json({ ok: true, msg: "Trial ativado e email enviado" });
+  } catch(e) {
+    console.error("[Solicitação aprovar] erro:", e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/admin/solicitacoes/:email/rejeitar", async (req, res) => {
+  try {
+    const email = decodeURIComponent(req.params.email).toLowerCase().trim();
+    const solRef = solicitacoesCol().doc(email);
+    if (!(await solRef.get()).exists) return res.status(404).json({ error: "Solicitação não encontrada" });
+    await solRef.update({ status: "rejeitado", updated_at: admin.firestore.FieldValue.serverTimestamp() });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.patch("/admin/assinante/:id/status", async (req, res) => {
   try {
     const { status } = req.body;
@@ -1299,8 +1397,9 @@ app.get("/admin/assinantes/problemas", async (req, res) => {
 
 
 // ── FRONTEND ──────────────────────────────────────────────────────────────────
-app.get("/",        (req, res) => res.sendFile(path.join(__dirname, "index.html")));
-app.get("/landing", (req, res) => res.sendFile(path.join(__dirname, "landing.html")));
+app.get("/",          (req, res) => res.sendFile(path.join(__dirname, "index.html")));
+app.get("/landing",   (req, res) => res.sendFile(path.join(__dirname, "landing.html")));
+app.get("/solicitar", (req, res) => res.sendFile(path.join(__dirname, "solicitar.html")));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {

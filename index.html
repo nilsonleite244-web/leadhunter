@@ -1428,6 +1428,19 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
         <div id="trial-adm-msg" style="display:none;margin-top:10px;font-size:13px;padding:8px 12px;border-radius:8px"></div>
       </div>
 
+      <!-- ── SOLICITAÇÕES DE TRIAL ── -->
+      <div style="background:#1a1a28;border:1px solid rgba(99,102,241,.25);border-radius:14px;padding:20px 24px;margin-bottom:24px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+          <div style="font-size:14px;font-weight:800;color:#818cf8">📋 Solicitações de Acesso Trial</div>
+          <span id="sol-badge" style="display:none;background:rgba(99,102,241,.2);color:#818cf8;border:1px solid rgba(99,102,241,.3);border-radius:20px;padding:2px 9px;font-size:11px;font-weight:700"></span>
+          <button onclick="carregarSolicitacoes()" style="margin-left:auto;padding:5px 12px;background:rgba(99,102,241,.15);color:#818cf8;border:1px solid rgba(99,102,241,.25);border-radius:7px;font-size:12px;cursor:pointer">↻ Atualizar</button>
+        </div>
+        <div style="font-size:12px;color:var(--t2);margin-bottom:14px">Pessoas que solicitaram acesso via <b style="color:#eeeef2">leadhunter-production-bb4c.up.railway.app/solicitar</b>. Aprove para enviar o trial por email.</div>
+        <div id="sol-lista">
+          <div style="font-size:13px;color:var(--t2);padding:8px 0">Carregando...</div>
+        </div>
+      </div>
+
       <!-- ── ASSINANTES ── -->
       <div class="flex gap-8 mb-20" style="align-items:flex-end">
         <div>
@@ -2999,6 +3012,7 @@ function adminFetch(path, opts = {}) {
 async function loadAdmin() {
   const tbody = document.getElementById('admin-tbody');
   if (!tbody) return;
+  carregarSolicitacoes();
 
   if (!ADMIN_TOKEN) {
     const token = prompt('Token de administrador:');
@@ -3106,6 +3120,59 @@ function showTrialAdmMsg(text, type) {
   el.style.background = type === 'success' ? 'rgba(34,197,94,.1)' : 'rgba(248,113,113,.1)';
   el.style.border = `1px solid ${type === 'success' ? 'rgba(34,197,94,.3)' : 'rgba(248,113,113,.3)'}`;
   el.style.color = type === 'success' ? '#4ade80' : '#f87171';
+}
+
+// ══ SOLICITAÇÕES ══
+async function carregarSolicitacoes() {
+  const lista = document.getElementById('sol-lista');
+  const badge = document.getElementById('sol-badge');
+  lista.innerHTML = '<div style="font-size:13px;color:var(--t2);padding:8px 0">Carregando...</div>';
+  try {
+    const r = await fetch(`${API_BASE}/admin/solicitacoes?status=pendente`, { headers: { 'x-api-key': API_KEY } });
+    const d = await r.json();
+    const items = d.solicitacoes || [];
+    if (items.length === 0) {
+      badge.style.display = 'none';
+      lista.innerHTML = '<div style="font-size:13px;color:var(--t2);padding:8px 0">Nenhuma solicitação pendente.</div>';
+      return;
+    }
+    badge.textContent = items.length + ' pendente' + (items.length > 1 ? 's' : '');
+    badge.style.display = 'inline';
+    lista.innerHTML = items.map(s => {
+      const data = s.criado_em?._seconds ? new Date(s.criado_em._seconds * 1000).toLocaleDateString('pt-BR') : '—';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0d0d16;border:1px solid rgba(255,255,255,.07);border-radius:9px;margin-bottom:6px;flex-wrap:wrap">
+        <div style="flex:1;min-width:140px">
+          <div style="font-size:13px;font-weight:600;color:#eeeef2">${s.nome || '—'}</div>
+          <div style="font-size:12px;color:#818cf8">${s.email}</div>
+        </div>
+        <div style="font-size:11px;color:var(--t2)">${data}</div>
+        <button onclick="aprovarSolicitacao('${s.email}')" style="padding:6px 14px;background:linear-gradient(135deg,#818cf8,#6366f1);color:#fff;font-size:12px;font-weight:700;border:none;border-radius:7px;cursor:pointer">Aprovar ✓</button>
+        <button onclick="rejeitarSolicitacao('${s.email}')" style="padding:6px 14px;background:rgba(248,113,113,.1);color:#f87171;font-size:12px;font-weight:700;border:1px solid rgba(248,113,113,.3);border-radius:7px;cursor:pointer">Rejeitar</button>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    lista.innerHTML = '<div style="font-size:13px;color:#f87171;padding:8px 0">Erro ao carregar: ' + e.message + '</div>';
+  }
+}
+
+async function aprovarSolicitacao(email) {
+  if (!confirm(`Aprovar trial para ${email}?`)) return;
+  try {
+    const r = await fetch(`${API_BASE}/admin/solicitacoes/${encodeURIComponent(email)}/aprovar`, { method: 'POST', headers: { 'x-api-key': API_KEY } });
+    const d = await r.json();
+    if (d.ok) { toast('Trial aprovado e email enviado!', 'success'); carregarSolicitacoes(); }
+    else toast(d.error || 'Erro ao aprovar', 'error');
+  } catch { toast('Erro de conexão', 'error'); }
+}
+
+async function rejeitarSolicitacao(email) {
+  if (!confirm(`Rejeitar solicitação de ${email}?`)) return;
+  try {
+    const r = await fetch(`${API_BASE}/admin/solicitacoes/${encodeURIComponent(email)}/rejeitar`, { method: 'POST', headers: { 'x-api-key': API_KEY } });
+    const d = await r.json();
+    if (d.ok) { toast('Solicitação rejeitada', 'info'); carregarSolicitacoes(); }
+    else toast(d.error || 'Erro ao rejeitar', 'error');
+  } catch { toast('Erro de conexão', 'error'); }
 }
 
 async function verProblemas() {
