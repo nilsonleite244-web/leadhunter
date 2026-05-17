@@ -1260,12 +1260,17 @@ app.post("/trial/solicitar", requireFirebase, async (req, res) => {
     if (assnSnap.exists) {
       const d = assnSnap.data();
       const ativo = d.status === "ativo" && (!d.expira_em || d.expira_em?.toDate?.() > agora);
-      if (ativo) return res.json({ ok: true }); // já tem acesso
+      if (ativo) {
+        console.log(`[Solicitação] ${email} já tem acesso ativo (${d.plano}) — ignorado`);
+        return res.json({ ok: true, msg: "ja_tem_acesso" });
+      }
     }
 
     const solSnap = await solicitacoesCol().doc(email).get();
-    if (solSnap.exists && solSnap.data().status === "pendente")
-      return res.json({ ok: true }); // solicitação já existe
+    if (solSnap.exists && solSnap.data().status === "pendente") {
+      console.log(`[Solicitação] ${email} já tem solicitação pendente — ignorado`);
+      return res.json({ ok: true, msg: "ja_solicitado" });
+    }
 
     await solicitacoesCol().doc(email).set({
       email, nome, status: "pendente",

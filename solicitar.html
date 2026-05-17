@@ -142,7 +142,13 @@ async function solicitar() {
     const d = await r.json();
     if (r.ok && d.ok) {
       document.getElementById('form-wrap').style.display = 'none';
-      showMsg('✅ Solicitação enviada! Assim que for aprovada você receberá um email com seu acesso. Fique de olho na caixa de entrada (e no spam).', 'success');
+      if (d.msg === 'ja_tem_acesso') {
+        showMsg('✅ Esse email já tem acesso ativo! Acesse o sistema e faça login com seu email.', 'success');
+      } else if (d.msg === 'ja_solicitado') {
+        showMsg('⏳ Você já enviou uma solicitação! Aguarde a aprovação — você receberá um email em breve.', 'success');
+      } else {
+        showMsg('✅ Solicitação enviada! Assim que for aprovada você receberá um email com seu acesso. Fique de olho na caixa de entrada (e no spam).', 'success');
+      }
     } else {
       showMsg(d.error || 'Erro ao enviar. Tente novamente.', 'error');
       btn.disabled = false;
