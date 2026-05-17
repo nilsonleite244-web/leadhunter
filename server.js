@@ -95,7 +95,7 @@ function pgQuery(sql, params) {
 const app = express();
 app.set("trust proxy", 1);
 app.use(cors());
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "10mb", verify: (req, _res, buf) => { req.rawBody = buf; } }));
 app.use(rateLimit({ windowMs: 60000, max: 300, message: { error: "Muitas requisicoes" } }));
 
 process.on("uncaughtException",  e => console.error("[uncaughtException]",  e.message));
@@ -351,7 +351,7 @@ async function verificarCota(req, res, count) {
 }
 
 // ── ROTAS PÚBLICAS ────────────────────────────────────────────────────────────
-app.get("/version", (req, res) => res.json({ v: "2.4.0", db: "firebase+postgresql", trial_limit: 150 }));
+app.get("/version", (req, res) => res.json({ v: "2.5.0", db: "firebase+postgresql", trial_limit: 150 }));
 
 app.get("/health", (req, res) => {
   // Responde imediatamente — Railway precisa de resposta rápida
@@ -1433,6 +1433,88 @@ app.get("/admin/assinantes/problemas", async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+
+// ── WEBHOOK ROLDPAY ───────────────────────────────────────────────────────────
+app.post("/webhook/roldpay", requireFirebase, async (req, res) => {
+  try {
+    const secret = process.env.ROLDPAY_WEBHOOK_SECRET;
+    const sig    = req.headers["x-roldpay-signature"];
+    if (secret && sig) {
+      const expected = "sha256=" + require("crypto").createHmac("sha256", secret).update(req.rawBody || "").digest("hex");
+      if (sig !== expected) {
+        console.warn("[Webhook RoldPay] assinatura inválida");
+        return res.status(401).json({ error: "Assinatura inválida" });
+      }
+    }
+
+    const { event, data } = req.body || {};
+    console.log(`[Webhook RoldPay] evento: ${event}`);
+
+    if (event !== "payment.approved") return res.json({ ok: true, msg: "ignored" });
+
+    const email = (data?.customer?.email || "").toLowerCase().trim();
+    const nome  = (data?.customer?.name  || "").trim().slice(0, 80);
+    if (!email) return res.status(400).json({ error: "email ausente" });
+
+    const docRef = assinantesCol().doc(email);
+    const snap   = await docRef.get();
+    const expiraEm = new Date(Date.now() + 30 * 86400000);
+
+    let token;
+    if (snap.exists) {
+      token = snap.data().token || gerarToken();
+      await docRef.update({
+        nome, status: "ativo", plano: "mensal",
+        expira_em: expiraEm,
+        is_trial: admin.firestore.FieldValue.delete(),
+        updated_at: admin.firestore.FieldValue.serverTimestamp()
+      });
+    } else {
+      token = gerarToken();
+      await docRef.set({
+        email, nome, status: "ativo", token, plano: "mensal",
+        ativado_em: admin.firestore.FieldValue.serverTimestamp(),
+        expira_em: expiraEm, leads_hoje: 0, leads_data: null,
+        updated_at: admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    const resendKey   = process.env.RESEND_API_KEY;
+    const from        = process.env.EMAIL_FROM || "contato@roldpay.com.br";
+    const primeiroNome = nome ? nome.split(" ")[0] : "Caçador";
+    try {
+      await axios.post("https://api.resend.com/emails", {
+        from: `Hunter Leads <${from}>`,
+        to:   [email],
+        subject: "Seu acesso ao Hunter Leads está ativo! 🦊",
+        html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#08080f;font-family:'Inter',system-ui,sans-serif;">
+<div style="max-width:520px;margin:40px auto;background:#111120;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:40px 36px;color:#eeeef2;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">
+    <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#f09030,#e06818);display:flex;align-items:center;justify-content:center;font-size:22px;">🦊</div>
+    <span style="font-size:18px;font-weight:800;letter-spacing:-.5px;">Hunter Leads</span>
+  </div>
+  <h1 style="font-size:22px;font-weight:800;margin:0 0 12px;letter-spacing:-.5px;">Olá, ${primeiroNome}! Seu acesso está pronto 🎉</h1>
+  <p style="color:#8888a0;font-size:14px;line-height:1.6;margin:0 0 24px;">Seu plano mensal foi ativado com sucesso. Use o token abaixo para acessar o sistema:</p>
+  <div style="background:#0d0d18;border:1px solid rgba(240,144,48,.25);border-radius:12px;padding:16px 20px;margin-bottom:24px;">
+    <p style="margin:0 0 6px;font-size:11px;color:#8888a0;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Seu token de acesso</p>
+    <p style="margin:0;font-family:monospace;font-size:15px;color:#f5b455;letter-spacing:.5px;word-break:break-all;">${token}</p>
+  </div>
+  <a href="https://leadhunter-vert.vercel.app" style="display:block;text-align:center;background:linear-gradient(135deg,#f09030,#e06818);color:#000;font-weight:800;font-size:15px;padding:14px 24px;border-radius:10px;text-decoration:none;letter-spacing:-.2px;">Acessar Hunter Leads →</a>
+  <p style="color:#44445a;font-size:12px;margin-top:24px;line-height:1.5;">Guarde esse token em local seguro. Validade: 30 dias a partir de hoje.</p>
+</div></body></html>`
+      }, { headers: { Authorization: `Bearer ${resendKey}` } });
+      console.log(`[Webhook RoldPay] email enviado: ${email}`);
+    } catch (emailErr) {
+      console.error("[Webhook RoldPay] email erro:", emailErr.response?.data || emailErr.message);
+    }
+
+    console.log(`[Webhook RoldPay] mensal ativado: ${email}`);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("[Webhook RoldPay] erro:", e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // ── FRONTEND ──────────────────────────────────────────────────────────────────
 app.get("/",          (req, res) => res.sendFile(path.join(__dirname, "index.html")));
