@@ -3031,6 +3031,7 @@ async function loginComToken() {
   err.textContent = '';
   try {
     const d = await apiAuth('/auth/verificar', { headers: { 'x-assinante-token': token } });
+    if (d.error) { err.textContent = 'Erro no servidor. Aguarde alguns instantes e tente novamente.'; return; }
     if (!d.ok) { err.textContent = 'Token inválido ou assinatura inativa.'; return; }
     ASSINANTE_TOKEN = token;
     ASSINANTE_NOME  = d.nome || d.email;
@@ -3297,7 +3298,7 @@ window.addEventListener('load', async () => {
 
   // Verifica token salvo
   if (ASSINANTE_TOKEN) {
-    const d = await apiAuth('/auth/verificar').catch(() => ({ ok: false }));
+    const d = await apiAuth('/auth/verificar').catch(() => ({ ok: false, _connErr: true }));
     if (d.ok) {
       ASSINANTE_NOME  = d.nome || d.email || ASSINANTE_NOME;
       ASSINANTE_PLANO = d.plano || ASSINANTE_PLANO;
@@ -3307,7 +3308,13 @@ window.addEventListener('load', async () => {
       mostrarApp();
       checkHealth().then(ok => { if (ok) loadDashboard(); });
       return;
+    } else if (d.error || d._connErr) {
+      // Erro temporário no servidor — mantém token e entra no app
+      mostrarApp();
+      checkHealth().then(ok => { if (ok) loadDashboard(); });
+      return;
     } else {
+      // Token genuinamente inválido/expirado
       localStorage.removeItem('lh_token');
       ASSINANTE_TOKEN = '';
     }

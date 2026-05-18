@@ -66,9 +66,8 @@ function initFirebase() {
     firebaseOk = true;
     console.log("[Firebase] Inicializado — projeto: leadhunter-eb847");
     // Pré-carrega tokens ativos em cache — evita Firestore na 1ª validação pós-restart
+    // leads_extra NÃO é pré-carregado aqui — carregado lazily na 1ª request (evita 6000 reads por restart)
     preloadTokenCache().catch(e => console.warn("[TokenCache] Falha no preload:", e.message));
-    // Pré-carrega leads_extra em memória no startup
-    getLeadsExtraCache().catch(e => console.warn("[Cache] Falha no preload:", e.message));
   } catch(e) {
     console.error("[Firebase] ERRO ao inicializar:", e.message);
     console.error("[Firebase] Defina FIREBASE_SERVICE_ACCOUNT nas variáveis de ambiente");
