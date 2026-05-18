@@ -331,6 +331,14 @@ function loginRateLimit(ip) {
 }
 
 // ── AUTH MIDDLEWARE ───────────────────────────────────────────────────────────
+// Cache de token em memória — evita leitura Firestore a cada request
+const _tokenCache = new Map(); // token → { assinante, cachedAt }
+const TOKEN_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+
+function invalidarTokenCache(token) {
+  if (token) _tokenCache.delete(token);
+}
+
 function authMiddleware(req, res, next) {
   const secret = process.env.API_SECRET;
   if (!secret) return res.status(500).json({ error: "Configuração interna ausente" });
@@ -341,14 +349,23 @@ function authMiddleware(req, res, next) {
   const token = req.headers["x-assinante-token"];
   if (!token) return res.status(401).json({ error: "Nao autorizado — faça login no LeadHunter" });
 
+  // Verifica cache antes de ir ao Firestore
+  const cached = _tokenCache.get(token);
+  if (cached && (Date.now() - cached.cachedAt) < TOKEN_CACHE_TTL_MS) {
+    req.assinante = cached.assinante;
+    return next();
+  }
+
   assinantesCol().where("token", "==", token).where("status", "==", "ativo").limit(1).get()
     .then(snap => {
       if (snap.empty) return res.status(401).json({ error: "Assinatura inativa ou expirada" });
       const a = { id: snap.docs[0].id, ...snap.docs[0].data() };
       if (a.expira_em && a.expira_em.toDate && a.expira_em.toDate() < new Date()) {
         snap.docs[0].ref.update({ status: "expirado" }).catch(() => {});
+        _tokenCache.delete(token);
         return res.status(401).json({ error: "Assinatura expirada" });
       }
+      _tokenCache.set(token, { assinante: a, cachedAt: Date.now() });
       req.assinante = a;
       next();
     })
@@ -1439,6 +1456,10 @@ app.patch("/admin/assinante/:id/status", async (req, res) => {
     const { status } = req.body;
     if (!["ativo","cancelado","expirado"].includes(status)) return res.status(400).json({ error: "status inválido" });
     await assinantesCol().doc(req.params.id).update({ status, updated_at: admin.firestore.FieldValue.serverTimestamp() });
+    // Invalida cache do token deste assinante
+    for (const [tok, entry] of _tokenCache.entries()) {
+      if (entry.assinante.id === req.params.id) { _tokenCache.delete(tok); break; }
+    }
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: "Erro interno" }); }
 });
@@ -1467,6 +1488,9 @@ app.post("/admin/assinante/:id/reativar", async (req, res) => {
       expira_em: expiraEm,
       updated_at: admin.firestore.FieldValue.serverTimestamp()
     });
+    for (const [tok, entry] of _tokenCache.entries()) {
+      if (entry.assinante.id === req.params.id) { _tokenCache.delete(tok); break; }
+    }
     res.json({ ok: true, msg: "Assinante reativado", expira_em: expiraEm });
   } catch(e) { res.status(500).json({ error: "Erro interno" }); }
 });
