@@ -2127,6 +2127,7 @@ async function buscarAleatorio() {
     document.getElementById('btn-export').disabled = false;
     updateHeadersCNPJ();
     addFeed('amber', `Público aleatório: <b>${state.results.length} leads</b> gerados`);
+    salvarLeadsLocal('cnpj', state.results);
     toast(state.results.length + ' leads aleatórios prontos!', 'success');
   } catch (e) { toast('Erro: ' + e.message, 'error'); }
   btn.disabled = false;
@@ -2187,6 +2188,7 @@ async function runSearch(page = 1) {
     document.getElementById('btn-export').disabled = !state.results.length;
     updateHeadersCNPJ();
     checkCota(d.cota);
+    salvarLeadsLocal('cnpj', state.results);
     toast(state.results.length + ' leads encontrados!', 'success');
   } catch (e) { toast('Erro: ' + e.message, 'error'); }
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Buscar';
@@ -2238,6 +2240,7 @@ async function buscarAtivos(page = 1) {
     updateHeadersIG();
     addFeed('green', `Leads com Instagram: <b>${state.results.length}</b> carregados`);
     checkCota(d.cota);
+    salvarLeadsLocal('instagram', state.results);
   } catch(e) { toast('Erro: ' + e.message, 'error'); }
   if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px;position:relative;z-index:1"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg><span class="ig-load-btn-txt">Carregar Leads com Instagram</span>'; }
 }
@@ -2284,6 +2287,7 @@ async function buscarFrios(page = 1) {
     updateHeadersIG();
     addFeed('amber', `Leads frios: <b>${state.results.length}</b> carregados`);
     checkCota(d.cota);
+    salvarLeadsLocal('instagram', state.results);
   } catch(e) { toast('Erro: ' + e.message, 'error'); }
   btn.disabled = false;
   btn.innerHTML = '<span class="flake">❄</span><span class="flake">❄</span><span class="flake">❄</span><span class="flake">❄</span><span class="flake">❄</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px;position:relative;z-index:1"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg><span>Carregar Leads Frios</span>';
@@ -2812,53 +2816,75 @@ function mostrarApp() {
   restaurarLeadsDodia();
 }
 
-// ══ MEUS LEADS ══
+// ══ MEUS LEADS (localStorage — sem Firestore) ══
 
 let _meusLeadsCache = { cnpj: [], instagram: [] };
 window._leadsScriptCache = []; // guarda objetos de lead para abrirCopyScriptIdx()
 
-async function loadMeusLeads() {
+const _ML_KEY = 'lh_meus_leads';
+function _mlHoje() { return new Date().toISOString().split('T')[0]; }
+
+function _mlLerStorage() {
+  try {
+    const raw = localStorage.getItem(_ML_KEY);
+    if (!raw) return { date: _mlHoje(), cnpj: [], instagram: [] };
+    const d = JSON.parse(raw);
+    if (d.date !== _mlHoje()) return { date: _mlHoje(), cnpj: [], instagram: [] };
+    return d;
+  } catch { return { date: _mlHoje(), cnpj: [], instagram: [] }; }
+}
+
+function salvarLeadsLocal(tipo, leads) {
+  if (!leads || !leads.length) return;
+  try {
+    const d = _mlLerStorage();
+    const existingIds = new Set(d[tipo].map(l => l.cnpj || l.id || l.instagram_url || ''));
+    const novos = leads.filter(l => {
+      const id = l.cnpj || l.id || l.instagram_url || '';
+      if (existingIds.has(id)) return false;
+      existingIds.add(id);
+      return true;
+    });
+    if (!novos.length) return;
+    d[tipo] = [...d[tipo], ...novos];
+    localStorage.setItem(_ML_KEY, JSON.stringify(d));
+    _meusLeadsCache = { cnpj: d.cnpj, instagram: d.instagram };
+    _atualizarBadgeMeusLeads(d.cnpj.length + d.instagram.length);
+  } catch { /* silencioso — localStorage cheio ou desabilitado */ }
+}
+
+function _atualizarBadgeMeusLeads(total) {
+  const badge = document.getElementById('badge-meus-leads');
+  if (badge) { badge.textContent = total; badge.style.display = total ? '' : 'none'; badge.classList.toggle('dim', !total); }
+  const bnavBadge = document.getElementById('bnav-badge-ml');
+  if (bnavBadge) { bnavBadge.textContent = total; bnavBadge.classList.toggle('show', total > 0); }
+}
+
+function loadMeusLeads() {
   const loading = document.getElementById('meus-leads-loading');
   const empty   = document.getElementById('meus-leads-empty');
   const content = document.getElementById('meus-leads-content');
 
-  loading.style.display = '';
+  loading.style.display = 'none';
   empty.style.display   = 'none';
   content.style.display = 'none';
 
-  try {
-    const d = await api('/leads/meus-leads');
-    _meusLeadsCache = { cnpj: d.cnpj || [], instagram: d.instagram || [] };
-    const total = (_meusLeadsCache.cnpj.length + _meusLeadsCache.instagram.length);
-
-    loading.style.display = 'none';
+  const d = _mlLerStorage();
+  _meusLeadsCache = { cnpj: d.cnpj || [], instagram: d.instagram || [] };
+  const total = (_meusLeadsCache.cnpj.length + _meusLeadsCache.instagram.length);
 
     if (!total) { empty.style.display = ''; return; }
 
-    content.style.display = '';
-    document.getElementById('meus-leads-count').textContent = total;
-    document.getElementById('ml-count-ig').textContent   = _meusLeadsCache.instagram.length;
-    document.getElementById('ml-count-cnpj').textContent = _meusLeadsCache.cnpj.length;
-    // Limpa cache de renderização para re-renderizar com dados frescos
-    document.getElementById('ml-results-ig').dataset.rendered   = '';
-    document.getElementById('ml-results-cnpj').dataset.rendered = '';
+  content.style.display = '';
+  document.getElementById('meus-leads-count').textContent = total;
+  document.getElementById('ml-count-ig').textContent   = _meusLeadsCache.instagram.length;
+  document.getElementById('ml-count-cnpj').textContent = _meusLeadsCache.cnpj.length;
+  document.getElementById('ml-results-ig').dataset.rendered   = '';
+  document.getElementById('ml-results-cnpj').dataset.rendered = '';
 
-    // Atualiza badge sidebar
-    const badge = document.getElementById('badge-meus-leads');
-    badge.textContent = total;
-    badge.style.display = '';
-    badge.classList.remove('dim');
+  _atualizarBadgeMeusLeads(total);
 
-    // Atualiza badge bottom nav (mobile)
-    const bnavBadge = document.getElementById('bnav-badge-ml');
-    if (bnavBadge) { bnavBadge.textContent = total; bnavBadge.classList.add('show'); }
-
-    // Renderiza aba padrão (instagram)
-    mlTab(_meusLeadsCache.instagram.length ? 'instagram' : 'cnpj');
-  } catch(e) {
-    loading.style.display = 'none';
-    empty.style.display = '';
-  }
+  mlTab(_meusLeadsCache.instagram.length ? 'instagram' : 'cnpj');
 }
 
 function mlTab(tipo) {
@@ -2931,14 +2957,10 @@ function exportMeusLeads() {
   toast('CSV exportado!', 'success');
 }
 
-async function restaurarLeadsDodia() {
-  try {
-    const d = await api('/leads/meus-leads');
-    if (!d || !d.total) return;
-    // Atualiza badge da sidebar
-    const badge = document.getElementById('badge-meus-leads');
-    if (badge) { badge.textContent = d.total; badge.style.display = ''; badge.classList.remove('dim'); }
-  } catch(e) { /* silencioso */ }
+function restaurarLeadsDodia() {
+  const d = _mlLerStorage();
+  const total = (d.cnpj || []).length + (d.instagram || []).length;
+  if (total) _atualizarBadgeMeusLeads(total);
 }
 
 

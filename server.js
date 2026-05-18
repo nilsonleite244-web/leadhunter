@@ -221,7 +221,7 @@ function getRestanteHoje(a) {
   return Math.max(0, limite - usadoHoje);
 }
 
-// Incrementa contador do assinante no Firestore
+// Incrementa contador do assinante no Firestore e atualiza objeto em memória
 function incrementarCota(a, count) {
   if (!a) return;
   const limite = getLimiteDiario(a);
@@ -230,6 +230,10 @@ function incrementarCota(a, count) {
   const usadoHoje = a.leads_data === hoje ? (a.leads_hoje || 0) : 0;
   const novoTotal = Math.min(usadoHoje + count, limite);
   assinantesCol().doc(a.id).update({ leads_hoje: novoTotal, leads_data: hoje }).catch(() => {});
+  // Atualiza objeto compartilhado com o cache de token para que o próximo request
+  // na mesma janela de 5 min veja o valor correto (sem re-leitura do Firestore)
+  a.leads_hoje = novoTotal;
+  a.leads_data = hoje;
 }
 
 // ── CACHE EM MEMÓRIA: leads_extra ────────────────────────────────────────────
@@ -268,19 +272,8 @@ if (pool) {
   `).catch(e => console.warn("[leads_gerados] Aviso ao criar tabela:", e.message));
 }
 
-// Salva leads entregues no cache diário — Firestore
-function salvarLeadsGerados(token, tipo, leads) {
-  if (!firebaseOk || !token || !leads?.length) return;
-  const hoje = new Date().toISOString().split("T")[0];
-  const parentRef = leadsGeradosCol().doc(`${token}_${hoje}`);
-  const batch = db.batch();
-  for (const l of leads) {
-    const rawId = String(l.cnpj || l.id || l.instagram_url || l.whatsapp_url || l.razao_social || Math.random());
-    const id = rawId.replace(/[^A-Za-z0-9_\-]/g, "_").slice(0, 100);
-    batch.set(parentRef.collection(tipo).doc(id), l);
-  }
-  batch.commit().catch(() => {});
-}
+// "Meus leads" migrado para localStorage no frontend — sem writes Firestore
+function salvarLeadsGerados(_token, _tipo, _leads) { /* no-op */ }
 
 const SOCIAL_DOMAINS = ["wa.me","whatsapp","instagram.com","facebook.com","linktr.ee","tiktok.com","youtube.com","bio.site","hotmart","kirvano"];
 function hasOwnWebsite(website) {
