@@ -2873,7 +2873,7 @@ function loadMeusLeads() {
   _meusLeadsCache = { cnpj: d.cnpj || [], instagram: d.instagram || [] };
   const total = (_meusLeadsCache.cnpj.length + _meusLeadsCache.instagram.length);
 
-    if (!total) { empty.style.display = ''; return; }
+  if (!total) { empty.style.display = ''; return; }
 
   content.style.display = '';
   document.getElementById('meus-leads-count').textContent = total;
