@@ -65,6 +65,8 @@ function initFirebase() {
     db = admin.firestore();
     firebaseOk = true;
     console.log("[Firebase] Inicializado — projeto: leadhunter-eb847");
+    // Pré-carrega leads_extra em memória no startup (evita 1ª request lenta)
+    getLeadsExtraCache().catch(e => console.warn("[Cache] Falha no preload:", e.message));
   } catch(e) {
     console.error("[Firebase] ERRO ao inicializar:", e.message);
     console.error("[Firebase] Defina FIREBASE_SERVICE_ACCOUNT nas variáveis de ambiente");
@@ -228,6 +230,24 @@ function incrementarCota(a, count) {
   const usadoHoje = a.leads_data === hoje ? (a.leads_hoje || 0) : 0;
   const novoTotal = Math.min(usadoHoje + count, limite);
   assinantesCol().doc(a.id).update({ leads_hoje: novoTotal, leads_data: hoje }).catch(() => {});
+}
+
+// ── CACHE EM MEMÓRIA: leads_extra ────────────────────────────────────────────
+// Evita ler 5.000 docs do Firestore a cada request — recarrega a cada 4h
+let _leadsExtraCache     = null;
+let _leadsExtraCacheAt   = 0;
+const LEADS_EXTRA_TTL_MS = 4 * 60 * 60 * 1000; // 4 horas
+
+async function getLeadsExtraCache() {
+  const now = Date.now();
+  if (_leadsExtraCache && (now - _leadsExtraCacheAt) < LEADS_EXTRA_TTL_MS) {
+    return _leadsExtraCache;
+  }
+  const snap = await leadsExtraCol().limit(6000).get();
+  _leadsExtraCache  = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+  _leadsExtraCacheAt = now;
+  console.log(`[Cache] leads_extra: ${_leadsExtraCache.length} docs carregados`);
+  return _leadsExtraCache;
 }
 
 // ── CACHE DE LEADS GERADOS POR DIA ───────────────────────────────────────────
@@ -423,24 +443,18 @@ app.get("/leads/instagram", async (req, res) => {
     const apenasIG = req.query.apenas_ig === "true";
     const semIG    = req.query.sem_ig    === "true";
 
-    // Usa um único filtro indexado no Firestore; o restante filtra em memória
-    let q = leadsExtraCol();
+    // Usa cache em memória (recarrega a cada 4h) — elimina 5000 leituras Firestore por request
+    let docs = await getLeadsExtraCache();
+
+    // Todos os filtros em memória
     if (segmento) {
-      q = q.where("category", "==", segmentoToCategory(segmento));
-    } else if (semIG) {
-      q = q.where("sem_ig", "==", true);
-    } else if (apenasIG) {
-      q = q.where("has_ig", "==", true);
+      const cat = segmentoToCategory(segmento);
+      docs = docs.filter(d => d.data.category === cat);
     }
-
-    const snap = await q.limit(5000).get();
-    let docs = snap.docs;
-
-    // Filtros secundários em memória
-    if (segmento && apenasIG) docs = docs.filter(d => d.data().has_ig);
-    if (segmento && semIG)    docs = docs.filter(d => d.data().sem_ig);
-    if (busca)  { docs = docs.filter(d => (d.data().nome_lower  || "").includes(busca)); }
-    if (cidade) { docs = docs.filter(d => (d.data().cidade_lower || "").includes(cidade)); }
+    if (apenasIG) docs = docs.filter(d => d.data.has_ig);
+    if (semIG)    docs = docs.filter(d => d.data.sem_ig);
+    if (busca)    docs = docs.filter(d => (d.data.nome_lower  || "").includes(busca));
+    if (cidade)   docs = docs.filter(d => (d.data.cidade_lower || "").includes(cidade));
 
     const total = isAdmin ? docs.length : null;
     const pages = isAdmin ? Math.ceil(docs.length / effectiveLimit) : null;
@@ -449,7 +463,7 @@ app.get("/leads/instagram", async (req, res) => {
     const seed = (a?.token || "admin") + new Date().toISOString().split("T")[0];
     const shuffled = shuffleWithSeed(docs, seed);
     const pageDocs = shuffled.slice(offset, offset + effectiveLimit);
-    const rows = pageDocs.map(d => docToLead(d.id, d.data()));
+    const rows = pageDocs.map(d => docToLead(d.id, d.data));
 
     incrementarCota(a, rows.length);
     if (a) salvarLeadsGerados(a.token, 'instagram', rows);
@@ -766,11 +780,10 @@ app.get("/stats/geral", async (req, res) => {
 
 app.get("/stats/segmentos", async (req, res) => {
   try {
-    // Busca todos e agrupa por segmento em memória (viável para até ~50k docs)
-    const snap = await leadsExtraCol().select("segmento").get();
+    const cached = await getLeadsExtraCache();
     const counts = {};
-    snap.docs.forEach(d => {
-      const s = d.data().segmento || "outros";
+    cached.forEach(({ data: d }) => {
+      const s = d.segmento || "outros";
       counts[s] = (counts[s] || 0) + 1;
     });
     const result = Object.entries(counts)
