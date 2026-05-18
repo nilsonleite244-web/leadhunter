@@ -65,7 +65,9 @@ function initFirebase() {
     db = admin.firestore();
     firebaseOk = true;
     console.log("[Firebase] Inicializado — projeto: leadhunter-eb847");
-    // Pré-carrega leads_extra em memória no startup (evita 1ª request lenta)
+    // Pré-carrega tokens ativos em cache — evita Firestore na 1ª validação pós-restart
+    preloadTokenCache().catch(e => console.warn("[TokenCache] Falha no preload:", e.message));
+    // Pré-carrega leads_extra em memória no startup
     getLeadsExtraCache().catch(e => console.warn("[Cache] Falha no preload:", e.message));
   } catch(e) {
     console.error("[Firebase] ERRO ao inicializar:", e.message);
@@ -330,6 +332,18 @@ const TOKEN_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
 
 function invalidarTokenCache(token) {
   if (token) _tokenCache.delete(token);
+}
+
+// Pré-carrega todos os assinantes ativos no cache ao iniciar — resolve validação pós-restart
+async function preloadTokenCache() {
+  const snap = await assinantesCol().where("status", "==", "ativo").get();
+  const now = Date.now();
+  let count = 0;
+  for (const doc of snap.docs) {
+    const a = { id: doc.id, ...doc.data() };
+    if (a.token) { _tokenCache.set(a.token, { assinante: a, cachedAt: now }); count++; }
+  }
+  console.log(`[TokenCache] ${count} tokens pré-carregados`);
 }
 
 function authMiddleware(req, res, next) {
@@ -1145,24 +1159,36 @@ app.post("/auth/login", async (req, res) => {
 app.get("/auth/verificar", async (req, res) => {
   const token = req.headers["x-assinante-token"];
   if (!token) return res.status(401).json({ ok: false });
+
+  function buildVerificarResponse(a) {
+    const hoje = new Date().toISOString().split("T")[0];
+    const usadoHoje = a.leads_data === hoje ? (a.leads_hoje || 0) : 0;
+    const plano  = a.plano || "mensal";
+    const limite = a.is_demo ? 50 : (LIMITES_PLANO[plano] ?? 150);
+    return {
+      ok: true, nome: a.nome, email: a.email || a.id, plano, expira_em: a.expira_em,
+      is_demo: a.is_demo || false,
+      cota: { limite, usado: a.is_demo ? 50 : usadoHoje, restante: a.is_demo ? 0 : Math.max(0, limite - usadoHoje) }
+    };
+  }
+
+  // Usa cache para evitar leitura Firestore desnecessária
+  const cached = _tokenCache.get(token);
+  if (cached && (Date.now() - cached.cachedAt) < TOKEN_CACHE_TTL_MS) {
+    return res.json(buildVerificarResponse(cached.assinante));
+  }
+
   try {
     const snap = await assinantesCol().where("token", "==", token).limit(1).get();
     if (snap.empty) return res.status(401).json({ ok: false, motivo: "token inválido" });
-    const a = snap.docs[0].data();
+    const a = { id: snap.docs[0].id, ...snap.docs[0].data() };
     if (a.status !== "ativo") return res.status(401).json({ ok: false, motivo: "assinatura cancelada" });
     if (a.expira_em && a.expira_em.toDate && a.expira_em.toDate() < new Date()) {
       await snap.docs[0].ref.update({ status: "expirado" }).catch(() => {});
       return res.status(401).json({ ok: false, motivo: "assinatura expirada" });
     }
-    const hoje = new Date().toISOString().split("T")[0];
-    const usadoHoje = a.leads_data === hoje ? (a.leads_hoje || 0) : 0;
-    const plano  = a.plano || "mensal";
-    const limite = a.is_demo ? 50 : (LIMITES_PLANO[plano] ?? 150);
-    res.json({
-      ok: true, nome: a.nome, email: a.email, plano, expira_em: a.expira_em,
-      is_demo: a.is_demo || false,
-      cota: { limite, usado: a.is_demo ? 50 : usadoHoje, restante: a.is_demo ? 0 : Math.max(0, limite - usadoHoje) }
-    });
+    _tokenCache.set(token, { assinante: a, cachedAt: Date.now() });
+    res.json(buildVerificarResponse(a));
   } catch(e) {
     console.error("[auth/verificar] ERRO:", e.code, e.message);
     res.status(500).json({ error: "Erro interno" });
