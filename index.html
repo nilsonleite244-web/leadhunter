@@ -1761,6 +1761,11 @@ tr.abordado-persistent td:first-child{border-left:2px solid rgba(46,216,164,.5)}
 <script>
 // ══ CONFIG ══
 const _RAILWAY = 'https://leadhunter-production-ede3.up.railway.app';
+// Migra usuários com URL antiga (bb4c) para o servidor atual
+const _OLD_RAILWAY = 'https://leadhunter-production-bb4c.up.railway.app';
+if (!localStorage.getItem('lh_api_url') || localStorage.getItem('lh_api_url') === _OLD_RAILWAY) {
+  localStorage.setItem('lh_api_url', _RAILWAY);
+}
 let API_BASE = localStorage.getItem('lh_api_url') || _RAILWAY;
 let API_KEY  = localStorage.getItem('lh_api_key')  || '';
 let searchMode = 'instagram';
@@ -3264,9 +3269,7 @@ async function verProblemas() {
 
 // ══ INIT ══
 window.addEventListener('load', async () => {
-  const savedUrl = localStorage.getItem('lh_api_url');
   const savedKey = localStorage.getItem('lh_api_key');
-  if (savedUrl) { API_BASE = savedUrl; } else { localStorage.setItem('lh_api_url', _RAILWAY); }
   if (savedKey) API_KEY = savedKey;
   renderTemplates();
 
