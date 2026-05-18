@@ -640,64 +640,54 @@ app.get("/leads/aleatorio", async (req, res) => {
     const effectiveLimit = Math.min(maxReq, restante);
 
     if (pool) {
-      const cols = "cnpj, razao_social, nome_fantasia, cnae_descricao, porte, email, telefone1, ddd_municipio, municipio_nome, uf, nome_socio, score_completude";
-
-      // CNPJs já vistos nesta sessão (enviados pelo frontend para excluir)
-      const excludeRaw = (req.query.exclude || "").split(",").map(c => c.replace(/\D/g,"")).filter(c => c.length >= 11 && c.length <= 14);
-      const excludeList = excludeRaw.slice(0, 500); // limite de segurança
-
-      const qParams = [effectiveLimit];
-      let whereExtra = "";
-      if (excludeList.length) {
-        const ph = excludeList.map((_, i) => `$${i + 2}`).join(",");
-        whereExtra = ` AND cnpj NOT IN (${ph})`;
-        qParams.push(...excludeList);
-      }
-
-      // TABLESAMPLE é muito mais rápido que ORDER BY RANDOM() em tabelas grandes.
-      // Amostra ~5% da tabela e depois ordena aleatoriamente apenas esse subconjunto.
-      // Se a amostra vier menor que o solicitado, fallback para RANDOM() completo.
-      let r;
       try {
-        r = await pgQuery(
-          `SELECT ${cols} FROM leads TABLESAMPLE SYSTEM(5) WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != ''${whereExtra} ORDER BY RANDOM() LIMIT $1`,
-          qParams
-        );
-        // Se a amostra retornou menos que o pedido, tenta sem TABLESAMPLE
-        if (r.rows.length < effectiveLimit) {
-          r = await pgQuery(
-            `SELECT ${cols} FROM leads WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != ''${whereExtra} ORDER BY RANDOM() LIMIT $1`,
-            qParams
-          );
+        const cols = "cnpj, razao_social, nome_fantasia, cnae_descricao, porte, email, telefone1, ddd_municipio, municipio_nome, uf, nome_socio, score_completude";
+        const excludeRaw = (req.query.exclude || "").split(",").map(c => c.replace(/\D/g,"")).filter(c => c.length >= 11 && c.length <= 14);
+        const excludeList = excludeRaw.slice(0, 500);
+        const qParams = [effectiveLimit];
+        let whereExtra = "";
+        if (excludeList.length) {
+          const ph = excludeList.map((_, i) => `$${i + 2}`).join(",");
+          whereExtra = ` AND cnpj NOT IN (${ph})`;
+          qParams.push(...excludeList);
         }
-      } catch {
-        r = await pgQuery(
-          `SELECT ${cols} FROM leads WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != ''${whereExtra} ORDER BY RANDOM() LIMIT $1`,
-          qParams
-        );
+        let r;
+        try {
+          r = await pgQuery(`SELECT ${cols} FROM leads TABLESAMPLE SYSTEM(5) WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != ''${whereExtra} ORDER BY RANDOM() LIMIT $1`, qParams);
+          if (r.rows.length < effectiveLimit) {
+            r = await pgQuery(`SELECT ${cols} FROM leads WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != ''${whereExtra} ORDER BY RANDOM() LIMIT $1`, qParams);
+          }
+        } catch {
+          r = await pgQuery(`SELECT ${cols} FROM leads WHERE situacao_cadastral=2 AND telefone1 IS NOT NULL AND telefone1 != ''${whereExtra} ORDER BY RANDOM() LIMIT $1`, qParams);
+        }
+        const data = r.rows.map(row => ({
+          id: row.cnpj, cnpj: row.cnpj, razao_social: row.razao_social,
+          nome_fantasia: row.nome_fantasia, cnae_descricao: row.cnae_descricao,
+          porte: row.porte, email: row.email, telefone1: row.telefone1,
+          ddd_municipio: row.ddd_municipio, municipio_nome: row.municipio_nome,
+          uf: row.uf, nome_socio: row.nome_socio,
+        }));
+        incrementarCota(a, data.length);
+        const hoje = new Date().toISOString().split("T")[0];
+        const usadoAntes = a?.leads_data === hoje ? (a?.leads_hoje || 0) : 0;
+        const cota = limite !== null ? {
+          limite, usado: Math.min(usadoAntes + data.length, limite),
+          restante: Math.max(0, limite - usadoAntes - data.length), plano: a.plano,
+        } : null;
+        return res.json({ total: data.length, data, cota });
+      } catch(pgErr) {
+        console.warn("[leads/aleatorio] PostgreSQL falhou, usando cache Firebase:", pgErr.message);
+        // cai no fallback abaixo
       }
-      const data = r.rows.map(row => ({
-        id: row.cnpj, cnpj: row.cnpj, razao_social: row.razao_social,
-        nome_fantasia: row.nome_fantasia, cnae_descricao: row.cnae_descricao,
-        porte: row.porte, email: row.email, telefone1: row.telefone1,
-        ddd_municipio: row.ddd_municipio, municipio_nome: row.municipio_nome,
-        uf: row.uf, nome_socio: row.nome_socio,
-      }));
-      incrementarCota(a, data.length);
-      const hoje = new Date().toISOString().split("T")[0];
-      const usadoAntes = a?.leads_data === hoje ? (a?.leads_hoje || 0) : 0;
-      const cota = limite !== null ? {
-        limite, usado: Math.min(usadoAntes + data.length, limite),
-        restante: Math.max(0, limite - usadoAntes - data.length), plano: a.plano,
-      } : null;
-      return res.json({ total: data.length, data, cota });
     }
-    // Fallback Firebase
-    const snap = await leadsExtraCol().limit(effectiveLimit).get();
-    const data = snap.docs.map(doc => docToLead(doc.id, doc.data()));
+    // Fallback: usa cache em memória (Firebase leads_extra)
+    const cached = await getLeadsExtraCache();
+    const shuffled = shuffleWithSeed(cached, (a?.token || "admin") + new Date().toISOString().split("T")[0]);
+    const data = shuffled.slice(0, effectiveLimit).map(d => docToLead(d.id, d.data));
     incrementarCota(a, data.length);
     res.json({ total: data.length, data });
   } catch(e) {
+    console.error("[leads/aleatorio] ERRO:", e.code, e.message);
     res.status(500).json({ error: "Erro interno" });
   }
 });
