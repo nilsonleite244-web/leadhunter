@@ -387,6 +387,16 @@ function loginRateLimit(ip) {
 // Cache de token em memória — evita leitura Firestore a cada request
 const _tokenCache = new Map(); // token → { assinante, cachedAt }
 const TOKEN_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hora
+const TOKENS_BACKUP_PATH = path.join(__dirname, ".tokens_backup.json");
+
+// Backup em disco: carregado no startup, usado quando Firebase está sem quota
+let _tokensDiskBackup = new Map();
+try {
+  const raw = fs.readFileSync(TOKENS_BACKUP_PATH, "utf8");
+  const arr = JSON.parse(raw);
+  arr.forEach(([tok, assinante]) => _tokensDiskBackup.set(tok, assinante));
+  console.log(`[TokenBackup] ${_tokensDiskBackup.size} tokens carregados do disco`);
+} catch(e) { console.log("[TokenBackup] sem backup em disco ainda"); }
 
 function invalidarTokenCache(token) {
   if (token) _tokenCache.delete(token);
@@ -402,6 +412,13 @@ async function preloadTokenCache() {
     if (a.token) { _tokenCache.set(a.token, { assinante: a, cachedAt: now }); count++; }
   }
   console.log(`[TokenCache] ${count} tokens pré-carregados`);
+  // Salva backup em disco para uso emergencial quando Firebase ficar sem quota
+  try {
+    const arr = Array.from(_tokenCache.entries()).map(([tok, v]) => [tok, v.assinante]);
+    fs.writeFileSync(TOKENS_BACKUP_PATH, JSON.stringify(arr), "utf8");
+    _tokensDiskBackup = new Map(arr);
+    console.log(`[TokenBackup] backup salvo em disco (${arr.length} tokens)`);
+  } catch(e) { console.warn("[TokenBackup] não foi possível salvar:", e.message); }
 }
 
 function authMiddleware(req, res, next) {
@@ -414,13 +431,14 @@ function authMiddleware(req, res, next) {
   const token = req.headers["x-assinante-token"];
   if (!token) return res.status(401).json({ error: "Nao autorizado — faça login no LeadHunter" });
 
-  // Verifica cache antes de ir ao Firestore
+  // 1º: cache em memória
   const cached = _tokenCache.get(token);
   if (cached && (Date.now() - cached.cachedAt) < TOKEN_CACHE_TTL_MS) {
     req.assinante = cached.assinante;
     return next();
   }
 
+  // 2º: tenta Firestore
   assinantesCol().where("token", "==", token).where("status", "==", "ativo").limit(1).get()
     .then(snap => {
       if (snap.empty) return res.status(401).json({ error: "Assinatura inativa ou expirada" });
@@ -434,7 +452,17 @@ function authMiddleware(req, res, next) {
       req.assinante = a;
       next();
     })
-    .catch(() => res.status(500).json({ error: "Erro ao verificar assinatura" }));
+    .catch(() => {
+      // 3º: Firestore falhou (quota esgotada) — usa backup de disco
+      const backup = _tokensDiskBackup.get(token);
+      if (backup) {
+        _tokenCache.set(token, { assinante: backup, cachedAt: Date.now() });
+        req.assinante = backup;
+        console.warn(`[TokenBackup] auth via disco: ${backup.email || token.slice(0,8)}`);
+        return next();
+      }
+      return res.status(500).json({ error: "Erro ao verificar assinatura" });
+    });
 }
 
 async function verificarCota(req, res, count) {
@@ -1249,6 +1277,12 @@ app.get("/auth/verificar", async (req, res) => {
     res.json(buildVerificarResponse(a));
   } catch(e) {
     console.error("[auth/verificar] ERRO:", e.code, e.message);
+    // Firestore sem quota — usa backup de disco se disponível
+    const backup = _tokensDiskBackup.get(token);
+    if (backup) {
+      _tokenCache.set(token, { assinante: backup, cachedAt: Date.now() });
+      return res.json(buildVerificarResponse(backup));
+    }
     res.status(500).json({ error: "Erro interno" });
   }
 });
