@@ -5,6 +5,7 @@ const rateLimit  = require("express-rate-limit");
 const axios      = require("axios");
 const admin      = require("firebase-admin");
 const path       = require("path");
+const fs         = require("fs");
 const { Pool }   = require("pg");
 require("dotenv").config();
 
@@ -269,6 +270,7 @@ let _leadsExtraCache     = null;
 let _leadsExtraCacheAt   = 0;
 let _leadsExtraCacheLoading = null; // Promise em andamento — evita leituras simultâneas
 const LEADS_EXTRA_TTL_MS = 4 * 60 * 60 * 1000; // 4 horas
+const LEADS_BACKUP_PATH  = path.join(__dirname, ".leads_backup.json");
 
 async function getLeadsExtraCache() {
   const now = Date.now();
@@ -282,11 +284,31 @@ async function getLeadsExtraCache() {
     _leadsExtraCacheAt  = Date.now();
     _leadsExtraCacheLoading = null;
     console.log(`[Cache] leads_extra: ${_leadsExtraCache.length} docs carregados`);
+    // Salva backup em disco — usado como fallback se Firebase ficar sem quota
+    try {
+      fs.writeFileSync(LEADS_BACKUP_PATH, JSON.stringify(_leadsExtraCache), "utf8");
+      console.log(`[Cache] backup em disco salvo (${_leadsExtraCache.length} docs)`);
+    } catch(e) { console.warn("[Cache] não foi possível salvar backup:", e.message); }
     return _leadsExtraCache;
   }).catch(err => {
     _leadsExtraCacheLoading = null;
-    // Se falhar e ainda tiver cache antigo, retorna ele em vez de jogar erro
-    if (_leadsExtraCache) { console.warn("[Cache] leads_extra: falha ao atualizar, usando cache antigo"); return _leadsExtraCache; }
+    // 1º fallback: cache antigo em memória
+    if (_leadsExtraCache) {
+      console.warn("[Cache] leads_extra: falha ao atualizar, usando cache antigo");
+      return _leadsExtraCache;
+    }
+    // 2º fallback: backup salvo em disco
+    try {
+      const raw    = fs.readFileSync(LEADS_BACKUP_PATH, "utf8");
+      const backup = JSON.parse(raw);
+      if (Array.isArray(backup) && backup.length > 0) {
+        _leadsExtraCache   = backup;
+        // Expira em 5 min para tentar o Firebase novamente assim que a cota renovar
+        _leadsExtraCacheAt = Date.now() - LEADS_EXTRA_TTL_MS + 5 * 60 * 1000;
+        console.warn(`[Cache] Firebase sem quota — usando backup de disco (${backup.length} docs)`);
+        return _leadsExtraCache;
+      }
+    } catch(backupErr) { console.warn("[Cache] sem backup em disco disponível"); }
     throw err;
   });
   return _leadsExtraCacheLoading;
@@ -525,11 +547,11 @@ app.get("/leads/instagram", async (req, res) => {
     const pageDocs = shuffled.slice(offset, offset + effectiveLimit);
     const rows = pageDocs.map(d => docToLead(d.id, d.data));
 
+    const hoje = new Date().toISOString().split("T")[0];
+    const usadoAntes = a?.leads_data === hoje ? (a?.leads_hoje || 0) : 0;
     incrementarCota(a, rows.length);
     if (a) salvarLeadsGerados(a.token, 'instagram', rows);
 
-    const hoje = new Date().toISOString().split("T")[0];
-    const usadoAntes = a?.leads_data === hoje ? (a?.leads_hoje || 0) : 0;
     const cota = limite !== null ? {
       limite,
       usado:    Math.min(usadoAntes + rows.length, limite),
@@ -626,11 +648,11 @@ app.get("/leads/buscar", async (req, res) => {
       score_completude: r.score_completude,
     }));
 
+    const hoje = new Date().toISOString().split("T")[0];
+    const usadoAntes = a?.leads_data === hoje ? (a?.leads_hoje || 0) : 0;
     incrementarCota(a, data.length);
     if (a) salvarLeadsGerados(a.token, 'cnpj', data);
 
-    const hoje = new Date().toISOString().split("T")[0];
-    const usadoAntes = a?.leads_data === hoje ? (a?.leads_hoje || 0) : 0;
     const cota = limite !== null ? {
       limite,
       usado:    Math.min(usadoAntes + data.length, limite),
@@ -727,9 +749,9 @@ app.get("/leads/aleatorio", async (req, res) => {
           ddd_municipio: row.ddd_municipio, municipio_nome: row.municipio_nome,
           uf: row.uf, nome_socio: row.nome_socio,
         }));
-        incrementarCota(a, data.length);
         const hoje = new Date().toISOString().split("T")[0];
         const usadoAntes = a?.leads_data === hoje ? (a?.leads_hoje || 0) : 0;
+        incrementarCota(a, data.length);
         const cota = limite !== null ? {
           limite, usado: Math.min(usadoAntes + data.length, limite),
           restante: Math.max(0, limite - usadoAntes - data.length), plano: a.plano,
