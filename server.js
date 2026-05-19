@@ -82,9 +82,35 @@ function requireFirebase(req, res, next) {
 }
 
 // ── POSTGRESQL (Supabase) — CNPJ leads ───────────────────────────────────────
+// Parse manual para lidar com senhas que contêm caracteres especiais (?@:)
+// que quebram o parser de URL do Node.js, causando ENOTFOUND postgres
+function parseDbUrl(raw) {
+  try {
+    const noScheme = raw.replace(/^postgresql:\/\/|^postgres:\/\//, "");
+    const atIdx    = noScheme.lastIndexOf("@");
+    if (atIdx < 0) return null;
+    const userPass = noScheme.slice(0, atIdx);
+    const hostPart = noScheme.slice(atIdx + 1);
+    const colonIdx = userPass.indexOf(":");
+    const user     = userPass.slice(0, colonIdx);
+    const password = userPass.slice(colonIdx + 1);
+    const [hostPort, ...dbParts] = hostPart.split("/");
+    const database = (dbParts.join("/") || "postgres").split("?")[0];
+    const [host, portStr] = hostPort.split(":");
+    const port = parseInt(portStr) || 5432;
+    return { user, password, host, port, database };
+  } catch { return null; }
+}
+
 let pool = null;
 if (process.env.DATABASE_URL) {
-  pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 5 });
+  const cfg = parseDbUrl(process.env.DATABASE_URL);
+  if (cfg) {
+    console.log(`[PostgreSQL] Conectando em ${cfg.host}:${cfg.port}/${cfg.database}`);
+    pool = new Pool({ ...cfg, ssl: { rejectUnauthorized: false }, max: 5 });
+  } else {
+    pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 5 });
+  }
   pool.query("SELECT 1").then(() => console.log("[PostgreSQL] Conectado — Supabase")).catch(e => console.warn("[PostgreSQL] Aviso:", e.message));
 } else {
   console.warn("[PostgreSQL] DATABASE_URL não definida — queries de CNPJ desativadas");
