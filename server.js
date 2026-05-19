@@ -269,7 +269,7 @@ function incrementarCota(a, count) {
 let _leadsExtraCache     = null;
 let _leadsExtraCacheAt   = 0;
 let _leadsExtraCacheLoading = null; // Promise em andamento — evita leituras simultâneas
-const LEADS_EXTRA_TTL_MS = 4 * 60 * 60 * 1000; // 4 horas
+const LEADS_EXTRA_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
 const LEADS_BACKUP_PATH  = path.join(__dirname, ".leads_backup.json");
 
 async function getLeadsExtraCache() {
