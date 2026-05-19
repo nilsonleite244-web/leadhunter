@@ -267,6 +267,7 @@ function incrementarCota(a, count) {
 // Evita ler 5.000 docs do Firestore a cada request — recarrega a cada 4h
 let _leadsExtraCache     = null;
 let _leadsExtraCacheAt   = 0;
+let _leadsExtraCacheLoading = null; // Promise em andamento — evita leituras simultâneas
 const LEADS_EXTRA_TTL_MS = 4 * 60 * 60 * 1000; // 4 horas
 
 async function getLeadsExtraCache() {
@@ -274,11 +275,21 @@ async function getLeadsExtraCache() {
   if (_leadsExtraCache && (now - _leadsExtraCacheAt) < LEADS_EXTRA_TTL_MS) {
     return _leadsExtraCache;
   }
-  const snap = await leadsExtraCol().limit(6000).get();
-  _leadsExtraCache  = snap.docs.map(d => ({ id: d.id, data: d.data() }));
-  _leadsExtraCacheAt = now;
-  console.log(`[Cache] leads_extra: ${_leadsExtraCache.length} docs carregados`);
-  return _leadsExtraCache;
+  // Se já há uma leitura em andamento, aguarda ela ao invés de disparar outra
+  if (_leadsExtraCacheLoading) return _leadsExtraCacheLoading;
+  _leadsExtraCacheLoading = leadsExtraCol().limit(6000).get().then(snap => {
+    _leadsExtraCache    = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+    _leadsExtraCacheAt  = Date.now();
+    _leadsExtraCacheLoading = null;
+    console.log(`[Cache] leads_extra: ${_leadsExtraCache.length} docs carregados`);
+    return _leadsExtraCache;
+  }).catch(err => {
+    _leadsExtraCacheLoading = null;
+    // Se falhar e ainda tiver cache antigo, retorna ele em vez de jogar erro
+    if (_leadsExtraCache) { console.warn("[Cache] leads_extra: falha ao atualizar, usando cache antigo"); return _leadsExtraCache; }
+    throw err;
+  });
+  return _leadsExtraCacheLoading;
 }
 
 // ── CACHE DE LEADS GERADOS POR DIA ───────────────────────────────────────────
@@ -353,7 +364,7 @@ function loginRateLimit(ip) {
 // ── AUTH MIDDLEWARE ───────────────────────────────────────────────────────────
 // Cache de token em memória — evita leitura Firestore a cada request
 const _tokenCache = new Map(); // token → { assinante, cachedAt }
-const TOKEN_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+const TOKEN_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hora
 
 function invalidarTokenCache(token) {
   if (token) _tokenCache.delete(token);
