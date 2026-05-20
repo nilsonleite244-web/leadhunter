@@ -1659,6 +1659,25 @@ app.get("/admin/assinantes/problemas", async (req, res) => {
   } catch(e) { res.status(500).json({ error: "Erro interno" }); }
 });
 
+// ── DIAGNÓSTICO POSTGRESQL ───────────────────────────────────────────────────
+app.get("/admin/pg-test", adminMiddleware, async (req, res) => {
+  const results = { pool_ok: !!pool };
+  if (!pool) return res.json(results);
+  const tests = [
+    { key: "ping",        sql: "SELECT 1 AS ok" },
+    { key: "leads_count", sql: "SELECT COUNT(*) FROM leads" },
+    { key: "leads_cols",  sql: "SELECT column_name FROM information_schema.columns WHERE table_name='leads' ORDER BY ordinal_position LIMIT 20" },
+    { key: "leads_row1",  sql: "SELECT cnpj, razao_social, situacao_cadastral FROM leads LIMIT 1" },
+  ];
+  for (const t of tests) {
+    try {
+      const r = await pool.query(t.sql);
+      results[t.key] = { ok: true, rows: r.rows };
+    } catch(e) { results[t.key] = { ok: false, code: e.code, msg: e.message }; }
+  }
+  res.json(results);
+});
+
 // ── DIAGNÓSTICO FIRESTORE ────────────────────────────────────────────────────
 app.get("/admin/firestore-test", adminMiddleware, async (req, res) => {
   const results = {};
