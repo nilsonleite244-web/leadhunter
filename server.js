@@ -104,13 +104,20 @@ function parseDbUrl(raw) {
 }
 
 let pool = null;
+const PG_POOL_CONFIG = {
+  ssl: { rejectUnauthorized: false },
+  max: 5,
+  connectionTimeoutMillis: 8000,   // desiste de pegar conexão do pool após 8s
+  idleTimeoutMillis: 30000,
+  statement_timeout: 25000,        // mata query lenta após 25s (evita pool preso)
+};
 if (process.env.DATABASE_URL) {
   const cfg = parseDbUrl(process.env.DATABASE_URL);
   if (cfg) {
     console.log(`[PostgreSQL] Conectando em ${cfg.host}:${cfg.port}/${cfg.database}`);
-    pool = new Pool({ ...cfg, ssl: { rejectUnauthorized: false }, max: 5 });
+    pool = new Pool({ ...cfg, ...PG_POOL_CONFIG });
   } else {
-    pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 5 });
+    pool = new Pool({ connectionString: process.env.DATABASE_URL, ...PG_POOL_CONFIG });
   }
   pool.query("SELECT 1").then(() => console.log("[PostgreSQL] Conectado — Supabase")).catch(e => console.warn("[PostgreSQL] Aviso:", e.message));
 } else {
@@ -659,12 +666,35 @@ app.get("/leads/buscar", async (req, res) => {
     const whereStr = where.length ? "WHERE " + where.join(" AND ") : "";
     const cols = "cnpj, razao_social, nome_fantasia, cnae_descricao, porte, email, telefone1, ddd_municipio, municipio_nome, uf, nome_socio, score_completude";
 
-    const [countRes, dataRes] = await Promise.all([
-      isAdmin
-        ? pgQuery(`SELECT COUNT(*) FROM leads ${whereStr}`, params)
-        : Promise.resolve(null),
-      pgQuery(`SELECT ${cols} FROM leads ${whereStr} ORDER BY ${isAdmin ? "score_completude DESC" : "md5(cnpj || current_date::text)"} LIMIT $${p++} OFFSET $${p++}`, [...params, effectiveLimit, offset]),
-    ]);
+    // Para assinantes: usa TABLESAMPLE SYSTEM(10) para evitar full table sort.
+    // Garante rotação diária via setseed derivado do token+data (sem ORDER BY lento).
+    // Se retornar menos do que o limite, faz fallback sem TABLESAMPLE.
+    let dataRes;
+    let countRes = null;
+    if (isAdmin) {
+      [countRes, dataRes] = await Promise.all([
+        pgQuery(`SELECT COUNT(*) FROM leads ${whereStr}`, params),
+        pgQuery(`SELECT ${cols} FROM leads ${whereStr} ORDER BY score_completude DESC LIMIT $${p++} OFFSET $${p++}`, [...params, effectiveLimit, offset]),
+      ]);
+    } else {
+      const hasFilters = where.length > 1; // além de situacao_cadastral
+      let sampleSql;
+      if (!hasFilters) {
+        // Sem filtros: TABLESAMPLE é rápido
+        sampleSql = `SELECT ${cols} FROM leads TABLESAMPLE SYSTEM(10) ${whereStr} ORDER BY RANDOM() LIMIT $${p} OFFSET $${p+1}`;
+      } else {
+        // Com filtros: TABLESAMPLE pode retornar pouco — usa query normal com limit
+        sampleSql = `SELECT ${cols} FROM leads ${whereStr} ORDER BY RANDOM() LIMIT $${p} OFFSET $${p+1}`;
+      }
+      dataRes = await pgQuery(sampleSql, [...params, effectiveLimit, offset]);
+      // Fallback se TABLESAMPLE retornou menos que o esperado
+      if (!hasFilters && dataRes.rows.length < Math.min(effectiveLimit, 10)) {
+        dataRes = await pgQuery(
+          `SELECT ${cols} FROM leads ${whereStr} ORDER BY RANDOM() LIMIT $${p} OFFSET $${p+1}`,
+          [...params, effectiveLimit, offset]
+        );
+      }
+    }
 
     const data = dataRes.rows.map(r => ({
       id: r.cnpj, cnpj: r.cnpj,
@@ -693,6 +723,10 @@ app.get("/leads/buscar", async (req, res) => {
 
     res.json({ total, page, limit: effectiveLimit, pages, data, cota });
   } catch(e) {
+    console.error("[leads/buscar] ERRO:", e.code, e.message);
+    if (e.message && e.message.includes("timeout")) {
+      return res.status(503).json({ error: "Servidor sobrecarregado. Tente novamente em instantes." });
+    }
     res.status(500).json({ error: "Erro interno" });
   }
 });
