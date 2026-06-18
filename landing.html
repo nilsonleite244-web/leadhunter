@@ -741,6 +741,33 @@ section { position: relative; overflow: hidden; }
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }
 
+/* ── BOTÃO DEMO ABAIXO DO 🔒 ── */
+.btn-demo-gratuito {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 16px 36px; border-radius: 14px;
+  background: rgba(240,144,48,.15); border: 2px solid rgba(240,144,48,.55);
+  color: #f5b455; font-weight: 800; font-size: 16px; text-decoration: none;
+  transition: all .2s; box-shadow: 0 0 24px rgba(240,144,48,.15);
+}
+.btn-demo-gratuito:hover { background: rgba(240,144,48,.26); border-color: #f09030; transform: translateY(-2px); box-shadow: 0 0 36px rgba(240,144,48,.28); }
+
+/* ── BOTÃO FLUTUANTE ── */
+.float-demo {
+  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(80px);
+  z-index: 999; display: inline-flex; align-items: center; gap: 10px;
+  padding: 14px 28px; border-radius: 50px;
+  background: #f09030; color: #000; font-weight: 900; font-size: 14px;
+  text-decoration: none; white-space: nowrap;
+  box-shadow: 0 6px 28px rgba(240,144,48,.45);
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .3s, box-shadow .2s;
+  opacity: 0; pointer-events: none; cursor: pointer; border: none; font-family: inherit;
+}
+.float-demo.visible { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
+.float-demo:hover { box-shadow: 0 8px 36px rgba(240,144,48,.6); }
+@media(max-width:480px){
+  .float-demo { font-size: 13px; padding: 13px 22px; bottom: 16px; }
+}
+
 /* ═══════════════ FINAL CTA ═══════════════ */
 .final-cta {
   background: var(--bg2); padding: 140px 24px;
@@ -921,7 +948,7 @@ footer {
         </a>
       </div>
 
-      <a href="/demo" class="btn-demo-hero">
+      <a href="#demo-gratuito" class="btn-demo-hero" onclick="scrollToDemo(event)">
         🎯 Testar o sistema na prática — grátis, sem cadastro
       </a>
 
@@ -1395,8 +1422,20 @@ footer {
       <span>🔒</span>
       <span>Pagamento 100% seguro · Cancele quando quiser · Acesso imediato após confirmação</span>
     </div>
+
+    <div id="demo-gratuito" class="demo-gratuito-wrap reveal" style="margin-top:28px;text-align:center">
+      <a href="/demo" class="btn-demo-gratuito">
+        🎯 Quero testar gratuitamente — sem cadastro, sem cartão
+      </a>
+      <p style="margin-top:10px;font-size:12px;color:var(--text-2)">Acesso imediato a 50 leads reais com WhatsApp, Instagram e script pronto</p>
+    </div>
   </div>
 </section>
+
+<!-- ══ BOTÃO FLUTUANTE ══ -->
+<button class="float-demo" id="floatDemo" onclick="scrollToDemo()">
+  🎯 Testar grátis — sem cadastro
+</button>
 
 <!-- ══ FINAL CTA ══ -->
 <section class="final-cta">
@@ -1604,6 +1643,31 @@ function addHeroLead() {
   feed.appendChild(el);
 
   document.getElementById('mockup-count').textContent = heroCount * 12 + 436;
+}
+
+// ══ BOTÃO FLUTUANTE ══
+(function() {
+  const btn = document.getElementById('floatDemo');
+  let heroBottom = 0;
+  function calcHero() {
+    const hero = document.querySelector('.hero');
+    heroBottom = hero ? hero.getBoundingClientRect().bottom + window.scrollY : 400;
+  }
+  calcHero();
+  window.addEventListener('resize', calcHero);
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > heroBottom - 100) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+    }
+  }, { passive: true });
+})();
+
+function scrollToDemo(e) {
+  if (e) e.preventDefault();
+  const target = document.getElementById('demo-gratuito');
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 // ══ DEMO FEED ══
