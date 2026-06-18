@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste Grátis — Hunter Leads</title>
+  <meta name="description" content="Experimente o Hunter Leads gratuitamente. 50 leads de exemplo com WhatsApp, Instagram e script de abordagem pronto.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --amber:#f09030;--amber2:#f5b455;--bg:#08080f;
+      --card:#0d1117;--card2:#0c1016;
+      --border:rgba(240,144,48,.13);--border2:rgba(240,144,48,.25);
+      --text:#e8edf5;--muted:#6888a8;--muted2:#4a6278;
+    }
+    body{background:var(--bg);color:var(--text);font-family:'Inter',Arial,sans-serif;min-height:100vh}
+
+    /* ── HEADER ── */
+    .header{
+      background:rgba(12,16,22,.95);backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--border);padding:14px 24px;
+      display:flex;justify-content:space-between;align-items:center;
+      position:sticky;top:0;z-index:100;gap:12px;
+    }
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+    .logo-icon{font-size:22px}
+    .logo-text{font-weight:900;font-size:17px;color:var(--text)}
+    .demo-badge{
+      background:rgba(240,144,48,.15);border:1px solid var(--border2);
+      color:var(--amber);font-size:10px;font-weight:800;
+      padding:3px 9px;border-radius:20px;letter-spacing:1.5px;text-transform:uppercase;
+    }
+    .header-cta{
+      background:var(--amber);color:#000;font-weight:800;font-size:13px;
+      padding:9px 18px;border-radius:9px;text-decoration:none;white-space:nowrap;flex-shrink:0;
+      transition:opacity .2s;
+    }
+    .header-cta:hover{opacity:.88}
+
+    /* ── BANNER ── */
+    .banner{
+      background:linear-gradient(90deg,rgba(240,144,48,.07),rgba(240,144,48,.03),rgba(240,144,48,.07));
+      border-bottom:1px solid var(--border);
+      padding:11px 20px;text-align:center;font-size:13px;color:var(--muted);
+    }
+    .banner strong{color:var(--amber-light, #f5b455)}
+
+    /* ── MAIN ── */
+    .main{max-width:1040px;margin:0 auto;padding:28px 16px 60px}
+
+    /* ── SEARCH ── */
+    .search-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+    .search-input{
+      flex:1;min-width:200px;background:var(--card2);
+      border:1px solid var(--border);border-radius:10px;
+      padding:12px 16px;color:var(--text);font-size:14px;font-family:inherit;outline:none;
+      transition:border-color .2s;
+    }
+    .search-input:focus{border-color:var(--border2)}
+    .search-input::placeholder{color:var(--muted2)}
+    .filter-select{
+      background:var(--card2);border:1px solid var(--border);border-radius:10px;
+      padding:12px 14px;color:var(--text);font-size:14px;font-family:inherit;outline:none;cursor:pointer;
+    }
+    .filter-select option{background:#0d1117}
+
+    /* ── COUNT ── */
+    .leads-count{font-size:13px;color:var(--muted);margin-bottom:16px}
+    .leads-count strong{color:var(--amber)}
+
+    /* ── GRID ── */
+    .leads-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+
+    /* ── CARD ── */
+    .lead-card{
+      background:var(--card);border:1px solid var(--border);border-radius:13px;
+      padding:16px;transition:border-color .2s,transform .15s;
+    }
+    .lead-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+    .lead-name{font-weight:700;font-size:15px;color:var(--text);margin-bottom:6px;line-height:1.3}
+    .lead-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+    .seg-badge{
+      background:rgba(240,144,48,.1);border:1px solid rgba(240,144,48,.2);
+      color:var(--amber2);font-size:11px;font-weight:700;
+      padding:3px 9px;border-radius:20px;
+    }
+    .lead-city{font-size:12px;color:var(--muted)}
+    .lead-actions{display:flex;gap:7px;flex-wrap:wrap}
+    .btn-ig{
+      background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;
+      border:none;padding:7px 13px;border-radius:7px;font-size:12px;font-weight:700;
+      cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;
+      transition:opacity .2s;
+    }
+    .btn-ig:hover{opacity:.85}
+    .btn-wa{
+      background:#25d366;color:#fff;border:none;padding:7px 13px;border-radius:7px;
+      font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;
+      display:inline-flex;align-items:center;gap:5px;transition:opacity .2s;
+    }
+    .btn-wa:hover{opacity:.85}
+    .btn-script{
+      background:rgba(240,144,48,.12);border:1px solid rgba(240,144,48,.25);
+      color:var(--amber);padding:7px 13px;border-radius:7px;font-size:12px;
+      font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;
+      transition:background .2s;
+    }
+    .btn-script:hover{background:rgba(240,144,48,.2)}
+
+    /* ── EMPTY ── */
+    .empty{text-align:center;padding:60px 20px;color:var(--muted);grid-column:1/-1}
+    .empty-icon{font-size:40px;margin-bottom:12px}
+
+    /* ── MODAL ── */
+    .modal-overlay{
+      display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);
+      z-index:200;align-items:center;justify-content:center;padding:16px;
+    }
+    .modal-overlay.open{display:flex}
+    .modal{
+      background:#0c1016;border:1px solid var(--border2);border-radius:18px;
+      padding:28px;max-width:480px;width:100%;position:relative;
+      animation:popIn .18s ease;
+    }
+    @keyframes popIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+    .modal-close{
+      position:absolute;top:16px;right:16px;background:rgba(255,255,255,.06);
+      border:none;color:var(--muted);font-size:18px;cursor:pointer;
+      width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      transition:background .2s;
+    }
+    .modal-close:hover{background:rgba(255,255,255,.12)}
+    .modal-lead-name{font-weight:800;font-size:17px;margin-bottom:4px}
+    .modal-lead-meta{font-size:12px;color:var(--muted);margin-bottom:18px}
+    .script-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+    .script-box{
+      background:#080c14;border:1px solid var(--border);border-radius:10px;
+      padding:16px;font-size:13px;line-height:1.75;color:#c8d8e8;
+      white-space:pre-wrap;max-height:260px;overflow-y:auto;
+    }
+    .script-box::-webkit-scrollbar{width:4px}
+    .script-box::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+    .modal-actions{display:flex;gap:10px;margin-top:14px}
+    .copy-btn{
+      flex:1;background:var(--amber);color:#000;border:none;
+      padding:13px;border-radius:10px;font-weight:800;font-size:14px;
+      cursor:pointer;font-family:inherit;transition:opacity .2s;
+    }
+    .copy-btn:hover{opacity:.88}
+    .copy-btn.copied{background:#25d366;color:#fff}
+    .wa-script-btn{
+      background:#25d366;color:#fff;border:none;
+      padding:13px 16px;border-radius:10px;font-weight:800;font-size:13px;
+      cursor:pointer;font-family:inherit;text-decoration:none;
+      display:flex;align-items:center;gap:6px;transition:opacity .2s;
+    }
+    .wa-script-btn:hover{opacity:.85}
+
+    /* ── BOTTOM CTA ── */
+    .cta-bottom{
+      background:linear-gradient(135deg,rgba(240,144,48,.08),rgba(240,144,48,.03));
+      border:1px solid var(--border2);border-radius:18px;
+      padding:36px 28px;text-align:center;margin-top:40px;
+    }
+    .cta-bottom h3{font-size:22px;font-weight:900;margin-bottom:10px;line-height:1.3}
+    .cta-bottom p{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:520px;margin-left:auto;margin-right:auto}
+    .cta-plans{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+    .plan-btn{
+      padding:14px 28px;border-radius:11px;font-weight:800;font-size:15px;
+      text-decoration:none;transition:opacity .2s;display:inline-block;
+    }
+    .plan-btn:hover{opacity:.88}
+    .plan-btn.main{background:var(--amber);color:#000}
+    .plan-btn.outline{background:rgba(240,144,48,.1);border:1px solid var(--border2);color:var(--amber)}
+    .cta-note{font-size:12px;color:var(--muted2)}
+
+    @media(max-width:520px){
+      .header{padding:12px 14px}
+      .logo-text{font-size:15px}
+      .header-cta{font-size:12px;padding:8px 13px}
+      .cta-bottom{padding:24px 18px}
+      .cta-bottom h3{font-size:18px}
+      .plan-btn{padding:12px 20px;font-size:14px}
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <a class="logo" href="/landing">
+    <span class="logo-icon">🦊</span>
+    <span class="logo-text">Hunter Leads</span>
+    <span class="demo-badge">DEMO</span>
+  </a>
+  <a class="header-cta" href="https://www.roldpay.com.br/checkout.html?product=33c00cc7-cec9-4792-8090-89f7c64a0fb5">
+    Versão completa →
+  </a>
+</div>
+
+<!-- BANNER -->
+<div class="banner">
+  🎯 <strong>Demonstração gratuita</strong> · 50 leads de exemplo com Instagram, WhatsApp e script de abordagem ·
+  Na versão completa você acessa <strong>150 a 600 leads/dia</strong> por cidade em tempo real
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <div class="search-bar">
+    <input class="search-input" id="searchInput" placeholder="🔍  Buscar por nome, cidade ou segmento..." oninput="render()">
+    <select class="filter-select" id="segFilter" onchange="render()">
+      <option value="">Todos os segmentos</option>
+      <option>Barbearia</option>
+      <option>Pet Shop</option>
+      <option>Academia</option>
+      <option>Clínica Estética</option>
+    </select>
+  </div>
+
+  <div class="leads-count" id="leadsCount"></div>
+  <div class="leads-grid" id="leadsGrid"></div>
+
+  <!-- CTA BOTTOM -->
+  <div class="cta-bottom">
+    <h3>Gostou do que viu? 🚀</h3>
+    <p>
+      Esses são apenas 50 leads de exemplo. Com o plano completo você acessa
+      <strong style="color:var(--amber)">150 a 600 leads reais por dia</strong>,
+      filtrados por nicho, cidade e DDD — atualizados em tempo real, com WhatsApp e Instagram de verdade.
+    </p>
+    <div class="cta-plans">
+      <a class="plan-btn main" href="https://www.roldpay.com.br/checkout.html?product=33c00cc7-cec9-4792-8090-89f7c64a0fb5">
+        Básico — 150/dia · R$97/mês
+      </a>
+      <a class="plan-btn outline" href="https://www.roldpay.com.br/checkout.html?product=b8634c40-b432-4b5b-97a5-e79fc0af8c29">
+        Pro — 300/dia · R$147/mês
+      </a>
+      <a class="plan-btn outline" href="https://www.roldpay.com.br/checkout.html?product=f092a4c8-c0b0-4400-b674-069db1afc031" style="border-color:rgba(167,139,250,.3);color:#a78bfa">
+        Alpha — 600/dia · R$267
+      </a>
+    </div>
+    <p class="cta-note">Acesso imediato após o pagamento · Sem fidelidade</p>
+  </div>
+
+</div><!-- /main -->
+
+<!-- SCRIPT MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-lead-name" id="mName"></div>
+    <div class="modal-lead-meta" id="mMeta"></div>
+    <div class="script-label">📋 Script de abordagem</div>
+    <div class="script-box" id="mScript"></div>
+    <div class="modal-actions">
+      <button class="copy-btn" id="copyBtn" onclick="copyScript()">📋 Copiar script</button>
+      <a class="wa-script-btn" id="waScriptBtn" href="#" target="_blank">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Enviar no WA
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+const LEADS = [
+  {id:"demo_01",nome:"Studio Prado Barber",seg:"Barbearia",handle:"studiopradobarber_",tel:"11999990001",cidade:"São Paulo",uf:"SP"},
+  {id:"demo_02",nome:"Dra. Elvira Morgado",seg:"Clínica Estética",handle:"dra.elviramorgado",tel:"21999990002",cidade:"Rio de Janeiro",uf:"RJ"},
+  {id:"demo_03",nome:"Vila Pet",seg:"Pet Shop",handle:"vilapet_petshop",tel:"61999990003",cidade:"Brasília",uf:"DF"},
+  {id:"demo_04",nome:"JR Guedes Academia",seg:"Academia",handle:"academiajrguedes",tel:"85999990004",cidade:"Fortaleza",uf:"CE"},
+  {id:"demo_05",nome:"Barbearia Conceito",seg:"Barbearia",handle:"_barbeariaconceito_",tel:"31999990005",cidade:"Belo Horizonte",uf:"MG"},
+  {id:"demo_06",nome:"Filhos de Patas Agropet",seg:"Pet Shop",handle:"filhosdepatasagropet",tel:"71999990006",cidade:"Salvador",uf:"BA"},
+  {id:"demo_07",nome:"Barbearia The Brother's",seg:"Barbearia",handle:"barbeariathebrothers2",tel:"48999990007",cidade:"Curitiba",uf:"PR"},
+  {id:"demo_08",nome:"Marcos Fade",seg:"Barbearia",handle:"marcos.fade",tel:"92999990008",cidade:"Manaus",uf:"AM"},
+  {id:"demo_09",nome:"Barbearia Social",seg:"Barbearia",handle:"barbearia_social",tel:"84999990009",cidade:"Natal",uf:"RN"},
+  {id:"demo_10",nome:"Barber Elite",seg:"Barbearia",handle:"barberelite",tel:"81999990010",cidade:"Recife",uf:"PE"},
+  {id:"demo_11",nome:"Barbearia Vintage",seg:"Barbearia",handle:"barbearia.vintage",tel:"51999990011",cidade:"Porto Alegre",uf:"RS"},
+  {id:"demo_12",nome:"Barber Shop Pro",seg:"Barbearia",handle:"barbershoppro",tel:"11999990012",cidade:"São Paulo",uf:"SP"},
+  {id:"demo_13",nome:"Studio Barba",seg:"Barbearia",handle:"studiobarba",tel:"19999990013",cidade:"Campinas",uf:"SP"},
+  {id:"demo_14",nome:"Barbearia Kings",seg:"Barbearia",handle:"barbeariakings",tel:"98999990014",cidade:"São Luís",uf:"MA"},
+  {id:"demo_15",nome:"Mundo Pet",seg:"Pet Shop",handle:"mundopet",tel:"62999990015",cidade:"Goiânia",uf:"GO"},
+  {id:"demo_16",nome:"Pet Care Center",seg:"Pet Shop",handle:"petcarecenter",tel:"91999990016",cidade:"Belém",uf:"PA"},
+  {id:"demo_17",nome:"Pet Max Shop",seg:"Pet Shop",handle:"petmaxshop",tel:"13999990017",cidade:"Santos",uf:"SP"},
+  {id:"demo_18",nome:"Loja Pet Premium",seg:"Pet Shop",handle:"lojapetpremium",tel:"27999990018",cidade:"Vitória",uf:"ES"},
+  {id:"demo_19",nome:"Pet Center Completo",seg:"Pet Shop",handle:"petcentercom",tel:"86999990019",cidade:"Teresina",uf:"PI"},
+  {id:"demo_20",nome:"Academia Fit Life",seg:"Academia",handle:"academiafit_life",tel:"11999990020",cidade:"São Paulo",uf:"SP"},
+  {id:"demo_21",nome:"Academia PowerGym",seg:"Academia",handle:"powergymacademia",tel:"21999990021",cidade:"Rio de Janeiro",uf:"RJ"},
+  {id:"demo_22",nome:"Studio Musculação",seg:"Academia",handle:"studiomusc",tel:"82999990022",cidade:"Maceió",uf:"AL"},
+  {id:"demo_23",nome:"Academia Shape",seg:"Academia",handle:"academiashape",tel:"83999990023",cidade:"João Pessoa",uf:"PB"},
+  {id:"demo_24",nome:"Ginásio Força Total",seg:"Academia",handle:"gimnasiofortotal",tel:"79999990024",cidade:"Aracaju",uf:"SE"},
+  {id:"demo_25",nome:"Clínica Beleza Total",seg:"Clínica Estética",handle:"clinicabeletatotal",tel:"48999990025",cidade:"Florianópolis",uf:"SC"},
+  {id:"demo_26",nome:"Estética & Wellness",seg:"Clínica Estética",handle:"esteticawellness",tel:"11999990026",cidade:"São Paulo",uf:"SP"},
+  {id:"demo_27",nome:"Centro Estético Premium",seg:"Clínica Estética",handle:"centroestpremium",tel:"67999990027",cidade:"Campo Grande",uf:"MS"},
+  {id:"demo_28",nome:"Clínica Derma Beauty",seg:"Clínica Estética",handle:"clinicadermabe",tel:"65999990028",cidade:"Cuiabá",uf:"MT"},
+  {id:"demo_29",nome:"Spa & Estética",seg:"Clínica Estética",handle:"spaestetica",tel:"81999990029",cidade:"Recife",uf:"PE"},
+  {id:"demo_30",nome:"Nobres Barbershop Planalto",seg:"Barbearia",handle:"nobresbarbershop_planalto",tel:"31999990030",cidade:"Contagem",uf:"MG"},
+  {id:"demo_31",nome:"Breno Barber Nobres",seg:"Barbearia",handle:"brenoo_barber",tel:"51999990031",cidade:"Porto Alegre",uf:"RS"},
+  {id:"demo_32",nome:"Estação Barba",seg:"Barbearia",handle:"estacaobarba",tel:"11999990032",cidade:"São Paulo",uf:"SP"},
+  {id:"demo_33",nome:"Barbearia dos Malandros",seg:"Barbearia",handle:"barbearia_malandros",tel:"84999990033",cidade:"Mossoró",uf:"RN"},
+  {id:"demo_34",nome:"Black Barber Studio",seg:"Barbearia",handle:"blackbarberstudio",tel:"21999990034",cidade:"Rio de Janeiro",uf:"RJ"},
+  {id:"demo_35",nome:"Barbearia Nova Era",seg:"Barbearia",handle:"barbearianovaera",tel:"43999990035",cidade:"Londrina",uf:"PR"},
+  {id:"demo_36",nome:"Corte Perfeito Barber",seg:"Barbearia",handle:"corteperfeito",tel:"11999990036",cidade:"São Paulo",uf:"SP"},
+  {id:"demo_37",nome:"Barbearia Gentil",seg:"Barbearia",handle:"barbeariagentil",tel:"99999990037",cidade:"Imperatriz",uf:"MA"},
+  {id:"demo_38",nome:"Master Cut Barbershop",seg:"Barbearia",handle:"mastercutbarber",tel:"34999990038",cidade:"Uberlândia",uf:"MG"},
+  {id:"demo_39",nome:"Barbearia Toca do Leão",seg:"Barbearia",handle:"tocadoleao",tel:"11999990039",cidade:"São Paulo",uf:"SP"},
+  {id:"demo_40",nome:"PetWorld Paradise",seg:"Pet Shop",handle:"petworldparadise",tel:"21999990040",cidade:"Rio de Janeiro",uf:"RJ"},
+  {id:"demo_41",nome:"Animal Planet Petshop",seg:"Pet Shop",handle:"animalplanetpet",tel:"92999990041",cidade:"Manaus",uf:"AM"},
+  {id:"demo_42",nome:"Royal Pet Shop",seg:"Pet Shop",handle:"royalpetshop",tel:"91999990042",cidade:"Belém",uf:"PA"},
+  {id:"demo_43",nome:"Peludos & Cia",seg:"Pet Shop",handle:"peludosecia",tel:"61999990043",cidade:"Brasília",uf:"DF"},
+  {id:"demo_44",nome:"Pet Shop Meu Bichinho",seg:"Pet Shop",handle:"meubichinho",tel:"71999990044",cidade:"Salvador",uf:"BA"},
+  {id:"demo_45",nome:"Arco de Animais",seg:"Pet Shop",handle:"arcodeanim_ais",tel:"86999990045",cidade:"Teresina",uf:"PI"},
+  {id:"demo_46",nome:"Power Iron Gym",seg:"Academia",handle:"powerirongym",tel:"62999990046",cidade:"Goiânia",uf:"GO"},
+  {id:"demo_47",nome:"Musculação Elite",seg:"Academia",handle:"musculacaoelit",tel:"31999990047",cidade:"Belo Horizonte",uf:"MG"},
+  {id:"demo_48",nome:"Fitness Planet",seg:"Academia",handle:"fitnessplanet",tel:"11999990048",cidade:"São Paulo",uf:"SP"},
+  {id:"demo_49",nome:"Força Bruta Academia",seg:"Academia",handle:"forcabrutaacad",tel:"84999990049",cidade:"Natal",uf:"RN"},
+  {id:"demo_50",nome:"Spartans Gym",seg:"Academia",handle:"spartansgym",tel:"41999990050",cidade:"Curitiba",uf:"PR"},
+];
+
+const SCRIPTS = {
+  "Barbearia": (nome, cidade) =>
+`Oi, tudo bem? 👋
+
+Vi a ${nome} aqui no Instagram e queria bater um papo rápido!
+
+Trabalho com um sistema que encontra pessoas em ${cidade} que estão ativamente buscando barbearia — e entrega o contato delas no mesmo dia.
+
+Você chega primeiro, antes da concorrência. Sem precisar pagar anúncio.
+
+Posso te mostrar como funciona em 5 minutos? 😊`,
+
+  "Pet Shop": (nome, cidade) =>
+`Olá! Tudo bem? 😊
+
+Vi a ${nome} no Instagram e achei que faria sentido te apresentar algo.
+
+Tenho um sistema que localiza tutores de pets em ${cidade} que estão procurando pet shop agora — e entrega o WhatsApp deles pra você entrar em contato direto.
+
+Sem anúncio, sem esperar o cliente chegar. Você vai até ele primeiro.
+
+Posso te contar mais em 5 minutos?`,
+
+  "Academia": (nome, cidade) =>
+`Oi! Tudo certo? 💪
+
+Vi a ${nome} no Instagram e queria apresentar algo que pode aumentar suas matrículas.
+
+Tenho um sistema que identifica pessoas em ${cidade} que estão buscando academia agora — e entrega o contato direto pra você abordar antes da concorrência.
+
+São poucos minutos de conversa, mas pode fazer muita diferença nas matrículas do mês.
+
+Posso te mostrar como funciona?`,
+
+  "Clínica Estética": (nome, cidade) =>
+`Olá! Tudo bem? ✨
+
+Vi a ${nome} no Instagram e queria compartilhar algo que pode trazer mais pacientes pra vocês.
+
+Tenho um sistema que localiza pessoas em ${cidade} que estão buscando clínica estética — e entrega o contato delas pra você fazer a abordagem antes que elas escolham outro lugar.
+
+São só 5 minutos pra te explicar. Posso falar agora?`,
+};
+
+function getScript(seg, nome, cidade) {
+  return (SCRIPTS[seg] || SCRIPTS["Barbearia"])(nome, cidade);
+}
+
+let currentScript = '';
+let currentWaLink = '';
+
+function render() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const seg = document.getElementById('segFilter').value;
+  const filtered = LEADS.filter(l =>
+    (!q || l.nome.toLowerCase().includes(q) || l.cidade.toLowerCase().includes(q) || l.seg.toLowerCase().includes(q)) &&
+    (!seg || l.seg === seg)
+  );
+
+  document.getElementById('leadsCount').innerHTML =
+    `<strong>${filtered.length}</strong> lead${filtered.length !== 1 ? 's' : ''} encontrado${filtered.length !== 1 ? 's' : ''}`;
+
+  const grid = document.getElementById('leadsGrid');
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div>Nenhum lead encontrado para esse filtro.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(l => `
+    <div class="lead-card">
+      <div class="lead-name">${esc(l.nome)}</div>
+      <div class="lead-meta">
+        <span class="seg-badge">${esc(l.seg)}</span>
+        <span class="lead-city">📍 ${esc(l.cidade)}, ${esc(l.uf)}</span>
+      </div>
+      <div class="lead-actions">
+        <a class="btn-ig" href="https://instagram.com/${esc(l.handle)}" target="_blank" rel="noopener">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          Instagram
+        </a>
+        <a class="btn-wa" href="https://wa.me/55${esc(l.tel)}" target="_blank" rel="noopener">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp
+        </a>
+        <button class="btn-script" onclick="openScript('${esc(l.id)}')">
+          📋 Script
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function openScript(id) {
+  const l = LEADS.find(x => x.id === id);
+  if (!l) return;
+  currentScript = getScript(l.seg, l.nome, l.cidade);
+  currentWaLink = `https://wa.me/55${l.tel}?text=${encodeURIComponent(currentScript)}`;
+  document.getElementById('mName').textContent = l.nome;
+  document.getElementById('mMeta').textContent = `${l.seg} · ${l.cidade}, ${l.uf}`;
+  document.getElementById('mScript').textContent = currentScript;
+  document.getElementById('waScriptBtn').href = currentWaLink;
+  const btn = document.getElementById('copyBtn');
+  btn.textContent = '📋 Copiar script';
+  btn.className = 'copy-btn';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function overlayClick(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function copyScript() {
+  navigator.clipboard.writeText(currentScript).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ Copiado!';
+    btn.className = 'copy-btn copied';
+    setTimeout(() => {
+      btn.textContent = '📋 Copiar script';
+      btn.className = 'copy-btn';
+    }, 2500);
+  });
+}
+
+render();
+</script>
+</body>
+</html>
