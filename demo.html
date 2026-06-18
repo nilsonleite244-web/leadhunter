@@ -176,6 +176,33 @@
     .plan-btn.outline{background:rgba(240,144,48,.1);border:1px solid var(--border2);color:var(--amber)}
     .cta-note{font-size:12px;color:var(--muted2)}
 
+    /* ── BUSCAR BTN ── */
+    .buscar-wrap{text-align:center;margin-bottom:8px}
+    .btn-buscar{
+      display:inline-flex;align-items:center;gap:10px;
+      background:var(--amber);color:#000;border:none;
+      padding:15px 40px;border-radius:12px;font-weight:900;font-size:16px;
+      cursor:pointer;font-family:inherit;transition:opacity .2s,transform .15s;
+    }
+    .btn-buscar:hover{opacity:.88;transform:translateY(-1px)}
+    .btn-buscar:active{transform:translateY(0)}
+    .btn-buscar svg{flex-shrink:0}
+
+    /* ── INITIAL STATE ── */
+    .initial-state{
+      text-align:center;padding:70px 20px;
+    }
+    .initial-icon{
+      width:72px;height:72px;border-radius:50%;
+      background:rgba(240,144,48,.1);border:2px solid rgba(240,144,48,.2);
+      display:inline-flex;align-items:center;justify-content:center;
+      font-size:30px;margin-bottom:20px;
+      animation:pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(240,144,48,.3)}50%{box-shadow:0 0 0 14px rgba(240,144,48,0)}}
+    .initial-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px}
+    .initial-sub{font-size:14px;color:var(--muted);line-height:1.6}
+
     @media(max-width:520px){
       .header{padding:12px 14px}
       .logo-text{font-size:15px}
@@ -210,8 +237,8 @@
 <div class="main">
 
   <div class="search-bar">
-    <input class="search-input" id="searchInput" placeholder="🔍  Buscar por nome, cidade ou segmento..." oninput="render()">
-    <select class="filter-select" id="segFilter" onchange="render()">
+    <input class="search-input" id="searchInput" placeholder="🔍  Buscar por nome, cidade ou segmento..." onkeydown="if(event.key==='Enter')buscar()">
+    <select class="filter-select" id="segFilter">
       <option value="">Todos os segmentos</option>
       <option>Barbearia</option>
       <option>Pet Shop</option>
@@ -220,8 +247,22 @@
     </select>
   </div>
 
+  <div class="buscar-wrap">
+    <button class="btn-buscar" onclick="buscar()">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Buscar Leads
+    </button>
+  </div>
+
   <div class="leads-count" id="leadsCount"></div>
-  <div class="leads-grid" id="leadsGrid"></div>
+
+  <div class="initial-state" id="initialState">
+    <div class="initial-icon">🎯</div>
+    <div class="initial-title">50 leads de demonstração disponíveis</div>
+    <div class="initial-sub">Configure os filtros acima e clique em <strong style="color:var(--amber)">Buscar Leads</strong><br>para ver os exemplos com Instagram, WhatsApp e script pronto.</div>
+  </div>
+
+  <div class="leads-grid" id="leadsGrid" style="display:none"></div>
 
   <!-- CTA BOTTOM -->
   <div class="cta-bottom">
@@ -370,7 +411,17 @@ function getScript(seg, nome, cidade) {
 let currentScript = '';
 let currentWaLink = '';
 
+let searched = false;
+
+function buscar() {
+  searched = true;
+  document.getElementById('initialState').style.display = 'none';
+  document.getElementById('leadsGrid').style.display = 'grid';
+  render();
+}
+
 function render() {
+  if (!searched) return;
   const q = document.getElementById('searchInput').value.toLowerCase().trim();
   const seg = document.getElementById('segFilter').value;
   const filtered = LEADS.filter(l =>
@@ -449,7 +500,6 @@ function copyScript() {
   });
 }
 
-render();
 </script>
 </body>
 </html>
