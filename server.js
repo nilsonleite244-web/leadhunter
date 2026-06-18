@@ -1113,6 +1113,7 @@ app.get("/demo/leads", async (req, res) => {
   try {
     const cache = await getLeadsExtraCache();
     const leads = cache
+      .sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
       .map(({ id, data: d }) => docToLead(id, d))
       .filter(l => l.whatsapp_url && l.instagram_url)
       .slice(0, 50);
