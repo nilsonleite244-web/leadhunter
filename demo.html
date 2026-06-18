@@ -24,6 +24,13 @@
       display:flex;justify-content:space-between;align-items:center;
       position:sticky;top:0;z-index:100;gap:12px;
     }
+    .btn-back{
+      display:inline-flex;align-items:center;gap:6px;
+      color:var(--muted);font-size:13px;font-weight:600;text-decoration:none;
+      padding:7px 12px;border-radius:8px;border:1px solid var(--border);
+      background:rgba(255,255,255,.03);transition:all .2s;flex-shrink:0;
+    }
+    .btn-back:hover{color:var(--text);background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12)}
     .logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
     .logo-icon{font-size:22px}
     .logo-text{font-weight:900;font-size:17px;color:var(--text)}
@@ -316,6 +323,10 @@
 
 <!-- HEADER -->
 <div class="header">
+  <a class="btn-back" href="/landing">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Voltar
+  </a>
   <a class="logo" href="/landing">
     <span class="logo-icon">🦊</span>
     <span class="logo-text">Hunter Leads</span>
