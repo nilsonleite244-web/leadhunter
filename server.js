@@ -484,7 +484,7 @@ async function verificarCota(req, res, count) {
     const msgs = {
       mensal:      "Faça upgrade para o plano Pro (300/dia) ou Alpha Member (600/dia).",
       trimestral:  "Faça upgrade para o plano Alpha Member para ter 600 leads/dia.",
-      vitalicio:   "Você atingiu o limite diário do plano Alpha Member.",
+      vitalicio:   "Você atingiu o limite diário do plano Alpha Member. A cota renova automaticamente à meia-noite.",
     };
     res.status(429).json({
       error: `Limite de ${limite} leads/dia atingido no plano ${PLANOS_LABEL[a.plano] || a.plano}.`,
@@ -538,7 +538,7 @@ app.get("/leads/instagram", async (req, res) => {
         const msgs = {
           mensal:     "Faça upgrade para o plano Pro (300/dia) ou Alpha Member (600/dia).",
           trimestral: "Faça upgrade para o plano Alpha Member para ter 600 leads/dia.",
-          vitalicio:  "Você atingiu o limite diário do plano Alpha Member.",
+          vitalicio:  "Você atingiu o limite diário do plano Alpha Member. A cota renova automaticamente à meia-noite.",
         };
         return res.status(429).json({
           error: `Limite de ${limite} leads/dia atingido no plano ${PLANOS_LABEL[a.plano] || a.plano}.`,
@@ -622,7 +622,7 @@ app.get("/leads/buscar", async (req, res) => {
         const msgs = {
           mensal:     "Faça upgrade para o plano Pro (300/dia) ou Alpha Member (600/dia).",
           trimestral: "Faça upgrade para o plano Alpha Member para ter 600 leads/dia.",
-          vitalicio:  "Você atingiu o limite diário do plano Alpha Member.",
+          vitalicio:  "Você atingiu o limite diário do plano Alpha Member. A cota renova automaticamente à meia-noite.",
         };
         return res.status(429).json({
           error: `Limite de ${limite} leads/dia atingido no plano ${PLANOS_LABEL[a.plano] || a.plano}.`,
@@ -1224,17 +1224,25 @@ app.post("/webhook/roldpay", rawBody, async (req, res) => {
       const email       = data.customer?.email;
       const nome        = data.customer?.name  || "";
       const txId        = data.payment?.id     || "";
-      const productName = data.product?.name   || "";
       if (!email) return res.json({ ok: true, msg: "sem email no payload" });
 
-      // Mapeamento pelo nome do produto no ROLDPAY
-      const n = productName.toLowerCase();
-      const plano = n.includes("alpha") ? "vitalicio" : n.includes("pro") ? "trimestral" : "mensal";
+      if (txId) {
+        try {
+          await db.collection("webhooks_processados").doc(txId).create({ email, at: new Date() });
+        } catch(e) {
+          if (e.code === 6) {
+            console.log(`[ROLDPAY webhook] duplicado ignorado: ${txId}`);
+            return res.json({ ok: true, msg: "duplicado" });
+          }
+        }
+      }
+
+      const plano = detectarPlano(data);
 
       const token = await processarPagamento(email, nome, txId, data, "ROLDPAY", plano);
       await enviarEmailResend(email, nome, token, plano);
       console.log(`[ROLDPAY] processado: ${email} plano=${plano} token=${token ? "novo" : "renovação"}`);
-    } else if (["subscription.cancelled", "payment.rejected"].includes(evento)) {
+    } else if (evento === "subscription.cancelled") {
       const email = data.customer?.email;
       if (email) {
         await assinantesCol().doc(email.toLowerCase().trim()).update({
