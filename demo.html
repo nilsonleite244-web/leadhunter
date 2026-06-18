@@ -45,7 +45,7 @@
       border-bottom:1px solid var(--border);
       padding:11px 20px;text-align:center;font-size:13px;color:var(--muted);
     }
-    .banner strong{color:var(--amber-light, #f5b455)}
+    .banner strong{color:var(--amber2)}
 
     /* ── MAIN ── */
     .main{max-width:1040px;margin:0 auto;padding:28px 16px 60px}
@@ -77,7 +77,9 @@
     .lead-card{
       background:var(--card);border:1px solid var(--border);border-radius:13px;
       padding:16px;transition:border-color .2s,transform .15s;
+      animation:fadeUp .3s ease both;
     }
+    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
     .lead-card:hover{border-color:var(--border2);transform:translateY(-1px)}
     .lead-name{font-weight:700;font-size:15px;color:var(--text);margin-bottom:6px;line-height:1.3}
     .lead-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
@@ -109,7 +111,7 @@
     }
     .btn-script:hover{background:rgba(240,144,48,.2)}
 
-    /* ── EMPTY ── */
+    /* ── EMPTY / ERROR ── */
     .empty{text-align:center;padding:60px 20px;color:var(--muted);grid-column:1/-1}
     .empty-icon{font-size:40px;margin-bottom:12px}
 
@@ -186,12 +188,11 @@
     }
     .btn-buscar:hover{opacity:.88;transform:translateY(-1px)}
     .btn-buscar:active{transform:translateY(0)}
+    .btn-buscar:disabled{opacity:.55;cursor:not-allowed;transform:none}
     .btn-buscar svg{flex-shrink:0}
 
     /* ── INITIAL STATE ── */
-    .initial-state{
-      text-align:center;padding:70px 20px;
-    }
+    .initial-state{text-align:center;padding:70px 20px}
     .initial-icon{
       width:72px;height:72px;border-radius:50%;
       background:rgba(240,144,48,.1);border:2px solid rgba(240,144,48,.2);
@@ -202,6 +203,48 @@
     @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(240,144,48,.3)}50%{box-shadow:0 0 0 14px rgba(240,144,48,0)}}
     .initial-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px}
     .initial-sub{font-size:14px;color:var(--muted);line-height:1.6}
+
+    /* ── SEARCH ANIMATION ── */
+    .search-anim{
+      text-align:center;padding:70px 20px;
+    }
+    .radar-wrap{
+      position:relative;width:80px;height:80px;
+      display:inline-flex;align-items:center;justify-content:center;
+      margin-bottom:24px;
+    }
+    .radar-ring{
+      position:absolute;border-radius:50%;border:2px solid rgba(240,144,48,.35);
+      animation:radarPulse 1.8s ease-out infinite;
+    }
+    .radar-ring.r1{width:80px;height:80px;animation-delay:0s}
+    .radar-ring.r2{width:80px;height:80px;animation-delay:.6s}
+    .radar-ring.r3{width:80px;height:80px;animation-delay:1.2s}
+    @keyframes radarPulse{
+      0%{transform:scale(.4);opacity:.9;border-color:rgba(240,144,48,.6)}
+      100%{transform:scale(1.9);opacity:0;border-color:rgba(240,144,48,0)}
+    }
+    .radar-core{
+      width:42px;height:42px;border-radius:50%;
+      background:rgba(240,144,48,.12);border:2px solid rgba(240,144,48,.4);
+      display:flex;align-items:center;justify-content:center;
+      font-size:20px;position:relative;z-index:1;
+    }
+    .radar-sweep{
+      position:absolute;width:42px;height:42px;border-radius:50%;
+      background:conic-gradient(from 0deg,transparent 75%,rgba(240,144,48,.35) 100%);
+      animation:sweep 1.4s linear infinite;z-index:2;
+    }
+    @keyframes sweep{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    .anim-status{
+      font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;
+      transition:opacity .3s;
+    }
+    .anim-dots::after{
+      content:'';animation:dots 1.4s steps(4,end) infinite;
+    }
+    @keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}100%{content:''}}
+    .anim-sub{font-size:13px;color:var(--muted)}
 
     @media(max-width:520px){
       .header{padding:12px 14px}
@@ -229,7 +272,7 @@
 
 <!-- BANNER -->
 <div class="banner">
-  🎯 <strong>Demonstração gratuita</strong> · 50 leads de exemplo com Instagram, WhatsApp e script de abordagem ·
+  🎯 <strong>Demonstração gratuita</strong> · 50 leads reais com Instagram, WhatsApp e script de abordagem ·
   Na versão completa você acessa <strong>150 a 600 leads/dia</strong> por cidade em tempo real
 </div>
 
@@ -238,17 +281,13 @@
 
   <div class="search-bar">
     <input class="search-input" id="searchInput" placeholder="🔍  Buscar por nome, cidade ou segmento..." onkeydown="if(event.key==='Enter')buscar()">
-    <select class="filter-select" id="segFilter">
+    <select class="filter-select" id="segFilter" onchange="renderFiltered()">
       <option value="">Todos os segmentos</option>
-      <option>Barbearia</option>
-      <option>Pet Shop</option>
-      <option>Academia</option>
-      <option>Clínica Estética</option>
     </select>
   </div>
 
   <div class="buscar-wrap">
-    <button class="btn-buscar" onclick="buscar()">
+    <button class="btn-buscar" id="btnBuscar" onclick="buscar()">
       <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       Buscar Leads
     </button>
@@ -256,12 +295,27 @@
 
   <div class="leads-count" id="leadsCount"></div>
 
+  <!-- Estado inicial -->
   <div class="initial-state" id="initialState">
     <div class="initial-icon">🎯</div>
-    <div class="initial-title">50 leads de demonstração disponíveis</div>
-    <div class="initial-sub">Configure os filtros acima e clique em <strong style="color:var(--amber)">Buscar Leads</strong><br>para ver os exemplos com Instagram, WhatsApp e script pronto.</div>
+    <div class="initial-title">50 leads reais disponíveis</div>
+    <div class="initial-sub">Clique em <strong style="color:var(--amber)">Buscar Leads</strong> para ver<br>exemplos com Instagram, WhatsApp e script de abordagem pronto.</div>
   </div>
 
+  <!-- Animação de busca -->
+  <div class="search-anim" id="searchAnim" style="display:none">
+    <div class="radar-wrap">
+      <div class="radar-ring r1"></div>
+      <div class="radar-ring r2"></div>
+      <div class="radar-ring r3"></div>
+      <div class="radar-sweep"></div>
+      <div class="radar-core">🔍</div>
+    </div>
+    <div class="anim-status"><span id="animStatus">Conectando ao banco de leads</span><span class="anim-dots"></span></div>
+    <div class="anim-sub">Localizando contatos verificados...</div>
+  </div>
+
+  <!-- Grid de leads -->
   <div class="leads-grid" id="leadsGrid" style="display:none"></div>
 
   <!-- CTA BOTTOM -->
@@ -307,127 +361,116 @@
 </div>
 
 <script>
-const LEADS = [
-  {id:"demo_01",nome:"Studio Prado Barber",seg:"Barbearia",handle:"studiopradobarber_",tel:"11999990001",cidade:"São Paulo",uf:"SP"},
-  {id:"demo_02",nome:"Dra. Elvira Morgado",seg:"Clínica Estética",handle:"dra.elviramorgado",tel:"21999990002",cidade:"Rio de Janeiro",uf:"RJ"},
-  {id:"demo_03",nome:"Vila Pet",seg:"Pet Shop",handle:"vilapet_petshop",tel:"61999990003",cidade:"Brasília",uf:"DF"},
-  {id:"demo_04",nome:"JR Guedes Academia",seg:"Academia",handle:"academiajrguedes",tel:"85999990004",cidade:"Fortaleza",uf:"CE"},
-  {id:"demo_05",nome:"Barbearia Conceito",seg:"Barbearia",handle:"_barbeariaconceito_",tel:"31999990005",cidade:"Belo Horizonte",uf:"MG"},
-  {id:"demo_06",nome:"Filhos de Patas Agropet",seg:"Pet Shop",handle:"filhosdepatasagropet",tel:"71999990006",cidade:"Salvador",uf:"BA"},
-  {id:"demo_07",nome:"Barbearia The Brother's",seg:"Barbearia",handle:"barbeariathebrothers2",tel:"48999990007",cidade:"Curitiba",uf:"PR"},
-  {id:"demo_08",nome:"Marcos Fade",seg:"Barbearia",handle:"marcos.fade",tel:"92999990008",cidade:"Manaus",uf:"AM"},
-  {id:"demo_09",nome:"Barbearia Social",seg:"Barbearia",handle:"barbearia_social",tel:"84999990009",cidade:"Natal",uf:"RN"},
-  {id:"demo_10",nome:"Barber Elite",seg:"Barbearia",handle:"barberelite",tel:"81999990010",cidade:"Recife",uf:"PE"},
-  {id:"demo_11",nome:"Barbearia Vintage",seg:"Barbearia",handle:"barbearia.vintage",tel:"51999990011",cidade:"Porto Alegre",uf:"RS"},
-  {id:"demo_12",nome:"Barber Shop Pro",seg:"Barbearia",handle:"barbershoppro",tel:"11999990012",cidade:"São Paulo",uf:"SP"},
-  {id:"demo_13",nome:"Studio Barba",seg:"Barbearia",handle:"studiobarba",tel:"19999990013",cidade:"Campinas",uf:"SP"},
-  {id:"demo_14",nome:"Barbearia Kings",seg:"Barbearia",handle:"barbeariakings",tel:"98999990014",cidade:"São Luís",uf:"MA"},
-  {id:"demo_15",nome:"Mundo Pet",seg:"Pet Shop",handle:"mundopet",tel:"62999990015",cidade:"Goiânia",uf:"GO"},
-  {id:"demo_16",nome:"Pet Care Center",seg:"Pet Shop",handle:"petcarecenter",tel:"91999990016",cidade:"Belém",uf:"PA"},
-  {id:"demo_17",nome:"Pet Max Shop",seg:"Pet Shop",handle:"petmaxshop",tel:"13999990017",cidade:"Santos",uf:"SP"},
-  {id:"demo_18",nome:"Loja Pet Premium",seg:"Pet Shop",handle:"lojapetpremium",tel:"27999990018",cidade:"Vitória",uf:"ES"},
-  {id:"demo_19",nome:"Pet Center Completo",seg:"Pet Shop",handle:"petcentercom",tel:"86999990019",cidade:"Teresina",uf:"PI"},
-  {id:"demo_20",nome:"Academia Fit Life",seg:"Academia",handle:"academiafit_life",tel:"11999990020",cidade:"São Paulo",uf:"SP"},
-  {id:"demo_21",nome:"Academia PowerGym",seg:"Academia",handle:"powergymacademia",tel:"21999990021",cidade:"Rio de Janeiro",uf:"RJ"},
-  {id:"demo_22",nome:"Studio Musculação",seg:"Academia",handle:"studiomusc",tel:"82999990022",cidade:"Maceió",uf:"AL"},
-  {id:"demo_23",nome:"Academia Shape",seg:"Academia",handle:"academiashape",tel:"83999990023",cidade:"João Pessoa",uf:"PB"},
-  {id:"demo_24",nome:"Ginásio Força Total",seg:"Academia",handle:"gimnasiofortotal",tel:"79999990024",cidade:"Aracaju",uf:"SE"},
-  {id:"demo_25",nome:"Clínica Beleza Total",seg:"Clínica Estética",handle:"clinicabeletatotal",tel:"48999990025",cidade:"Florianópolis",uf:"SC"},
-  {id:"demo_26",nome:"Estética & Wellness",seg:"Clínica Estética",handle:"esteticawellness",tel:"11999990026",cidade:"São Paulo",uf:"SP"},
-  {id:"demo_27",nome:"Centro Estético Premium",seg:"Clínica Estética",handle:"centroestpremium",tel:"67999990027",cidade:"Campo Grande",uf:"MS"},
-  {id:"demo_28",nome:"Clínica Derma Beauty",seg:"Clínica Estética",handle:"clinicadermabe",tel:"65999990028",cidade:"Cuiabá",uf:"MT"},
-  {id:"demo_29",nome:"Spa & Estética",seg:"Clínica Estética",handle:"spaestetica",tel:"81999990029",cidade:"Recife",uf:"PE"},
-  {id:"demo_30",nome:"Nobres Barbershop Planalto",seg:"Barbearia",handle:"nobresbarbershop_planalto",tel:"31999990030",cidade:"Contagem",uf:"MG"},
-  {id:"demo_31",nome:"Breno Barber Nobres",seg:"Barbearia",handle:"brenoo_barber",tel:"51999990031",cidade:"Porto Alegre",uf:"RS"},
-  {id:"demo_32",nome:"Estação Barba",seg:"Barbearia",handle:"estacaobarba",tel:"11999990032",cidade:"São Paulo",uf:"SP"},
-  {id:"demo_33",nome:"Barbearia dos Malandros",seg:"Barbearia",handle:"barbearia_malandros",tel:"84999990033",cidade:"Mossoró",uf:"RN"},
-  {id:"demo_34",nome:"Black Barber Studio",seg:"Barbearia",handle:"blackbarberstudio",tel:"21999990034",cidade:"Rio de Janeiro",uf:"RJ"},
-  {id:"demo_35",nome:"Barbearia Nova Era",seg:"Barbearia",handle:"barbearianovaera",tel:"43999990035",cidade:"Londrina",uf:"PR"},
-  {id:"demo_36",nome:"Corte Perfeito Barber",seg:"Barbearia",handle:"corteperfeito",tel:"11999990036",cidade:"São Paulo",uf:"SP"},
-  {id:"demo_37",nome:"Barbearia Gentil",seg:"Barbearia",handle:"barbeariagentil",tel:"99999990037",cidade:"Imperatriz",uf:"MA"},
-  {id:"demo_38",nome:"Master Cut Barbershop",seg:"Barbearia",handle:"mastercutbarber",tel:"34999990038",cidade:"Uberlândia",uf:"MG"},
-  {id:"demo_39",nome:"Barbearia Toca do Leão",seg:"Barbearia",handle:"tocadoleao",tel:"11999990039",cidade:"São Paulo",uf:"SP"},
-  {id:"demo_40",nome:"PetWorld Paradise",seg:"Pet Shop",handle:"petworldparadise",tel:"21999990040",cidade:"Rio de Janeiro",uf:"RJ"},
-  {id:"demo_41",nome:"Animal Planet Petshop",seg:"Pet Shop",handle:"animalplanetpet",tel:"92999990041",cidade:"Manaus",uf:"AM"},
-  {id:"demo_42",nome:"Royal Pet Shop",seg:"Pet Shop",handle:"royalpetshop",tel:"91999990042",cidade:"Belém",uf:"PA"},
-  {id:"demo_43",nome:"Peludos & Cia",seg:"Pet Shop",handle:"peludosecia",tel:"61999990043",cidade:"Brasília",uf:"DF"},
-  {id:"demo_44",nome:"Pet Shop Meu Bichinho",seg:"Pet Shop",handle:"meubichinho",tel:"71999990044",cidade:"Salvador",uf:"BA"},
-  {id:"demo_45",nome:"Arco de Animais",seg:"Pet Shop",handle:"arcodeanim_ais",tel:"86999990045",cidade:"Teresina",uf:"PI"},
-  {id:"demo_46",nome:"Power Iron Gym",seg:"Academia",handle:"powerirongym",tel:"62999990046",cidade:"Goiânia",uf:"GO"},
-  {id:"demo_47",nome:"Musculação Elite",seg:"Academia",handle:"musculacaoelit",tel:"31999990047",cidade:"Belo Horizonte",uf:"MG"},
-  {id:"demo_48",nome:"Fitness Planet",seg:"Academia",handle:"fitnessplanet",tel:"11999990048",cidade:"São Paulo",uf:"SP"},
-  {id:"demo_49",nome:"Força Bruta Academia",seg:"Academia",handle:"forcabrutaacad",tel:"84999990049",cidade:"Natal",uf:"RN"},
-  {id:"demo_50",nome:"Spartans Gym",seg:"Academia",handle:"spartansgym",tel:"41999990050",cidade:"Curitiba",uf:"PR"},
+const API = 'https://leadhunter-production-ede3.up.railway.app/demo/leads';
+const STATUS_MSGS = [
+  'Conectando ao banco de leads',
+  'Filtrando por segmento',
+  'Verificando Instagram e WhatsApp',
+  'Preparando os resultados',
 ];
 
-const SCRIPTS = {
-  "Barbearia": (nome, cidade) =>
-`Oi, tudo bem? 👋
-
-Vi a ${nome} aqui no Instagram e queria bater um papo rápido!
-
-Trabalho com um sistema que encontra pessoas em ${cidade} que estão ativamente buscando barbearia — e entrega o contato delas no mesmo dia.
-
-Você chega primeiro, antes da concorrência. Sem precisar pagar anúncio.
-
-Posso te mostrar como funciona em 5 minutos? 😊`,
-
-  "Pet Shop": (nome, cidade) =>
-`Olá! Tudo bem? 😊
-
-Vi a ${nome} no Instagram e achei que faria sentido te apresentar algo.
-
-Tenho um sistema que localiza tutores de pets em ${cidade} que estão procurando pet shop agora — e entrega o WhatsApp deles pra você entrar em contato direto.
-
-Sem anúncio, sem esperar o cliente chegar. Você vai até ele primeiro.
-
-Posso te contar mais em 5 minutos?`,
-
-  "Academia": (nome, cidade) =>
-`Oi! Tudo certo? 💪
-
-Vi a ${nome} no Instagram e queria apresentar algo que pode aumentar suas matrículas.
-
-Tenho um sistema que identifica pessoas em ${cidade} que estão buscando academia agora — e entrega o contato direto pra você abordar antes da concorrência.
-
-São poucos minutos de conversa, mas pode fazer muita diferença nas matrículas do mês.
-
-Posso te mostrar como funciona?`,
-
-  "Clínica Estética": (nome, cidade) =>
-`Olá! Tudo bem? ✨
-
-Vi a ${nome} no Instagram e queria compartilhar algo que pode trazer mais pacientes pra vocês.
-
-Tenho um sistema que localiza pessoas em ${cidade} que estão buscando clínica estética — e entrega o contato delas pra você fazer a abordagem antes que elas escolham outro lugar.
-
-São só 5 minutos pra te explicar. Posso falar agora?`,
-};
-
-function getScript(seg, nome, cidade) {
-  return (SCRIPTS[seg] || SCRIPTS["Barbearia"])(nome, cidade);
-}
-
+let allLeads = [];
 let currentScript = '';
 let currentWaLink = '';
+let loaded = false;
 
-let searched = false;
-
-function buscar() {
-  searched = true;
-  document.getElementById('initialState').style.display = 'none';
-  document.getElementById('leadsGrid').style.display = 'grid';
-  render();
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-function render() {
-  if (!searched) return;
+function getWaPhone(waUrl) {
+  if (!waUrl) return null;
+  if (waUrl.startsWith('https://wa.me/')) return waUrl.replace('https://wa.me/','');
+  if (waUrl.startsWith('http://wa.me/')) return waUrl.replace('http://wa.me/','');
+  return waUrl.replace(/\D/g,'');
+}
+
+function getWaHref(waUrl) {
+  if (!waUrl) return null;
+  if (waUrl.startsWith('http')) return waUrl;
+  return 'https://wa.me/' + waUrl.replace(/\D/g,'');
+}
+
+function guessScript(seg, nome, cidade) {
+  const s = (seg || '').toLowerCase();
+  if (s.includes('barbear') || s.includes('barber') || s.includes('cabelei') || s.includes('beleza capilar')) {
+    return `Oi, tudo bem? 👋\n\nVi a ${nome} aqui no Instagram e queria bater um papo rápido!\n\nTrabalho com um sistema que encontra pessoas em ${cidade} que estão ativamente buscando barbearia — e entrega o contato delas no mesmo dia.\n\nVocê chega primeiro, antes da concorrência. Sem precisar pagar anúncio.\n\nPosso te mostrar como funciona em 5 minutos? 😊`;
+  }
+  if (s.includes('pet') || s.includes('veterinár') || s.includes('animal')) {
+    return `Olá! Tudo bem? 😊\n\nVi a ${nome} no Instagram e achei que faria sentido te apresentar algo.\n\nTenho um sistema que localiza tutores de pets em ${cidade} que estão procurando pet shop agora — e entrega o WhatsApp deles pra você entrar em contato direto.\n\nSem anúncio, sem esperar o cliente chegar. Você vai até ele primeiro.\n\nPosso te contar mais em 5 minutos?`;
+  }
+  if (s.includes('academ') || s.includes('gym') || s.includes('muscula') || s.includes('fitness')) {
+    return `Oi! Tudo certo? 💪\n\nVi a ${nome} no Instagram e queria apresentar algo que pode aumentar suas matrículas.\n\nTenho um sistema que identifica pessoas em ${cidade} que estão buscando academia agora — e entrega o contato direto pra você abordar antes da concorrência.\n\nSão poucos minutos de conversa, mas pode fazer muita diferença nas matrículas do mês.\n\nPosso te mostrar como funciona?`;
+  }
+  if (s.includes('estét') || s.includes('clinic') || s.includes('spa') || s.includes('dermato')) {
+    return `Olá! Tudo bem? ✨\n\nVi a ${nome} no Instagram e queria compartilhar algo que pode trazer mais pacientes pra vocês.\n\nTenho um sistema que localiza pessoas em ${cidade} que estão buscando clínica estética — e entrega o contato delas pra você fazer a abordagem antes que elas escolham outro lugar.\n\nSão só 5 minutos pra te explicar. Posso falar agora?`;
+  }
+  return `Olá, tudo bem? 👋\n\nVi a ${nome} no Instagram e queria apresentar algo que pode ajudar a trazer mais clientes.\n\nTenho um sistema que identifica pessoas em ${cidade} buscando exatamente o que vocês oferecem — e entrega o contato delas direto pra você.\n\nPosso explicar em 5 minutos. Faz sentido conversar?`;
+}
+
+async function buscar() {
+  if (loaded) { renderFiltered(); return; }
+
+  document.getElementById('initialState').style.display = 'none';
+  document.getElementById('leadsGrid').style.display = 'none';
+  document.getElementById('leadsCount').innerHTML = '';
+  document.getElementById('searchAnim').style.display = 'block';
+  document.getElementById('btnBuscar').disabled = true;
+
+  // Cicla mensagens de status durante o carregamento
+  let msgIdx = 0;
+  const el = document.getElementById('animStatus');
+  const interval = setInterval(() => {
+    msgIdx = (msgIdx + 1) % STATUS_MSGS.length;
+    el.style.opacity = '0';
+    setTimeout(() => { el.textContent = STATUS_MSGS[msgIdx]; el.style.opacity = '1'; }, 200);
+  }, 1100);
+
+  const t0 = Date.now();
+
+  try {
+    const res = await fetch(API);
+    const json = await res.json();
+    if (json.ok && Array.isArray(json.leads)) {
+      allLeads = json.leads;
+    } else {
+      allLeads = [];
+    }
+  } catch(e) {
+    allLeads = [];
+  }
+
+  // Garante mínimo de 2.8s de animação
+  const elapsed = Date.now() - t0;
+  if (elapsed < 2800) await new Promise(r => setTimeout(r, 2800 - elapsed));
+
+  clearInterval(interval);
+  loaded = true;
+
+  // Popula filtro de segmento com os segmentos disponíveis
+  const segs = [...new Set(allLeads.map(l => l.cnae_descricao).filter(Boolean))].sort();
+  const sel = document.getElementById('segFilter');
+  sel.innerHTML = '<option value="">Todos os segmentos</option>' +
+    segs.map(s => `<option>${esc(s)}</option>`).join('');
+
+  document.getElementById('searchAnim').style.display = 'none';
+  document.getElementById('leadsGrid').style.display = 'grid';
+  document.getElementById('btnBuscar').disabled = false;
+
+  renderFiltered();
+}
+
+function renderFiltered() {
+  if (!loaded) return;
   const q = document.getElementById('searchInput').value.toLowerCase().trim();
   const seg = document.getElementById('segFilter').value;
-  const filtered = LEADS.filter(l =>
-    (!q || l.nome.toLowerCase().includes(q) || l.cidade.toLowerCase().includes(q) || l.seg.toLowerCase().includes(q)) &&
-    (!seg || l.seg === seg)
-  );
+  const filtered = allLeads.filter(l => {
+    const nome = (l.razao_social || l.nome_fantasia || '').toLowerCase();
+    const cidade = (l.municipio_nome || '').toLowerCase();
+    const segDesc = (l.cnae_descricao || '').toLowerCase();
+    return (!q || nome.includes(q) || cidade.includes(q) || segDesc.includes(q)) &&
+           (!seg || l.cnae_descricao === seg);
+  });
 
   document.getElementById('leadsCount').innerHTML =
     `<strong>${filtered.length}</strong> lead${filtered.length !== 1 ? 's' : ''} encontrado${filtered.length !== 1 ? 's' : ''}`;
@@ -438,40 +481,54 @@ function render() {
     return;
   }
 
-  grid.innerHTML = filtered.map(l => `
-    <div class="lead-card">
-      <div class="lead-name">${esc(l.nome)}</div>
+  grid.innerHTML = filtered.map((l, i) => {
+    const nome = l.razao_social || l.nome_fantasia || 'Estabelecimento';
+    const seg = l.cnae_descricao || '';
+    const cidade = l.municipio_nome || '';
+    const uf = l.uf || '';
+    const igHref = l.instagram_url || '#';
+    const waHref = getWaHref(l.whatsapp_url);
+    return `
+    <div class="lead-card" style="animation-delay:${Math.min(i * 40, 400)}ms">
+      <div class="lead-name">${esc(nome)}</div>
       <div class="lead-meta">
-        <span class="seg-badge">${esc(l.seg)}</span>
-        <span class="lead-city">📍 ${esc(l.cidade)}, ${esc(l.uf)}</span>
+        <span class="seg-badge">${esc(seg)}</span>
+        <span class="lead-city">📍 ${esc(cidade)}${uf ? ', ' + esc(uf) : ''}</span>
       </div>
       <div class="lead-actions">
-        <a class="btn-ig" href="https://instagram.com/${esc(l.handle)}" target="_blank" rel="noopener">
+        <a class="btn-ig" href="${esc(igHref)}" target="_blank" rel="noopener">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
           Instagram
         </a>
-        <a class="btn-wa" href="https://wa.me/55${esc(l.tel)}" target="_blank" rel="noopener">
+        <a class="btn-wa" href="${esc(waHref)}" target="_blank" rel="noopener">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
           WhatsApp
         </a>
-        <button class="btn-script" onclick="openScript('${esc(l.id)}')">
+        <button class="btn-script" onclick='openScript(${i})'>
           📋 Script
         </button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+
+  // Salva mapeamento de índice → lead para o modal
+  window._demoLeads = filtered;
 }
 
-function esc(s) {
-  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
-function openScript(id) {
-  const l = LEADS.find(x => x.id === id);
+function openScript(idx) {
+  const l = (window._demoLeads || [])[idx];
   if (!l) return;
-  currentScript = getScript(l.seg, l.nome, l.cidade);
-  currentWaLink = `https://wa.me/55${l.tel}?text=${encodeURIComponent(currentScript)}`;
-  document.getElementById('mName').textContent = l.nome;
-  document.getElementById('mMeta').textContent = `${l.seg} · ${l.cidade}, ${l.uf}`;
+  const nome = l.razao_social || l.nome_fantasia || 'Estabelecimento';
+  const seg = l.cnae_descricao || '';
+  const cidade = l.municipio_nome || '';
+  const uf = l.uf || '';
+  const waHref = getWaHref(l.whatsapp_url);
+
+  currentScript = guessScript(seg, nome, cidade);
+  currentWaLink = waHref ? `${waHref}?text=${encodeURIComponent(currentScript)}` : '#';
+
+  document.getElementById('mName').textContent = nome;
+  document.getElementById('mMeta').textContent = `${seg}${cidade ? ' · ' + cidade : ''}${uf ? ', ' + uf : ''}`;
   document.getElementById('mScript').textContent = currentScript;
   document.getElementById('waScriptBtn').href = currentWaLink;
   const btn = document.getElementById('copyBtn');
@@ -500,6 +557,8 @@ function copyScript() {
   });
 }
 
+// Filtragem em tempo real após carregar
+document.getElementById('searchInput').addEventListener('input', renderFiltered);
 </script>
 </body>
 </html>

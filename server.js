@@ -1108,6 +1108,21 @@ async function enviarEmailResend(email, nome, token, plano) {
     .catch(e => console.error(`[Email Resend] ERRO: ${e.response?.data?.message || e.message}`));
 }
 
+// ── DEMO PÚBLICO (sem autenticação) ──────────────────────────────────────────
+app.get("/demo/leads", async (req, res) => {
+  try {
+    const cache = await getLeadsExtraCache();
+    const leads = cache
+      .map(({ id, data: d }) => docToLead(id, d))
+      .filter(l => l.whatsapp_url && l.instagram_url)
+      .slice(0, 50);
+    res.json({ ok: true, leads });
+  } catch(e) {
+    console.error("[Demo] erro:", e.message);
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
 // Webhook Kirvano
 app.post("/webhook/kirvano", express.raw({ type: "*/*" }), async (req, res) => {
   try {
